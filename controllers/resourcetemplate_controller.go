@@ -23,6 +23,7 @@ import (
 	"github.com/kluctl/kluctl/v2/pkg/types/k8s"
 	"github.com/kluctl/kluctl/v2/pkg/utils"
 	"github.com/kluctl/kluctl/v2/pkg/utils/uo"
+	"github.com/kluctl/kluctl/v2/pkg/yaml"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -208,9 +209,17 @@ func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *temp
 func (r *ResourceTemplateReconciler) renderTemplates(ctx context.Context, j2 *jinja2.Jinja2, rt *templatesv1alpha1.ResourceTemplate, vars *uo.UnstructuredObject) ([]*uo.UnstructuredObject, error) {
 	var ret []*uo.UnstructuredObject
 	for _, t := range rt.Spec.Templates {
-		b, err := t.MarshalJSON()
-		if err != nil {
-			return nil, err
+		var b []byte
+		var err error
+		if t.Object != nil {
+			b, err = t.Object.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+		} else if t.Raw != nil {
+			b = []byte(*t.Raw)
+		} else {
+			return nil, fmt.Errorf("no template specified")
 		}
 
 		r, err := j2.RenderString(string(b), nil, vars)
@@ -218,11 +227,17 @@ func (r *ResourceTemplateReconciler) renderTemplates(ctx context.Context, j2 *ji
 			return nil, err
 		}
 
-		u, err := uo.FromString(r)
+		l, err := yaml.ReadYamlAllString(r)
 		if err != nil {
 			return nil, err
 		}
-		ret = append(ret, u)
+		for _, x := range l {
+			if x2, ok := x.(map[string]any); ok {
+				ret = append(ret, uo.FromMap(x2))
+			} else {
+				return nil, fmt.Errorf("template is not an object")
+			}
+		}
 	}
 	return ret, nil
 }

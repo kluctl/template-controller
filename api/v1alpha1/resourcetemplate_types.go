@@ -30,8 +30,16 @@ type ResourceTemplateSpec struct {
 	Generators []Generator `json:"generators"`
 
 	// +required
+	Templates []Template `json:"templates"`
+}
+
+type Template struct {
+	// +optional
 	// +kubebuilder:pruning:PreserveUnknownFields
-	Templates []unstructured.Unstructured `json:"templates"`
+	Object *unstructured.Unstructured `json:"object,omitempty"`
+
+	// +optional
+	Raw *string `json:"raw,omitempty"`
 }
 
 type Generator struct {

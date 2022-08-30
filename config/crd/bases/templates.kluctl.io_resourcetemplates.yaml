@@ -94,9 +94,14 @@ spec:
                 type: string
               templates:
                 items:
+                  properties:
+                    object:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    raw:
+                      type: string
                   type: object
                 type: array
-                x-kubernetes-preserve-unknown-fields: true
             required:
             - generators
             - interval
