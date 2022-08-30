@@ -10,17 +10,17 @@ import (
 )
 
 type MergeRequestInfo struct {
-	ID           int         `json:"id"`
-	IID          int         `json:"IID"`
-	TargetBranch string      `json:"targetBranch"`
-	SourceBranch string      `json:"sourceBranch"`
-	Title        string      `json:"title"`
-	State        string      `json:"state"`
-	CreatedAt    metav1.Time `json:"createdAt"`
-	UpdatedAt    metav1.Time `json:"updatedAt"`
-	Author       string      `json:"author"`
-	Labels       []string    `json:"labels"`
-	Draft        bool        `json:"draft"`
+	ID           int         `yaml:"id"`
+	IID          int         `yaml:"IID"`
+	TargetBranch string      `yaml:"targetBranch"`
+	SourceBranch string      `yaml:"sourceBranch"`
+	Title        string      `yaml:"title"`
+	State        string      `yaml:"state"`
+	CreatedAt    metav1.Time `yaml:"createdAt"`
+	UpdatedAt    metav1.Time `yaml:"updatedAt"`
+	Author       string      `yaml:"author"`
+	Labels       []string    `yaml:"labels"`
+	Draft        bool        `yaml:"draft"`
 }
 
 func BuildPullRequestGenerator(ctx context.Context, client client.Client, namespace string, spec templatesv1alpha1.PullRequestGenerator) (Generator, error) {
@@ -48,9 +48,9 @@ func filterPullRequests(mrs []MergeRequestInfo, filters []templatesv1alpha1.Pull
 	}
 
 	ret := make([]MergeRequestInfo, 0, len(mrs))
-	for i, mr := range mrs {
+	for _, mr := range mrs {
 		match := true
-		for _, f := range filters {
+		for i, f := range filters {
 			if f.BranchMatch != nil {
 				if !branchMatchPatterns[i].MatchString(mr.SourceBranch) {
 					match = false
