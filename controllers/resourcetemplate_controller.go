@@ -52,9 +52,9 @@ func (r *ResourceTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
+	patch := client.MergeFrom(rt.DeepCopy())
 	err = r.doReconcile(ctx, &rt)
 	if err != nil {
-		patch := client.MergeFrom(rt.DeepCopy())
 		c := metav1.Condition{
 			Type:               "Ready",
 			Status:             metav1.ConditionFalse,
@@ -63,7 +63,18 @@ func (r *ResourceTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			Message:            err.Error(),
 		}
 		apimeta.SetStatusCondition(&rt.Status.Conditions, c)
-		err = r.Status().Patch(ctx, &rt, patch)
+	} else {
+		c := metav1.Condition{
+			Type:               "Ready",
+			Status:             metav1.ConditionTrue,
+			ObservedGeneration: rt.GetGeneration(),
+			Reason:             "Success",
+			Message:            "",
+		}
+		apimeta.SetStatusCondition(&rt.Status.Conditions, c)
+	}
+	err = r.Status().Patch(ctx, &rt, patch)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
