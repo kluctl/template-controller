@@ -1,0 +1,6 @@
+domain: kluctl.io
+layout:
+- go.kubebuilder.io/v3
+projectName: template-controller
+repo: kluctl/template-controller
+version: "3"
