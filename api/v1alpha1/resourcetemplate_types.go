@@ -21,8 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-// ResourcesTemplateSpec defines the desired state of ResourcesTemplate
-type ResourcesTemplateSpec struct {
+// ResourceTemplateSpec defines the desired state of ResourceTemplate
+type ResourceTemplateSpec struct {
 	// +kubebuilder:default:="30s"
 	Interval metav1.Duration `json:"interval"`
 
@@ -67,43 +67,43 @@ type PullRequestGeneratorGitlab struct {
 	PullRequestState string `json:"pullRequestState,omitempty"`
 }
 
-// ResourcesTemplateStatus defines the observed state of ResourcesTemplate
-type ResourcesTemplateStatus struct {
+// ResourceTemplateStatus defines the observed state of ResourceTemplate
+type ResourceTemplateStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // GetConditions returns the status conditions of the object.
-func (in *ResourcesTemplate) GetConditions() []metav1.Condition {
+func (in *ResourceTemplate) GetConditions() []metav1.Condition {
 	return in.Status.Conditions
 }
 
 // SetConditions sets the status conditions on the object.
-func (in *ResourcesTemplate) SetConditions(conditions []metav1.Condition) {
+func (in *ResourceTemplate) SetConditions(conditions []metav1.Condition) {
 	in.Status.Conditions = conditions
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// ResourcesTemplate is the Schema for the resourcestemplates API
-type ResourcesTemplate struct {
+// ResourceTemplate is the Schema for the resourcetemplates API
+type ResourceTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ResourcesTemplateSpec   `json:"spec,omitempty"`
-	Status ResourcesTemplateStatus `json:"status,omitempty"`
+	Spec   ResourceTemplateSpec   `json:"spec,omitempty"`
+	Status ResourceTemplateStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// ResourcesTemplateList contains a list of ResourcesTemplate
-type ResourcesTemplateList struct {
+// ResourceTemplateList contains a list of ResourceTemplate
+type ResourceTemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ResourcesTemplate `json:"items"`
+	Items           []ResourceTemplate `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&ResourcesTemplate{}, &ResourcesTemplateList{})
+	SchemeBuilder.Register(&ResourceTemplate{}, &ResourceTemplateList{})
 }

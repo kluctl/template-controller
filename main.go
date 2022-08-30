@@ -89,11 +89,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.ResourcesTemplateReconciler{
+	if err = (&controllers.ResourceTemplateReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ResourcesTemplate")
+		setupLog.Error(err, "unable to create controller", "controller", "ResourceTemplate")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

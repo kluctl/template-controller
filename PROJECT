@@ -10,7 +10,7 @@ resources:
   controller: true
   domain: kluctl.io
   group: templates
-  kind: ResourcesTemplate
+  kind: ResourceTemplate
   path: kluctl/template-controller/api/v1alpha1
   version: v1alpha1
 version: "3"
