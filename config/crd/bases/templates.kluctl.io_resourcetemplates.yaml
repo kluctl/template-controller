@@ -105,6 +105,32 @@ spec:
           status:
             description: ResourceTemplateStatus defines the observed state of ResourceTemplate
             properties:
+              appliedResources:
+                items:
+                  properties:
+                    error:
+                      type: string
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    success:
+                      type: boolean
+                    version:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  - namespace
+                  - success
+                  - version
+                  type: object
+                type: array
               conditions:
                 items:
                   description: "Condition contains details for one aspect of the current

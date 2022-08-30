@@ -71,6 +71,22 @@ type PullRequestGeneratorGitlab struct {
 type ResourceTemplateStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// +optional
+	AppliedResources []AppliedResourceInfo `json:"appliedResources,omitempty"`
+}
+
+type AppliedResourceInfo struct {
+	Group     string `json:"group"`
+	Version   string `json:"version"`
+	Kind      string `json:"kind"`
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+
+	Success bool `json:"success"`
+
+	// +optional
+	Error string `json:"error,omitempty"`
 }
 
 // GetConditions returns the status conditions of the object.

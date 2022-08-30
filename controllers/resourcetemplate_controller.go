@@ -20,7 +20,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/kluctl/kluctl/v2/pkg/jinja2"
+	"github.com/kluctl/kluctl/v2/pkg/types/k8s"
+	"github.com/kluctl/kluctl/v2/pkg/utils"
 	"github.com/kluctl/kluctl/v2/pkg/utils/uo"
+	"k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -69,7 +72,7 @@ func (r *ResourceTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			Status:             metav1.ConditionTrue,
 			ObservedGeneration: rt.GetGeneration(),
 			Reason:             "Success",
-			Message:            "",
+			Message:            "Success",
 		}
 		apimeta.SetStatusCondition(&rt.Status.Conditions, c)
 	}
@@ -118,14 +121,57 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 		}
 	}
 
+	toDelete := make(map[k8s.ObjectRef]k8s.ObjectRef)
+	for _, n := range rt.Status.AppliedResources {
+		ref := k8s.NewObjectRef(n.Group, n.Version, n.Kind, n.Name, n.Namespace)
+		ref2 := ref
+		ref2.GVK.Version = ""
+		toDelete[ref2] = ref
+	}
+
+	rt.Status.AppliedResources = nil
+
+	var errs []error
 	for _, resource := range allResources {
+		ref := resource.GetK8sRef()
+
+		ari := templatesv1alpha1.AppliedResourceInfo{
+			Group:     ref.GVK.Group,
+			Version:   ref.GVK.Version,
+			Kind:      ref.GVK.Kind,
+			Namespace: ref.Namespace,
+			Name:      ref.Name,
+			Success:   true,
+		}
+
+		ref.GVK.Version = ""
+		delete(toDelete, ref)
+
 		err = r.applyTemplate(ctx, rt, resource)
 		if err != nil {
-			return err
+			ari.Success = false
+			ari.Error = err.Error()
+			errs = append(errs, err)
+		}
+
+		rt.Status.AppliedResources = append(rt.Status.AppliedResources, ari)
+	}
+
+	for _, ref := range toDelete {
+		m := metav1.PartialObjectMetadata{}
+		m.SetGroupVersionKind(ref.GVK)
+		m.SetNamespace(ref.Namespace)
+		m.SetName(ref.Name)
+
+		err = r.Delete(ctx, &m)
+		if err != nil {
+			if !errors.IsNotFound(err) {
+				errs = append(errs, err)
+			}
 		}
 	}
 
-	return nil
+	return utils.NewErrorListOrNil(errs)
 }
 
 func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate, rendered *uo.UnstructuredObject) error {
@@ -152,6 +198,7 @@ func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *temp
 	if err != nil {
 		return err
 	}
+
 	if mres != controllerutil.OperationResultNone {
 		log.Info(fmt.Sprintf("CreateOrUpdate returned %v", mres), "ref", rendered.GetK8sRef())
 	}
