@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1alpha1 contains API Schema definitions for the templates v1alpha1 API group
-//+kubebuilder:object:generate=true
-//+groupName=templates.kluctl.io
+// +kubebuilder:object:generate=true
+// +groupName=templates.kluctl.io
 package v1alpha1
 
 import (
