@@ -48,8 +48,6 @@ type ResourceTemplateReconciler struct {
 
 // Reconcile a resource
 func (r *ResourceTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = ctrl.LoggerFrom(ctx)
-
 	var rt templatesv1alpha1.ResourceTemplate
 	err := r.Get(ctx, req.NamespacedName, &rt)
 	if err != nil {
@@ -178,9 +176,11 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate, rendered *uo.UnstructuredObject) error {
 	log := ctrl.LoggerFrom(ctx)
 
-	n := rendered.Clone()
-	mres, err := controllerutil.CreateOrUpdate(ctx, r.Client, n.ToUnstructured(), func() error {
-		if err := controllerutil.SetControllerReference(rt, n.ToUnstructured(), r.Scheme); err != nil {
+	x := rendered.ToUnstructured()
+
+	mres, err := controllerutil.CreateOrUpdate(ctx, r.Client, x, func() error {
+		n := uo.FromUnstructured(x)
+		if err := controllerutil.SetControllerReference(rt, x, r.Scheme); err != nil {
 			return err
 		}
 		for k, v := range rendered.GetK8sAnnotations() {
