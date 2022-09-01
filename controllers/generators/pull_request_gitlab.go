@@ -22,8 +22,7 @@ type PullRequestGitlabGenerator struct {
 
 func (g *PullRequestGitlabGenerator) convertMR(mr *gitlab.MergeRequest) MergeRequestInfo {
 	return MergeRequestInfo{
-		ID:           mr.ID,
-		IID:          mr.IID,
+		ID:           mr.IID,
 		TargetBranch: mr.TargetBranch,
 		SourceBranch: mr.SourceBranch,
 		Title:        mr.Title,

@@ -11,7 +11,6 @@ import (
 
 type MergeRequestInfo struct {
 	ID           int         `yaml:"id"`
-	IID          int         `yaml:"IID"`
 	TargetBranch string      `yaml:"targetBranch"`
 	SourceBranch string      `yaml:"sourceBranch"`
 	Title        string      `yaml:"title"`
