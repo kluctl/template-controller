@@ -11,7 +11,8 @@ import (
 )
 
 type PullRequestApproveReporter struct {
-	mr webgit.MergeRequestInterface
+	mr   webgit.MergeRequestInterface
+	spec v1alpha1.PullRequestApproveReporter
 }
 
 func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestApproveReporter) (Reporter, error) {
@@ -20,7 +21,7 @@ func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, 
 		return nil, err
 	}
 
-	return &PullRequestApproveReporter{mr: mr}, nil
+	return &PullRequestApproveReporter{mr: mr, spec: spec}, nil
 }
 
 func (p *PullRequestApproveReporter) Report(ctx context.Context, obj client.Object, status *v1alpha1.ReporterStatus) error {
@@ -73,6 +74,11 @@ func (p *PullRequestApproveReporter) computeReady(obj client.Object) (bool, erro
 	res, err := status.Compute(u)
 	if err != nil {
 		return false, err
+	}
+	if res.Status == status.CurrentStatus && p.spec.MissingStatusIsError {
+		if _, ok := u.Object["status"]; !ok {
+			return false, nil
+		}
 	}
 	return res.Status == status.CurrentStatus, nil
 }

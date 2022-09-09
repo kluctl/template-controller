@@ -79,6 +79,10 @@ type PullRequestCommentReporterStatus struct {
 type PullRequestApproveReporter struct {
 	// +optional
 	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
+
+	// +optional
+	// +kubebuilder:default:=true
+	MissingStatusIsError bool `json:"missingStatusIsError"`
 }
 
 type PullRequestApproveReporterStatus struct {
