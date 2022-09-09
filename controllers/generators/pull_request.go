@@ -10,16 +10,16 @@ import (
 )
 
 type MergeRequestInfo struct {
-	ID           int         `yaml:"id"`
-	TargetBranch string      `yaml:"targetBranch"`
-	SourceBranch string      `yaml:"sourceBranch"`
-	Title        string      `yaml:"title"`
-	State        string      `yaml:"state"`
-	CreatedAt    metav1.Time `yaml:"createdAt"`
-	UpdatedAt    metav1.Time `yaml:"updatedAt"`
-	Author       string      `yaml:"author"`
-	Labels       []string    `yaml:"labels"`
-	Draft        bool        `yaml:"draft"`
+	ID           int         `json:"id"`
+	TargetBranch string      `json:"targetBranch"`
+	SourceBranch string      `json:"sourceBranch"`
+	Title        string      `json:"title"`
+	State        string      `json:"state"`
+	CreatedAt    metav1.Time `json:"createdAt"`
+	UpdatedAt    metav1.Time `json:"updatedAt"`
+	Author       string      `json:"author"`
+	Labels       []string    `json:"labels"`
+	Draft        bool        `json:"draft"`
 }
 
 func BuildPullRequestGenerator(ctx context.Context, client client.Client, namespace string, spec templatesv1alpha1.PullRequestGenerator) (Generator, error) {

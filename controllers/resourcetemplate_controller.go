@@ -19,16 +19,17 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/kluctl/kluctl/v2/pkg/jinja2"
-	"github.com/kluctl/kluctl/v2/pkg/types/k8s"
-	"github.com/kluctl/kluctl/v2/pkg/utils"
-	"github.com/kluctl/kluctl/v2/pkg/utils/uo"
-	"github.com/kluctl/kluctl/v2/pkg/yaml"
+	"github.com/hashicorp/go-multierror"
+	"github.com/kluctl/go-jinja2"
+	"io"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	"strings"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/json"
 	templatesv1alpha1 "kluctl/template-controller/api/v1alpha1"
 	"kluctl/template-controller/controllers/generators"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -91,13 +92,17 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 		return err
 	}
 
-	j2, err := jinja2.NewJinja2()
+	j2, err := jinja2.NewJinja2("template-controller", 1,
+		jinja2.WithStrict(false),
+		jinja2.WithExtension("jinja2.ext.loopcontrols"),
+		jinja2.WithExtension("go_jinja2.ext.kluctl"),
+	)
 	if err != nil {
 		return err
 	}
 	defer j2.Close()
 
-	var allResources []*uo.UnstructuredObject
+	var allResources []*unstructured.Unstructured
 
 	for _, g := range rt.Spec.Generators {
 		g, err := r.buildGenerator(ctx, rt.GetNamespace(), g)
@@ -110,7 +115,8 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 		}
 
 		for _, c := range contexts {
-			vars := baseVars.MergeCopy(c.Vars)
+			vars := runtime.DeepCopyJSON(baseVars)
+			MergeMap(vars, c.Vars)
 
 			resources, err := r.renderTemplates(ctx, j2, rt, vars)
 			if err != nil {
@@ -120,37 +126,32 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 		}
 	}
 
-	toDelete := make(map[k8s.ObjectRef]k8s.ObjectRef)
+	toDelete := make(map[templatesv1alpha1.ResourceRef]templatesv1alpha1.ResourceRef)
 	for _, n := range rt.Status.AppliedResources {
-		ref := k8s.NewObjectRef(n.Group, n.Version, n.Kind, n.Name, n.Namespace)
-		ref2 := ref
-		ref2.GVK.Version = ""
-		toDelete[ref2] = ref
+		ref := n.Ref
+		ref.Version = ""
+		toDelete[ref] = n.Ref
 	}
 
 	rt.Status.AppliedResources = nil
 
-	var errs []error
+	var errs *multierror.Error
 	for _, resource := range allResources {
-		ref := resource.GetK8sRef()
+		ref := templatesv1alpha1.ResourceRefFromObject(resource)
 
 		ari := templatesv1alpha1.AppliedResourceInfo{
-			Group:     ref.GVK.Group,
-			Version:   ref.GVK.Version,
-			Kind:      ref.GVK.Kind,
-			Namespace: ref.Namespace,
-			Name:      ref.Name,
-			Success:   true,
+			Ref:     ref,
+			Success: true,
 		}
 
-		ref.GVK.Version = ""
+		ref.Version = ""
 		delete(toDelete, ref)
 
 		err = r.applyTemplate(ctx, rt, resource)
 		if err != nil {
 			ari.Success = false
 			ari.Error = err.Error()
-			errs = append(errs, err)
+			errs = multierror.Append(errs, err)
 		}
 
 		rt.Status.AppliedResources = append(rt.Status.AppliedResources, ari)
@@ -158,42 +159,31 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 
 	for _, ref := range toDelete {
 		m := metav1.PartialObjectMetadata{}
-		m.SetGroupVersionKind(ref.GVK)
+		m.SetGroupVersionKind(ref.GroupVersionLind())
 		m.SetNamespace(ref.Namespace)
 		m.SetName(ref.Name)
 
 		err = r.Delete(ctx, &m)
 		if err != nil {
 			if !errors.IsNotFound(err) {
-				errs = append(errs, err)
+				errs = multierror.Append(errs, err)
 			}
 		}
 	}
 
-	return utils.NewErrorListOrNil(errs)
+	return errs.ErrorOrNil()
 }
 
-func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate, rendered *uo.UnstructuredObject) error {
+func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate, rendered *unstructured.Unstructured) error {
 	log := ctrl.LoggerFrom(ctx)
 
-	x := rendered.ToUnstructured()
+	x := rendered.DeepCopy()
 
 	mres, err := controllerutil.CreateOrUpdate(ctx, r.Client, x, func() error {
-		n := uo.FromUnstructured(x)
 		if err := controllerutil.SetControllerReference(rt, x, r.Scheme); err != nil {
 			return err
 		}
-		for k, v := range rendered.GetK8sAnnotations() {
-			n.SetK8sAnnotation(k, v)
-		}
-		for k, v := range rendered.GetK8sLabels() {
-			n.SetK8sLabel(k, v)
-		}
-		for k := range rendered.Object {
-			if k != "metadata" && k != "status" {
-				n.Object[k] = rendered.Object[k]
-			}
-		}
+		MergeMap(x.Object, rendered.Object)
 		return nil
 	})
 	if err != nil {
@@ -201,61 +191,54 @@ func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *temp
 	}
 
 	if mres != controllerutil.OperationResultNone {
-		log.Info(fmt.Sprintf("CreateOrUpdate returned %v", mres), "ref", rendered.GetK8sRef())
+		log.Info(fmt.Sprintf("CreateOrUpdate returned %v", mres), "ref", templatesv1alpha1.ResourceRefFromObject(rendered))
 	}
 	return nil
 }
 
-func (r *ResourceTemplateReconciler) renderTemplates(ctx context.Context, j2 *jinja2.Jinja2, rt *templatesv1alpha1.ResourceTemplate, vars *uo.UnstructuredObject) ([]*uo.UnstructuredObject, error) {
-	var ret []*uo.UnstructuredObject
+func (r *ResourceTemplateReconciler) renderTemplates(ctx context.Context, j2 *jinja2.Jinja2, rt *templatesv1alpha1.ResourceTemplate, vars map[string]any) ([]*unstructured.Unstructured, error) {
+	var ret []*unstructured.Unstructured
 	for _, t := range rt.Spec.Templates {
-		var b []byte
-		var err error
 		if t.Object != nil {
-			b, err = t.Object.MarshalJSON()
+			x := t.Object.DeepCopy()
+			_, err := j2.RenderStruct(x, jinja2.WithGlobals(vars))
 			if err != nil {
 				return nil, err
 			}
+			ret = append(ret, x)
 		} else if t.Raw != nil {
-			b = []byte(*t.Raw)
+			r, err := j2.RenderString(*t.Raw, jinja2.WithGlobals(vars))
+			if err != nil {
+				return nil, err
+			}
+			d := yaml.NewYAMLToJSONDecoder(strings.NewReader(r))
+			for {
+				var u unstructured.Unstructured
+				err = d.Decode(&u)
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+					return nil, err
+				}
+				ret = append(ret, &u)
+			}
 		} else {
 			return nil, fmt.Errorf("no template specified")
-		}
-
-		r, err := j2.RenderString(string(b), nil, vars)
-		if err != nil {
-			return nil, err
-		}
-
-		l, err := yaml.ReadYamlAllString(r)
-		if err != nil {
-			return nil, err
-		}
-		for _, x := range l {
-			if x2, ok := x.(map[string]any); ok {
-				ret = append(ret, uo.FromMap(x2))
-			} else {
-				return nil, fmt.Errorf("template is not an object")
-			}
 		}
 	}
 	return ret, nil
 }
 
-func (r *ResourceTemplateReconciler) buildBaseVars(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate) (*uo.UnstructuredObject, error) {
-	vars := uo.New()
+func (r *ResourceTemplateReconciler) buildBaseVars(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate) (map[string]any, error) {
+	vars := map[string]any{}
 
-	b, err := json.Marshal(rt)
-	if err != nil {
-		return nil, err
-	}
-	u, err := uo.FromString(string(b))
+	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(rt)
 	if err != nil {
 		return nil, err
 	}
 
-	_ = vars.SetNestedField(u.Object, "resourceTemplate")
-
+	vars["resourceTemplate"] = u
 	return vars, nil
 }
 

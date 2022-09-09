@@ -3,10 +3,10 @@ package generators
 import (
 	"context"
 	"fmt"
-	"github.com/kluctl/kluctl/v2/pkg/utils/uo"
 	"github.com/xanzy/go-gitlab"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	templatesv1alpha1 "kluctl/template-controller/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -60,8 +60,14 @@ func (g *PullRequestGitlabGenerator) BuildContexts() ([]*GeneratedContext, error
 
 	var ret []*GeneratedContext
 	for _, mr := range mrs2 {
-		vars := uo.New()
-		_ = vars.SetNestedField(mr, "mergeRequest")
+		u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&mr)
+		if err != nil {
+			return nil, err
+		}
+
+		vars := map[string]any{
+			"mergeRequest": u,
+		}
 
 		ret = append(ret, &GeneratedContext{
 			Vars: vars,
