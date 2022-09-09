@@ -1,0 +1,6 @@
+apiVersion: templates.kluctl.io/v1alpha1
+kind: StatusReporter
+metadata:
+  name: statusreporter-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,20 @@
+# permissions for end users to view statusreporters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: statusreporter-viewer-role
+rules:
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - statusreporters
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - statusreporters/status
+  verbs:
+  - get
