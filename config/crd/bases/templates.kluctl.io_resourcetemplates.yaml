@@ -115,25 +115,30 @@ spec:
                   properties:
                     error:
                       type: string
-                    group:
-                      type: string
-                    kind:
-                      type: string
-                    name:
-                      type: string
-                    namespace:
-                      type: string
+                    ref:
+                      properties:
+                        group:
+                          type: string
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                        namespace:
+                          type: string
+                        version:
+                          type: string
+                      required:
+                      - group
+                      - kind
+                      - name
+                      - namespace
+                      - version
+                      type: object
                     success:
                       type: boolean
-                    version:
-                      type: string
                   required:
-                  - group
-                  - kind
-                  - name
-                  - namespace
+                  - ref
                   - success
-                  - version
                   type: object
                 type: array
               conditions:
@@ -141,8 +146,8 @@ spec:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource. --- This struct is intended for direct
                     use as an array at the field path .status.conditions.  For example,
-                    type FooStatus struct{ // Represents the observations of a foo's
-                    current state. // Known .status.conditions.type are: \"Available\",
+                    \n type FooStatus struct{ // Represents the observations of a
+                    foo's current state. // Known .status.conditions.type are: \"Available\",
                     \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge
                     // +listType=map // +listMapKey=type Conditions []metav1.Condition
                     `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\"

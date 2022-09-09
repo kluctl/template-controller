@@ -85,11 +85,7 @@ type ResourceTemplateStatus struct {
 }
 
 type AppliedResourceInfo struct {
-	Group     string `json:"group"`
-	Version   string `json:"version"`
-	Kind      string `json:"kind"`
-	Namespace string `json:"namespace"`
-	Name      string `json:"name"`
+	Ref ResourceRef `json:"ref"`
 
 	Success bool `json:"success"`
 
