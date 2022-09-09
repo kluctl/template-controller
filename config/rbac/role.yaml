@@ -6,6 +6,32 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - status.kluctl.io
+  resources:
+  - statusreporters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - status.kluctl.io
+  resources:
+  - statusreporters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - status.kluctl.io
+  resources:
+  - statusreporters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - templates.kluctl.io
   resources:
   - resourcetemplates
@@ -27,32 +53,6 @@ rules:
   - templates.kluctl.io
   resources:
   - resourcetemplates/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - statusreporters
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - statusreporters/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - statusreporters/status
   verbs:
   - get
   - patch

@@ -14,24 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package template
 
 import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-multierror"
 	"github.com/kluctl/go-jinja2"
+	"github.com/kluctl/template-controller/controllers"
+	generators2 "github.com/kluctl/template-controller/controllers/template/generators"
 	"io"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"strings"
 
+	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	templatesv1alpha1 "kluctl/template-controller/api/v1alpha1"
-	"kluctl/template-controller/controllers/generators"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -92,11 +93,7 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 		return err
 	}
 
-	j2, err := jinja2.NewJinja2("template-controller", 1,
-		jinja2.WithStrict(false),
-		jinja2.WithExtension("jinja2.ext.loopcontrols"),
-		jinja2.WithExtension("go_jinja2.ext.kluctl"),
-	)
+	j2, err := controllers.NewJinja2()
 	if err != nil {
 		return err
 	}
@@ -116,7 +113,7 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 
 		for _, c := range contexts {
 			vars := runtime.DeepCopyJSON(baseVars)
-			MergeMap(vars, c.Vars)
+			controllers.MergeMap(vars, c.Vars)
 
 			resources, err := r.renderTemplates(ctx, j2, rt, vars)
 			if err != nil {
@@ -195,7 +192,7 @@ func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *temp
 		if err := controllerutil.SetControllerReference(rt, x, r.Scheme); err != nil {
 			return err
 		}
-		MergeMap(x.Object, rendered.Object)
+		controllers.MergeMap(x.Object, rendered.Object)
 		return nil
 	})
 	if err != nil {
@@ -254,9 +251,9 @@ func (r *ResourceTemplateReconciler) buildBaseVars(ctx context.Context, rt *temp
 	return vars, nil
 }
 
-func (r *ResourceTemplateReconciler) buildGenerator(ctx context.Context, namespace string, spec templatesv1alpha1.Generator) (generators.Generator, error) {
+func (r *ResourceTemplateReconciler) buildGenerator(ctx context.Context, namespace string, spec templatesv1alpha1.Generator) (generators2.Generator, error) {
 	if spec.PullRequest != nil {
-		return generators.BuildPullRequestGenerator(ctx, r.Client, namespace, *spec.PullRequest)
+		return generators2.BuildPullRequestGenerator(ctx, r.Client, namespace, *spec.PullRequest)
 	} else {
 		return nil, fmt.Errorf("no generator specified")
 	}

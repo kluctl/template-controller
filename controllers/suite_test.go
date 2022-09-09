@@ -31,7 +31,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	templatesv1alpha1 "kluctl/template-controller/api/v1alpha1"
+	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

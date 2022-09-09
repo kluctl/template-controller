@@ -3,12 +3,12 @@ package generators
 import (
 	"context"
 	"fmt"
+	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/xanzy/go-gitlab"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	templatesv1alpha1 "kluctl/template-controller/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

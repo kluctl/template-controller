@@ -3,8 +3,8 @@ package generators
 import (
 	"context"
 	"fmt"
+	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	templatesv1alpha1 "kluctl/template-controller/api/v1alpha1"
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

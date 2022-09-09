@@ -17,25 +17,82 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // StatusReporterSpec defines the desired state of StatusReporter
 type StatusReporterSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +kubebuilder:default:="1m"
+	Interval metav1.Duration `json:"interval"`
 
-	// Foo is an example field of StatusReporter. Edit statusreporter_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// +required
+	ForObject ObjectRef `json:"forObject"`
+
+	// +required
+	Reporters []Reporter `json:"reporters"`
+}
+
+type Reporter struct {
+	// +optional
+	PullRequestComment *PullRequestCommentReporter `json:"pullRequestComment,omitempty"`
+	// +optional
+	PullRequestApprove *PullRequestApproveReporter `json:"pullRequestApprove,omitempty"`
+}
+
+func (r *Reporter) BuildKey() string {
+	b, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	s := sha256.Sum256(b)
+	return hex.EncodeToString(s[:])
+}
+
+type ReporterStatus struct {
+	Key string `json:"key"`
+
+	// +optional
+	Error string `json:"error,omitempty"`
+
+	// +optional
+	PullRequestComment *PullRequestCommentReporterStatus `json:"pullRequestComment,omitempty"`
+	// +optional
+	PullRequestApprove *PullRequestApproveReporterStatus `json:"pullRequestApprove,omitempty"`
+}
+
+type PullRequestCommentReporter struct {
+	// +optional
+	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
+}
+
+type PullRequestCommentReporterStatus struct {
+	// +optional
+	LastPostedStatusHash string `json:"lastPostedStatusHash,omitempty"`
+
+	// +optional
+	NoteId string `json:"noteId,omitempty"`
+}
+
+type PullRequestApproveReporter struct {
+	// +optional
+	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
+}
+
+type PullRequestApproveReporterStatus struct {
+	// +optional
+	Approved *bool `json:"approved,omitempty"`
 }
 
 // StatusReporterStatus defines the observed state of StatusReporter
 type StatusReporterStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// +optional
+	ReporterStatus []*ReporterStatus `json:"reporterStatus"`
 }
 
 //+kubebuilder:object:root=true
