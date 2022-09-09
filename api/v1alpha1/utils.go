@@ -12,16 +12,16 @@ type SecretRef struct {
 	Key        string `json:"key"`
 }
 
-type ResourceRef struct {
+type ObjectRef struct {
 	APIVersion string `json:"apiVersion"`
 	Kind       string `json:"kind"`
 	Namespace  string `json:"namespace"`
 	Name       string `json:"name"`
 }
 
-func ResourceRefFromObject(object client.Object) ResourceRef {
+func ObjectRefFromObject(object client.Object) ObjectRef {
 	gvk := object.GetObjectKind().GroupVersionKind()
-	return ResourceRef{
+	return ObjectRef{
 		APIVersion: gvk.GroupVersion().String(),
 		Kind:       gvk.Kind,
 		Namespace:  object.GetNamespace(),
@@ -29,7 +29,7 @@ func ResourceRefFromObject(object client.Object) ResourceRef {
 	}
 }
 
-func (r *ResourceRef) GroupVersionKind() (schema.GroupVersionKind, error) {
+func (r *ObjectRef) GroupVersionKind() (schema.GroupVersionKind, error) {
 	gv, err := schema.ParseGroupVersion(r.APIVersion)
 	if err != nil {
 		return schema.GroupVersionKind{}, err
@@ -42,7 +42,7 @@ func (r *ResourceRef) GroupVersionKind() (schema.GroupVersionKind, error) {
 	}, nil
 }
 
-func (r *ResourceRef) String() string {
+func (r *ObjectRef) String() string {
 	if r.Namespace != "" {
 		return fmt.Sprintf("%s/%s/%s", r.Namespace, r.Kind, r.Name)
 	} else {

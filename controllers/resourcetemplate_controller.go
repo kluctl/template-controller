@@ -126,7 +126,7 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 		}
 	}
 
-	toDelete := make(map[templatesv1alpha1.ResourceRef]templatesv1alpha1.ResourceRef)
+	toDelete := make(map[templatesv1alpha1.ObjectRef]templatesv1alpha1.ObjectRef)
 	for _, n := range rt.Status.AppliedResources {
 		gvk, err := n.Ref.GroupVersionKind()
 		if err != nil {
@@ -141,7 +141,7 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 
 	var errs *multierror.Error
 	for _, resource := range allResources {
-		ref := templatesv1alpha1.ResourceRefFromObject(resource)
+		ref := templatesv1alpha1.ObjectRefFromObject(resource)
 		gvk, err := ref.GroupVersionKind()
 		if err != nil {
 			return err
@@ -203,7 +203,7 @@ func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *temp
 	}
 
 	if mres != controllerutil.OperationResultNone {
-		log.Info(fmt.Sprintf("CreateOrUpdate returned %v", mres), "ref", templatesv1alpha1.ResourceRefFromObject(rendered))
+		log.Info(fmt.Sprintf("CreateOrUpdate returned %v", mres), "ref", templatesv1alpha1.ObjectRefFromObject(rendered))
 	}
 	return nil
 }

@@ -85,7 +85,7 @@ type ResourceTemplateStatus struct {
 }
 
 type AppliedResourceInfo struct {
-	Ref ResourceRef `json:"ref"`
+	Ref ObjectRef `json:"ref"`
 
 	Success bool `json:"success"`
 
