@@ -13,30 +13,33 @@ type SecretRef struct {
 }
 
 type ResourceRef struct {
-	Group     string `json:"group"`
-	Version   string `json:"version"`
-	Kind      string `json:"kind"`
-	Namespace string `json:"namespace"`
-	Name      string `json:"name"`
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Namespace  string `json:"namespace"`
+	Name       string `json:"name"`
 }
 
 func ResourceRefFromObject(object client.Object) ResourceRef {
 	gvk := object.GetObjectKind().GroupVersionKind()
 	return ResourceRef{
-		Group:     gvk.Group,
-		Version:   gvk.Version,
-		Kind:      gvk.Kind,
-		Namespace: object.GetNamespace(),
-		Name:      object.GetName(),
+		APIVersion: gvk.GroupVersion().String(),
+		Kind:       gvk.Kind,
+		Namespace:  object.GetNamespace(),
+		Name:       object.GetName(),
 	}
 }
 
-func (r *ResourceRef) GroupVersionLind() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   r.Group,
-		Version: r.Version,
-		Kind:    r.Kind,
+func (r *ResourceRef) GroupVersionKind() (schema.GroupVersionKind, error) {
+	gv, err := schema.ParseGroupVersion(r.APIVersion)
+	if err != nil {
+		return schema.GroupVersionKind{}, err
 	}
+
+	return schema.GroupVersionKind{
+		Group:   gv.Group,
+		Version: gv.Version,
+		Kind:    r.Kind,
+	}, nil
 }
 
 func (r *ResourceRef) String() string {

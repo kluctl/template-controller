@@ -128,8 +128,12 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 
 	toDelete := make(map[templatesv1alpha1.ResourceRef]templatesv1alpha1.ResourceRef)
 	for _, n := range rt.Status.AppliedResources {
+		gvk, err := n.Ref.GroupVersionKind()
+		if err != nil {
+			return err
+		}
 		ref := n.Ref
-		ref.Version = ""
+		ref.APIVersion = gvk.Group
 		toDelete[ref] = n.Ref
 	}
 
@@ -138,13 +142,17 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 	var errs *multierror.Error
 	for _, resource := range allResources {
 		ref := templatesv1alpha1.ResourceRefFromObject(resource)
+		gvk, err := ref.GroupVersionKind()
+		if err != nil {
+			return err
+		}
 
 		ari := templatesv1alpha1.AppliedResourceInfo{
 			Ref:     ref,
 			Success: true,
 		}
 
-		ref.Version = ""
+		ref.APIVersion = gvk.Group
 		delete(toDelete, ref)
 
 		err = r.applyTemplate(ctx, rt, resource)
@@ -158,8 +166,12 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 	}
 
 	for _, ref := range toDelete {
+		gvk, err := ref.GroupVersionKind()
+		if err != nil {
+			return err
+		}
 		m := metav1.PartialObjectMetadata{}
-		m.SetGroupVersionKind(ref.GroupVersionLind())
+		m.SetGroupVersionKind(gvk)
 		m.SetNamespace(ref.Namespace)
 		m.SetName(ref.Name)
 
