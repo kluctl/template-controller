@@ -15,8 +15,10 @@ type SecretRef struct {
 type ObjectRef struct {
 	APIVersion string `json:"apiVersion"`
 	Kind       string `json:"kind"`
-	Namespace  string `json:"namespace"`
-	Name       string `json:"name"`
+
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"name"`
 }
 
 func ObjectRefFromObject(object client.Object) ObjectRef {

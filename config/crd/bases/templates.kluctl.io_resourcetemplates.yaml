@@ -117,7 +117,7 @@ spec:
                       type: string
                     ref:
                       properties:
-                        group:
+                        apiVersion:
                           type: string
                         kind:
                           type: string
@@ -125,14 +125,10 @@ spec:
                           type: string
                         namespace:
                           type: string
-                        version:
-                          type: string
                       required:
-                      - group
+                      - apiVersion
                       - kind
                       - name
-                      - namespace
-                      - version
                       type: object
                     success:
                       type: boolean
