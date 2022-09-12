@@ -7,5 +7,5 @@ import (
 )
 
 type Reporter interface {
-	Report(ctx context.Context, obj client.Object, status *v1alpha1.ReporterStatus) error
+	Report(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.ReporterStatus) error
 }

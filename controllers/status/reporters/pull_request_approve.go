@@ -4,9 +4,6 @@ import (
 	"context"
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers/status/webgit"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/util/json"
-	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -24,7 +21,7 @@ func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, 
 	return &PullRequestApproveReporter{mr: mr, spec: spec}, nil
 }
 
-func (p *PullRequestApproveReporter) Report(ctx context.Context, obj client.Object, status *v1alpha1.ReporterStatus) error {
+func (p *PullRequestApproveReporter) Report(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.ReporterStatus) error {
 	if status.PullRequestApprove == nil {
 		status.PullRequestApprove = &v1alpha1.PullRequestApproveReporterStatus{}
 
@@ -35,7 +32,7 @@ func (p *PullRequestApproveReporter) Report(ctx context.Context, obj client.Obje
 		status.PullRequestApprove.Approved = &approved
 	}
 
-	ready, err := p.computeReady(obj)
+	ready, err := p.computeReady(ctx, client, obj)
 	if err != nil {
 		return err
 	}
@@ -58,27 +55,7 @@ func (p *PullRequestApproveReporter) Report(ctx context.Context, obj client.Obje
 	return nil
 }
 
-func (p *PullRequestApproveReporter) computeReady(obj client.Object) (bool, error) {
-	u, ok := obj.(*unstructured.Unstructured)
-	if !ok {
-		b, err := json.Marshal(obj)
-		if err != nil {
-			return false, err
-		}
-		u = &unstructured.Unstructured{}
-		err = json.Unmarshal(b, u)
-		if err != nil {
-			return false, err
-		}
-	}
-	res, err := status.Compute(u)
-	if err != nil {
-		return false, err
-	}
-	if res.Status == status.CurrentStatus && p.spec.MissingStatusIsError {
-		if _, ok := u.Object["status"]; !ok {
-			return false, nil
-		}
-	}
-	return res.Status == status.CurrentStatus, nil
+func (p *PullRequestApproveReporter) computeReady(ctx context.Context, client client.Client, obj client.Object) (bool, error) {
+	sc := StatusCalculator{Client: client}
+	return sc.ComputeReady(ctx, obj, p.spec.MissingReadyConditionIsError)
 }

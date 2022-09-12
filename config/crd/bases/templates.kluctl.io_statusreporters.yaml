@@ -86,8 +86,8 @@ spec:
                           - project
                           - tokenRef
                           type: object
-                        missingStatusIsError:
-                          default: true
+                        missingReadyConditionIsError:
+                          default: false
                           type: boolean
                       type: object
                     pullRequestComment:

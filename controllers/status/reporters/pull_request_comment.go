@@ -33,7 +33,7 @@ func BuildPullRequestCommentReporter(ctx context.Context, client client.Client, 
 	}, nil
 }
 
-func (p *PullRequestCommentReporter) Report(ctx context.Context, obj client.Object, status *v1alpha1.ReporterStatus) error {
+func (p *PullRequestCommentReporter) Report(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.ReporterStatus) error {
 	if status.PullRequestComment == nil {
 		status.PullRequestComment = &v1alpha1.PullRequestCommentReporterStatus{}
 	}

@@ -177,7 +177,7 @@ func (r *StatusReporterReconciler) doReconcile(ctx context.Context, sr *template
 			sr.Status.ReporterStatus = append(sr.Status.ReporterStatus, status)
 		}
 
-		err = reporter.Report(ctx, &obj, status)
+		err = reporter.Report(ctx, r.Client, &obj, status)
 		if err != nil {
 			errs = multierror.Append(errs, err)
 			status.Error = err.Error()
