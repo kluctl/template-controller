@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-multierror"
-	"github.com/kluctl/template-controller/controllers/status/reporters"
+	"github.com/kluctl/template-controller/controllers/status/handlers"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -38,8 +38,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// StatusReporterReconciler reconciles a StatusReporter object
-type StatusReporterReconciler struct {
+// ObjectHandlerReconciler reconciles a ObjectHandler object
+type ObjectHandlerReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 
@@ -48,13 +48,13 @@ type StatusReporterReconciler struct {
 	mutex        sync.Mutex
 }
 
-//+kubebuilder:rbac:groups=status.kluctl.io,resources=statusreporters,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=status.kluctl.io,resources=statusreporters/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=status.kluctl.io,resources=statusreporters/finalizers,verbs=update
+//+kubebuilder:rbac:groups=status.kluctl.io,resources=objecthandlers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=status.kluctl.io,resources=objecthandlers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=status.kluctl.io,resources=objecthandlers/finalizers,verbs=update
 
 // Reconcile a resource
-func (r *StatusReporterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	var sr templatesv1alpha1.StatusReporter
+func (r *ObjectHandlerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	var sr templatesv1alpha1.ObjectHandler
 	err := r.Get(ctx, req.NamespacedName, &sr)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -92,13 +92,13 @@ func (r *StatusReporterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *StatusReporterReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.watchedKinds = map[schema.GroupVersionKind]bool{}
 
-	// Index the StatusReporter by the objects they are for.
-	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.StatusReporter{}, forObjectIndexKey,
+	// Index the ObjectHandler by the objects they are for.
+	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.ObjectHandler{}, forObjectIndexKey,
 		func(object client.Object) []string {
-			sr := object.(*templatesv1alpha1.StatusReporter)
+			sr := object.(*templatesv1alpha1.ObjectHandler)
 			return []string{
 				buildRefIndexValue(sr.Spec.ForObject, sr.GetNamespace()),
 			}
@@ -107,7 +107,7 @@ func (r *StatusReporterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	c, err := ctrl.NewControllerManagedBy(mgr).
-		For(&templatesv1alpha1.StatusReporter{}).
+		For(&templatesv1alpha1.ObjectHandler{}).
 		Build(r)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (r *StatusReporterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return nil
 }
 
-func (r *StatusReporterReconciler) doReconcile(ctx context.Context, sr *templatesv1alpha1.StatusReporter) error {
+func (r *ObjectHandlerReconciler) doReconcile(ctx context.Context, sr *templatesv1alpha1.ObjectHandler) error {
 	err := r.addWatchForKind(ctx, sr)
 	if err != nil {
 		return err
@@ -147,12 +147,12 @@ func (r *StatusReporterReconciler) doReconcile(ctx context.Context, sr *template
 	existingStatuses := map[string]bool{}
 
 	var errs *multierror.Error
-	for _, spec := range sr.Spec.Reporters {
-		var reporter reporters.Reporter
+	for _, spec := range sr.Spec.Handlers {
+		var reporter handlers.Handler
 		if spec.PullRequestComment != nil {
-			reporter, err = reporters.BuildPullRequestCommentReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestComment)
+			reporter, err = handlers.BuildPullRequestCommentReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestComment)
 		} else if spec.PullRequestApprove != nil {
-			reporter, err = reporters.BuildPullRequestApproveReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestApprove)
+			reporter, err = handlers.BuildPullRequestApproveReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestApprove)
 		} else {
 			return fmt.Errorf("no reporter specified")
 		}
@@ -163,21 +163,21 @@ func (r *StatusReporterReconciler) doReconcile(ctx context.Context, sr *template
 		key := spec.BuildKey()
 		existingStatuses[key] = true
 
-		var status *templatesv1alpha1.ReporterStatus
-		for _, x := range sr.Status.ReporterStatus {
+		var status *templatesv1alpha1.HandlerStatus
+		for _, x := range sr.Status.HandlerStatus {
 			if x.Key == key {
 				status = x
 				break
 			}
 		}
 		if status == nil {
-			status = &templatesv1alpha1.ReporterStatus{
+			status = &templatesv1alpha1.HandlerStatus{
 				Key: key,
 			}
-			sr.Status.ReporterStatus = append(sr.Status.ReporterStatus, status)
+			sr.Status.HandlerStatus = append(sr.Status.HandlerStatus, status)
 		}
 
-		err = reporter.Report(ctx, r.Client, &obj, status)
+		err = reporter.Handle(ctx, r.Client, &obj, status)
 		if err != nil {
 			errs = multierror.Append(errs, err)
 			status.Error = err.Error()
@@ -186,18 +186,18 @@ func (r *StatusReporterReconciler) doReconcile(ctx context.Context, sr *template
 		}
 	}
 
-	old := sr.Status.ReporterStatus
-	sr.Status.ReporterStatus = nil
+	old := sr.Status.HandlerStatus
+	sr.Status.HandlerStatus = nil
 	for _, x := range old {
 		if a, _ := existingStatuses[x.Key]; a {
-			sr.Status.ReporterStatus = append(sr.Status.ReporterStatus, x)
+			sr.Status.HandlerStatus = append(sr.Status.HandlerStatus, x)
 		}
 	}
 
 	return errs.ErrorOrNil()
 }
 
-func (r *StatusReporterReconciler) addWatchForKind(ctx context.Context, sr *templatesv1alpha1.StatusReporter) error {
+func (r *ObjectHandlerReconciler) addWatchForKind(ctx context.Context, sr *templatesv1alpha1.ObjectHandler) error {
 	gvk, err := sr.Spec.ForObject.GroupVersionKind()
 	if err != nil {
 		return err
@@ -214,7 +214,7 @@ func (r *StatusReporterReconciler) addWatchForKind(ctx context.Context, sr *temp
 	dummy.SetGroupVersionKind(gvk)
 
 	err = r.controller.Watch(&source.Kind{Type: &dummy}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
-		var list templatesv1alpha1.StatusReporterList
+		var list templatesv1alpha1.ObjectHandlerList
 		err := r.List(context.Background(), &list, client.MatchingFields{
 			forObjectIndexKey: buildObjectIndexValue(object),
 		})

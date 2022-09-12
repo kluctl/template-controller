@@ -1,4 +1,4 @@
-package reporters
+package handlers
 
 import (
 	"context"

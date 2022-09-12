@@ -2,7 +2,7 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: statusreporters.templates.kluctl.io
+  name: objecthandlers.templates.kluctl.io
 spec:
   conversion:
     strategy: Webhook

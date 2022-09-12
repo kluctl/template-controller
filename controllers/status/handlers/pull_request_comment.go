@@ -1,4 +1,4 @@
-package reporters
+package handlers
 
 import (
 	"context"
@@ -16,7 +16,7 @@ type PullRequestCommentReporter struct {
 	clusterId string
 }
 
-func BuildPullRequestCommentReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestCommentReporter) (Reporter, error) {
+func BuildPullRequestCommentReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestCommentReporter) (Handler, error) {
 	mr, err := buildWebgitMergeRequest(ctx, client, namespace, &spec)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func BuildPullRequestCommentReporter(ctx context.Context, client client.Client, 
 	}, nil
 }
 
-func (p *PullRequestCommentReporter) Report(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.ReporterStatus) error {
+func (p *PullRequestCommentReporter) Handle(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.HandlerStatus) error {
 	if status.PullRequestComment == nil {
 		status.PullRequestComment = &v1alpha1.PullRequestCommentReporterStatus{}
 	}

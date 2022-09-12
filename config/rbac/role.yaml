@@ -16,7 +16,7 @@ rules:
 - apiGroups:
   - status.kluctl.io
   resources:
-  - statusreporters
+  - objecthandlers
   verbs:
   - create
   - delete
@@ -28,13 +28,13 @@ rules:
 - apiGroups:
   - status.kluctl.io
   resources:
-  - statusreporters/finalizers
+  - objecthandlers/finalizers
   verbs:
   - update
 - apiGroups:
   - status.kluctl.io
   resources:
-  - statusreporters/status
+  - objecthandlers/status
   verbs:
   - get
   - patch

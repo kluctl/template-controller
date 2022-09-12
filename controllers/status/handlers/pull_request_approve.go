@@ -1,4 +1,4 @@
-package reporters
+package handlers
 
 import (
 	"context"
@@ -12,7 +12,7 @@ type PullRequestApproveReporter struct {
 	spec v1alpha1.PullRequestApproveReporter
 }
 
-func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestApproveReporter) (Reporter, error) {
+func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestApproveReporter) (Handler, error) {
 	mr, err := buildWebgitMergeRequest(ctx, client, namespace, &spec)
 	if err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, 
 	return &PullRequestApproveReporter{mr: mr, spec: spec}, nil
 }
 
-func (p *PullRequestApproveReporter) Report(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.ReporterStatus) error {
+func (p *PullRequestApproveReporter) Handle(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.HandlerStatus) error {
 	if status.PullRequestApprove == nil {
 		status.PullRequestApprove = &v1alpha1.PullRequestApproveReporterStatus{}
 

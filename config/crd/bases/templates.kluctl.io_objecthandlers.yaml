@@ -5,20 +5,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
-  name: statusreporters.templates.kluctl.io
+  name: objecthandlers.templates.kluctl.io
 spec:
   group: templates.kluctl.io
   names:
-    kind: StatusReporter
-    listKind: StatusReporterList
-    plural: statusreporters
-    singular: statusreporter
+    kind: ObjectHandler
+    listKind: ObjectHandlerList
+    plural: objecthandlers
+    singular: objecthandler
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: StatusReporter is the Schema for the statusreporters API
+        description: ObjectHandler is the Schema for the objecthandlers API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -33,7 +33,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: StatusReporterSpec defines the desired state of StatusReporter
+            description: ObjectHandlerSpec defines the desired state of ObjectHandler
             properties:
               forObject:
                 properties:
@@ -50,10 +50,7 @@ spec:
                 - kind
                 - name
                 type: object
-              interval:
-                default: 1m
-                type: string
-              reporters:
+              handlers:
                 items:
                   properties:
                     pullRequestApprove:
@@ -123,13 +120,16 @@ spec:
                       type: object
                   type: object
                 type: array
+              interval:
+                default: 1m
+                type: string
             required:
             - forObject
+            - handlers
             - interval
-            - reporters
             type: object
           status:
-            description: StatusReporterStatus defines the observed state of StatusReporter
+            description: ObjectHandlerStatus defines the observed state of ObjectHandler
             properties:
               conditions:
                 items:
@@ -199,7 +199,7 @@ spec:
                   - type
                   type: object
                 type: array
-              reporterStatus:
+              handlerStatus:
                 items:
                   properties:
                     error:

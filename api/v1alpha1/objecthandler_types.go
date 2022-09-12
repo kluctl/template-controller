@@ -23,8 +23,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// StatusReporterSpec defines the desired state of StatusReporter
-type StatusReporterSpec struct {
+// ObjectHandlerSpec defines the desired state of ObjectHandler
+type ObjectHandlerSpec struct {
 	// +kubebuilder:default:="1m"
 	Interval metav1.Duration `json:"interval"`
 
@@ -32,17 +32,17 @@ type StatusReporterSpec struct {
 	ForObject ObjectRef `json:"forObject"`
 
 	// +required
-	Reporters []Reporter `json:"reporters"`
+	Handlers []Handler `json:"handlers"`
 }
 
-type Reporter struct {
+type Handler struct {
 	// +optional
 	PullRequestComment *PullRequestCommentReporter `json:"pullRequestComment,omitempty"`
 	// +optional
 	PullRequestApprove *PullRequestApproveReporter `json:"pullRequestApprove,omitempty"`
 }
 
-func (r *Reporter) BuildKey() string {
+func (r *Handler) BuildKey() string {
 	b, err := json.Marshal(r)
 	if err != nil {
 		panic(err)
@@ -51,7 +51,7 @@ func (r *Reporter) BuildKey() string {
 	return hex.EncodeToString(s[:])
 }
 
-type ReporterStatus struct {
+type HandlerStatus struct {
 	Key string `json:"key"`
 
 	// +optional
@@ -90,36 +90,36 @@ type PullRequestApproveReporterStatus struct {
 	Approved *bool `json:"approved,omitempty"`
 }
 
-// StatusReporterStatus defines the observed state of StatusReporter
-type StatusReporterStatus struct {
+// ObjectHandlerStatus defines the observed state of ObjectHandler
+type ObjectHandlerStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
 	// +optional
-	ReporterStatus []*ReporterStatus `json:"reporterStatus"`
+	HandlerStatus []*HandlerStatus `json:"handlerStatus"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// StatusReporter is the Schema for the statusreporters API
-type StatusReporter struct {
+// ObjectHandler is the Schema for the objecthandlers API
+type ObjectHandler struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   StatusReporterSpec   `json:"spec,omitempty"`
-	Status StatusReporterStatus `json:"status,omitempty"`
+	Spec   ObjectHandlerSpec   `json:"spec,omitempty"`
+	Status ObjectHandlerStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// StatusReporterList contains a list of StatusReporter
-type StatusReporterList struct {
+// ObjectHandlerList contains a list of ObjectHandler
+type ObjectHandlerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []StatusReporter `json:"items"`
+	Items           []ObjectHandler `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&StatusReporter{}, &StatusReporterList{})
+	SchemeBuilder.Register(&ObjectHandler{}, &ObjectHandlerList{})
 }

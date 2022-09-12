@@ -1,20 +1,24 @@
-# permissions for end users to view statusreporters.
+# permissions for end users to edit objecthandlers.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: statusreporter-viewer-role
+  name: objecthandler-editor-role
 rules:
 - apiGroups:
   - templates.kluctl.io
   resources:
-  - statusreporters
+  - objecthandlers
   verbs:
+  - create
+  - delete
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - templates.kluctl.io
   resources:
-  - statusreporters/status
+  - objecthandlers/status
   verbs:
   - get
