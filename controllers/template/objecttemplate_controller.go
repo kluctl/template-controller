@@ -38,20 +38,20 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// ResourceTemplateReconciler reconciles a ResourceTemplate object
-type ResourceTemplateReconciler struct {
+// ObjectTemplateReconciler reconciles a ObjectTemplate object
+type ObjectTemplateReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=resourcetemplates,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=resourcetemplates/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=resourcetemplates/finalizers,verbs=update
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecttemplates,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecttemplates/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecttemplates/finalizers,verbs=update
 //+kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;list;watch
 
 // Reconcile a resource
-func (r *ResourceTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	var rt templatesv1alpha1.ResourceTemplate
+func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	var rt templatesv1alpha1.ObjectTemplate
 	err := r.Get(ctx, req.NamespacedName, &rt)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -88,7 +88,7 @@ func (r *ResourceTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}, nil
 }
 
-func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate) error {
+func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) error {
 	baseVars, err := r.buildBaseVars(ctx, rt)
 	if err != nil {
 		return err
@@ -184,7 +184,7 @@ func (r *ResourceTemplateReconciler) doReconcile(ctx context.Context, rt *templa
 	return errs.ErrorOrNil()
 }
 
-func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate, rendered *unstructured.Unstructured) error {
+func (r *ObjectTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, rendered *unstructured.Unstructured) error {
 	log := ctrl.LoggerFrom(ctx)
 
 	x := rendered.DeepCopy()
@@ -206,7 +206,7 @@ func (r *ResourceTemplateReconciler) applyTemplate(ctx context.Context, rt *temp
 	return nil
 }
 
-func (r *ResourceTemplateReconciler) renderTemplates(ctx context.Context, j2 *jinja2.Jinja2, rt *templatesv1alpha1.ResourceTemplate, vars map[string]any) ([]*unstructured.Unstructured, error) {
+func (r *ObjectTemplateReconciler) renderTemplates(ctx context.Context, j2 *jinja2.Jinja2, rt *templatesv1alpha1.ObjectTemplate, vars map[string]any) ([]*unstructured.Unstructured, error) {
 	var ret []*unstructured.Unstructured
 	for _, t := range rt.Spec.Templates {
 		if t.Object != nil {
@@ -240,7 +240,7 @@ func (r *ResourceTemplateReconciler) renderTemplates(ctx context.Context, j2 *ji
 	return ret, nil
 }
 
-func (r *ResourceTemplateReconciler) buildBaseVars(ctx context.Context, rt *templatesv1alpha1.ResourceTemplate) (map[string]any, error) {
+func (r *ObjectTemplateReconciler) buildBaseVars(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) (map[string]any, error) {
 	vars := map[string]any{}
 
 	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(rt)
@@ -252,7 +252,7 @@ func (r *ResourceTemplateReconciler) buildBaseVars(ctx context.Context, rt *temp
 	return vars, nil
 }
 
-func (r *ResourceTemplateReconciler) buildGenerator(ctx context.Context, namespace string, spec templatesv1alpha1.Generator) (generators2.Generator, error) {
+func (r *ObjectTemplateReconciler) buildGenerator(ctx context.Context, namespace string, spec templatesv1alpha1.Generator) (generators2.Generator, error) {
 	if spec.PullRequest != nil {
 		return generators2.BuildPullRequestGenerator(ctx, r.Client, namespace, *spec.PullRequest)
 	} else {
@@ -261,8 +261,8 @@ func (r *ResourceTemplateReconciler) buildGenerator(ctx context.Context, namespa
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ResourceTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&templatesv1alpha1.ResourceTemplate{}).
+		For(&templatesv1alpha1.ObjectTemplate{}).
 		Complete(r)
 }

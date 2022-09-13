@@ -1,20 +1,24 @@
-# permissions for end users to view resourcetemplates.
+# permissions for end users to edit objecttemplates.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: resourcetemplate-viewer-role
+  name: objecttemplate-editor-role
 rules:
 - apiGroups:
   - templates.kluctl.io
   resources:
-  - resourcetemplates
+  - objecttemplates
   verbs:
+  - create
+  - delete
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - templates.kluctl.io
   resources:
-  - resourcetemplates/status
+  - objecttemplates/status
   verbs:
   - get

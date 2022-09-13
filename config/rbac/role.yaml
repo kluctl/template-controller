@@ -42,7 +42,7 @@ rules:
 - apiGroups:
   - templates.kluctl.io
   resources:
-  - resourcetemplates
+  - objecttemplates
   verbs:
   - create
   - delete
@@ -54,13 +54,13 @@ rules:
 - apiGroups:
   - templates.kluctl.io
   resources:
-  - resourcetemplates/finalizers
+  - objecttemplates/finalizers
   verbs:
   - update
 - apiGroups:
   - templates.kluctl.io
   resources:
-  - resourcetemplates/status
+  - objecttemplates/status
   verbs:
   - get
   - patch

@@ -5,20 +5,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
-  name: resourcetemplates.templates.kluctl.io
+  name: objecttemplates.templates.kluctl.io
 spec:
   group: templates.kluctl.io
   names:
-    kind: ResourceTemplate
-    listKind: ResourceTemplateList
-    plural: resourcetemplates
-    singular: resourcetemplate
+    kind: ObjectTemplate
+    listKind: ObjectTemplateList
+    plural: objecttemplates
+    singular: objecttemplate
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ResourceTemplate is the Schema for the resourcetemplates API
+        description: ObjectTemplate is the Schema for the objecttemplates API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -33,7 +33,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: ResourceTemplateSpec defines the desired state of ResourceTemplate
+            description: ObjectTemplateSpec defines the desired state of ObjectTemplate
             properties:
               generators:
                 items:
@@ -108,7 +108,7 @@ spec:
             - templates
             type: object
           status:
-            description: ResourceTemplateStatus defines the observed state of ResourceTemplate
+            description: ObjectTemplateStatus defines the observed state of ObjectTemplate
             properties:
               appliedResources:
                 items:

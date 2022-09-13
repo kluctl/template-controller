@@ -92,11 +92,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&template.ResourceTemplateReconciler{
+	if err = (&template.ObjectTemplateReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ResourceTemplate")
+		setupLog.Error(err, "unable to create controller", "controller", "ObjectTemplate")
 		os.Exit(1)
 	}
 	if err = (&status.ObjectHandlerReconciler{

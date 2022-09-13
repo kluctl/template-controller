@@ -21,8 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-// ResourceTemplateSpec defines the desired state of ResourceTemplate
-type ResourceTemplateSpec struct {
+// ObjectTemplateSpec defines the desired state of ObjectTemplate
+type ObjectTemplateSpec struct {
 	// +kubebuilder:default:="30s"
 	Interval metav1.Duration `json:"interval"`
 
@@ -75,8 +75,8 @@ type PullRequestGeneratorGitlab struct {
 	PullRequestState string `json:"pullRequestState,omitempty"`
 }
 
-// ResourceTemplateStatus defines the observed state of ResourceTemplate
-type ResourceTemplateStatus struct {
+// ObjectTemplateStatus defines the observed state of ObjectTemplate
+type ObjectTemplateStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
@@ -94,36 +94,36 @@ type AppliedResourceInfo struct {
 }
 
 // GetConditions returns the status conditions of the object.
-func (in *ResourceTemplate) GetConditions() []metav1.Condition {
+func (in *ObjectTemplate) GetConditions() []metav1.Condition {
 	return in.Status.Conditions
 }
 
 // SetConditions sets the status conditions on the object.
-func (in *ResourceTemplate) SetConditions(conditions []metav1.Condition) {
+func (in *ObjectTemplate) SetConditions(conditions []metav1.Condition) {
 	in.Status.Conditions = conditions
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// ResourceTemplate is the Schema for the resourcetemplates API
-type ResourceTemplate struct {
+// ObjectTemplate is the Schema for the objecttemplates API
+type ObjectTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ResourceTemplateSpec   `json:"spec,omitempty"`
-	Status ResourceTemplateStatus `json:"status,omitempty"`
+	Spec   ObjectTemplateSpec   `json:"spec,omitempty"`
+	Status ObjectTemplateStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// ResourceTemplateList contains a list of ResourceTemplate
-type ResourceTemplateList struct {
+// ObjectTemplateList contains a list of ObjectTemplate
+type ObjectTemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ResourceTemplate `json:"items"`
+	Items           []ObjectTemplate `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&ResourceTemplate{}, &ResourceTemplateList{})
+	SchemeBuilder.Register(&ObjectTemplate{}, &ObjectTemplateList{})
 }
