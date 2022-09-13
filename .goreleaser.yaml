@@ -1,0 +1,79 @@
+project_name: template-controller
+
+builds:
+  - binary: manager
+    env:
+      - CGO_ENABLED=0
+    id: linux
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - 7
+
+archives:
+  - name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: tar.gz
+    files:
+      - none*
+
+dockers:
+  - id: linux-amd64
+    goos: linux
+    goarch: amd64
+    build_flag_templates:
+      - "--pull"
+      - "--build-arg=ARCH=linux-amd64"
+      - "--build-arg=ARCH_ORG=amd64"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.name={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+      - "--platform=linux/amd64"
+    image_templates:
+      - "ghcr.io/kluctl/template-controller:v{{ .Version }}-amd64"
+  - id: linux-arm64
+    goos: linux
+    goarch: arm64
+    build_flag_templates:
+      - "--pull"
+      - "--build-arg=ARCH=linux-arm64"
+      - "--build-arg=ARCH_ORG=arm64v8"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.name={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+      - "--platform=linux/arm64"
+    image_templates:
+      - "ghcr.io/kluctl/template-controller:v{{ .Version }}-arm64"
+
+docker_manifests:
+  - name_template: ghcr.io/kluctl/template--controller:{{ .Tag }}
+    image_templates:
+      - "ghcr.io/kluctl/template-controller:v{{ .Version }}-amd64"
+      - "ghcr.io/kluctl/template--controller:v{{ .Version }}-arm64"
+
+release:
+  draft: true
+  prerelease: "true"
+  extra_files:
+    - glob: config/release/*.yaml
+
+checksum:
+  extra_files:
+    - glob: config/release/*.yaml
+  name_template: '{{ .ProjectName }}_v{{ .Version }}_checksums.txt'
+
+source:
+  enabled: true
+  name_template: "{{ .ProjectName }}_v{{ .Version }}_source_code"
+
+sboms:
+  - id: source
+    artifacts: source
+    documents:
+      - "{{ .ProjectName }}_v{{ .Version }}_sbom.spdx.json"
