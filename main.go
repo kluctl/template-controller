@@ -18,8 +18,8 @@ package main
 
 import (
 	"flag"
-	"github.com/kluctl/template-controller/controllers/status"
-	"github.com/kluctl/template-controller/controllers/template"
+	"github.com/kluctl/template-controller/controllers/objecthandler"
+	"github.com/kluctl/template-controller/controllers/objecttemplate"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -92,14 +92,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&template.ObjectTemplateReconciler{
+	if err = (&objecttemplate.ObjectTemplateReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ObjectTemplate")
 		os.Exit(1)
 	}
-	if err = (&status.ObjectHandlerReconciler{
+	if err = (&objecthandler.ObjectHandlerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {

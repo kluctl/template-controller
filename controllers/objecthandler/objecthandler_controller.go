@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package status
+package objecthandler
 
 import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-multierror"
-	"github.com/kluctl/template-controller/controllers/status/handlers"
+	"github.com/kluctl/template-controller/controllers/objecthandler/handlers"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

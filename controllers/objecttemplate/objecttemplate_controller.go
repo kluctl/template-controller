@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package template
+package objecttemplate
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/kluctl/go-jinja2"
 	"github.com/kluctl/template-controller/controllers"
-	generators2 "github.com/kluctl/template-controller/controllers/template/generators"
+	generators2 "github.com/kluctl/template-controller/controllers/objecttemplate/generators"
 	"io"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/yaml"

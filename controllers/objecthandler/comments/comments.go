@@ -2,7 +2,7 @@ package comments
 
 import (
 	"context"
-	"github.com/kluctl/template-controller/controllers/status/comments/templates"
+	"github.com/kluctl/template-controller/controllers/objecthandler/comments/templates"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

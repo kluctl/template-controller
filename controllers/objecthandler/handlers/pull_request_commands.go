@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/kluctl/template-controller/api/v1alpha1"
-	"github.com/kluctl/template-controller/controllers/status/webgit"
+	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
