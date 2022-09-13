@@ -52,10 +52,10 @@ dockers:
       - "ghcr.io/kluctl/template-controller:v{{ .Version }}-arm64"
 
 docker_manifests:
-  - name_template: ghcr.io/kluctl/template--controller:{{ .Tag }}
+  - name_template: ghcr.io/kluctl/template-controller:{{ .Tag }}
     image_templates:
       - "ghcr.io/kluctl/template-controller:v{{ .Version }}-amd64"
-      - "ghcr.io/kluctl/template--controller:v{{ .Version }}-arm64"
+      - "ghcr.io/kluctl/template-controller:v{{ .Version }}-arm64"
 
 release:
   draft: true
