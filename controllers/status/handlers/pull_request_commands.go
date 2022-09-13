@@ -3,14 +3,16 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers/status/webgit"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
 
-const KluctlDeployRequestAnnotation = "deploy.flux.kluctl.io/requestedAt"
+const (
+	FluxReconcileRequestAnnotation string = "reconcile.fluxcd.io/requestedAt"
+	KluctlDeployRequestAnnotation         = "deploy.flux.kluctl.io/requestedAt"
+)
 
 type PullRequestCommandHandler struct {
 	mr   webgit.MergeRequestInterface
@@ -99,7 +101,7 @@ func (p *PullRequestCommandHandler) processGitlabStatusCommand(ctx context.Conte
 	}
 
 	if body == "/reconcile" {
-		err := addTimeAnnotation(meta.ReconcileRequestAnnotation)
+		err := addTimeAnnotation(FluxReconcileRequestAnnotation)
 		if err != nil {
 			return err
 		}

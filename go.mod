@@ -3,7 +3,6 @@ module github.com/kluctl/template-controller
 go 1.19
 
 require (
-	github.com/fluxcd/pkg/apis/meta v0.15.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/kluctl/go-jinja2 v0.0.0-20220908201753-f33cd6224f2b
 	github.com/onsi/ginkgo v1.16.5
