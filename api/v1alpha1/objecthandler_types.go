@@ -40,6 +40,8 @@ type Handler struct {
 	PullRequestComment *PullRequestCommentReporter `json:"pullRequestComment,omitempty"`
 	// +optional
 	PullRequestApprove *PullRequestApproveReporter `json:"pullRequestApprove,omitempty"`
+	// +optional
+	PullRequestCommand *PullRequestCommandHandler `json:"pullRequestCommand,omitempty"`
 }
 
 func (r *Handler) BuildKey() string {
@@ -61,6 +63,8 @@ type HandlerStatus struct {
 	PullRequestComment *PullRequestCommentReporterStatus `json:"pullRequestComment,omitempty"`
 	// +optional
 	PullRequestApprove *PullRequestApproveReporterStatus `json:"pullRequestApprove,omitempty"`
+	// +optional
+	PullRequestCommand *PullRequestCommandHandlerStatus `json:"pullRequestCommand,omitempty"`
 }
 
 type PullRequestCommentReporter struct {
@@ -88,6 +92,16 @@ type PullRequestApproveReporter struct {
 type PullRequestApproveReporterStatus struct {
 	// +optional
 	Approved *bool `json:"approved,omitempty"`
+}
+
+type PullRequestCommandHandler struct {
+	// +optional
+	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
+}
+
+type PullRequestCommandHandlerStatus struct {
+	// +optional
+	LastProcessedCommentTime *string `json:"lastProcessedCommentTime"`
 }
 
 // ObjectHandlerStatus defines the observed state of ObjectHandler

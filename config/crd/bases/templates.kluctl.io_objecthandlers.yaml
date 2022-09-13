@@ -87,6 +87,37 @@ spec:
                           default: false
                           type: boolean
                       type: object
+                    pullRequestCommand:
+                      properties:
+                        gitlab:
+                          properties:
+                            api:
+                              description: The GitLab API URL to talk to. If blank,
+                                uses https://gitlab.com/.
+                              type: string
+                            mergeRequestId:
+                              description: The merge request id
+                              type: integer
+                            project:
+                              description: GitLab project to scan. Required.
+                              type: string
+                            tokenRef:
+                              description: Authentication token reference.
+                              properties:
+                                key:
+                                  type: string
+                                secretName:
+                                  type: string
+                              required:
+                              - key
+                              - secretName
+                              type: object
+                          required:
+                          - mergeRequestId
+                          - project
+                          - tokenRef
+                          type: object
+                      type: object
                     pullRequestComment:
                       properties:
                         gitlab:
@@ -210,6 +241,11 @@ spec:
                       properties:
                         approved:
                           type: boolean
+                      type: object
+                    pullRequestCommand:
+                      properties:
+                        lastProcessedCommentTime:
+                          type: string
                       type: object
                     pullRequestComment:
                       properties:

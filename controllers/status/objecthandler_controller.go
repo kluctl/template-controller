@@ -153,6 +153,8 @@ func (r *ObjectHandlerReconciler) doReconcile(ctx context.Context, sr *templates
 			reporter, err = handlers.BuildPullRequestCommentReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestComment)
 		} else if spec.PullRequestApprove != nil {
 			reporter, err = handlers.BuildPullRequestApproveReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestApprove)
+		} else if spec.PullRequestCommand != nil {
+			reporter, err = handlers.BuildPullRequestCommandHandler(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestCommand)
 		} else {
 			return fmt.Errorf("no reporter specified")
 		}
