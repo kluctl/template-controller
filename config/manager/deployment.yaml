@@ -50,8 +50,6 @@ spec:
                   fieldPath: metadata.namespace
           args:
             - --watch-all-namespaces
-            - --log-level=info
-            - --log-encoding=json
             - --enable-leader-election
           readinessProbe:
             httpGet:
