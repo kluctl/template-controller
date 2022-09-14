@@ -50,7 +50,7 @@ spec:
                   fieldPath: metadata.namespace
           args:
             - --watch-all-namespaces
-            - --enable-leader-election
+            - --leader-elect
           readinessProbe:
             httpGet:
               path: /readyz
