@@ -14,7 +14,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - status.kluctl.io
+  - templates.kluctl.io
   resources:
   - objecthandlers
   verbs:
@@ -26,13 +26,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - status.kluctl.io
+  - templates.kluctl.io
   resources:
   - objecthandlers/finalizers
   verbs:
   - update
 - apiGroups:
-  - status.kluctl.io
+  - templates.kluctl.io
   resources:
   - objecthandlers/status
   verbs:
