@@ -40,7 +40,7 @@ spec:
             - containerPort: 8080
               name: http-prom
               protocol: TCP
-            - containerPort: 9440
+            - containerPort: 8081
               name: healthz
               protocol: TCP
           env:
