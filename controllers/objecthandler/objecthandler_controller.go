@@ -48,9 +48,9 @@ type ObjectHandlerReconciler struct {
 	mutex        sync.Mutex
 }
 
-//+kubebuilder:rbac:groups=status.kluctl.io,resources=objecthandlers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=status.kluctl.io,resources=objecthandlers/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=status.kluctl.io,resources=objecthandlers/finalizers,verbs=update
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecthandlers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecthandlers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecthandlers/finalizers,verbs=update
 
 // Reconcile a resource
 func (r *ObjectHandlerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
