@@ -5,9 +5,9 @@
 {% macro printErrors(l) %}
 | kind | namespace/name | message |
 |------|----------------|---------|
-{% for e in l %}
+{%- for e in l %}
 | {{ e.ref.kind }} | {{ e.ref.namespace or "<global>" }}/{{ e.ref.name }} | {{ e.error if e.error is defined else e.message }} |
-{% endfor %}
+{%- endfor %}
 {% endmacro %}
 
 {% macro printResult(title, result, success_message, warning_message, error_message, logs_message, cmd_name, show_changes) %}
@@ -51,9 +51,9 @@
 # :tada: Results
 | Key | Message |
 |--------|---------|
-{% for e in decoded.results %}
+{%- for e in decoded.results %}
 | {{ e.annotation.replace("validate-result.kluctl.io/", "") }} | {{ e.message }} |
-{% endfor %}
+{%- endfor %}
 {% endif %}
 
 {% endmacro %}
