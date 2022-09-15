@@ -177,6 +177,10 @@ func (g *GitlabMergeRequest) ListMergeRequestNotesAfter(t time.Time) ([]Note, er
 	opt.Sort = &sort
 	opt.OrderBy = &orderBy
 
+	if t == (time.Time{}) {
+		opt.PerPage = 100
+	}
+
 	var ret []Note
 
 outer:
