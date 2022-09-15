@@ -2,7 +2,7 @@ package templates
 
 import "embed"
 
-//go:embed *.md
+//go:embed *.jinja2
 var templatesFs embed.FS
 
 func GetTemplate(name string) (string, error) {

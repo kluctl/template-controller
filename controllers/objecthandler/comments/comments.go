@@ -12,8 +12,9 @@ type CommentGenerator interface {
 }
 
 var byGroupKind = map[schema.GroupKind]CommentGenerator{
-	schema.GroupKind{Group: "flux.kluctl.io", Kind: "KluctlDeployment"}: &TemplateComment{template: templates.MustGetTemplate("kluctldeployment.md")},
+	schema.GroupKind{Group: "flux.kluctl.io", Kind: "KluctlDeployment"}: &TemplateComment{template: templates.MustGetTemplate("kluctldeployment.md.jinja2")},
 }
+var genericGenerator = &TemplateComment{template: templates.MustGetTemplate("generic.md.jinja2")}
 
 func GetCommentGenerator(obj client.Object) (CommentGenerator, error) {
 	gk := obj.GetObjectKind().GroupVersionKind().GroupKind()
@@ -21,5 +22,5 @@ func GetCommentGenerator(obj client.Object) (CommentGenerator, error) {
 	if ok {
 		return generator, nil
 	}
-	return &GenericComment{}, nil
+	return genericGenerator, nil
 }
