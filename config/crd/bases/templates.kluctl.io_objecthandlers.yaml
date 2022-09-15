@@ -89,6 +89,33 @@ spec:
                       type: object
                     pullRequestCommand:
                       properties:
+                        commands:
+                          items:
+                            properties:
+                              actions:
+                                items:
+                                  properties:
+                                    annotate:
+                                      properties:
+                                        annotation:
+                                          type: string
+                                        value:
+                                          type: string
+                                      required:
+                                      - annotation
+                                      - value
+                                      type: object
+                                  type: object
+                                type: array
+                              description:
+                                type: string
+                              name:
+                                type: string
+                            required:
+                            - actions
+                            - name
+                            type: object
+                          type: array
                         gitlab:
                           properties:
                             api:
@@ -117,6 +144,8 @@ spec:
                           - project
                           - tokenRef
                           type: object
+                      required:
+                      - commands
                       type: object
                     pullRequestComment:
                       properties:

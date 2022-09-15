@@ -276,8 +276,8 @@ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kluctl/go-embed-python v0.0.0-3.10.6-20220906-2 h1:zjJAVyZiWJhufcafhykvXNar1vqDp/ukQk0hFuCJ9zw=
 github.com/kluctl/go-embed-python v0.0.0-3.10.6-20220906-2/go.mod h1:uekQDAlvKAYJWuDxxP1SGn1vTPUfoBwMS+aB6kR+v+o=
-github.com/kluctl/go-jinja2 v0.0.0-20220908201753-f33cd6224f2b h1:6IGYwbtc6VR5nyUckJvgtnIlrg7dzNUbkHtVvTfPVkY=
-github.com/kluctl/go-jinja2 v0.0.0-20220908201753-f33cd6224f2b/go.mod h1:8deI9sssmQf1CiCnyRJoBgfIw4Hh3+WsHmmO9+xIIO0=
+github.com/kluctl/go-jinja2 v0.0.0-20220915092153-31a9e083bdf2 h1:qjiBSePbrBSWaJhvymlcrM3TW/PhbFoXvOfgKuQsDr0=
+github.com/kluctl/go-jinja2 v0.0.0-20220915092153-31a9e083bdf2/go.mod h1:8deI9sssmQf1CiCnyRJoBgfIw4Hh3+WsHmmO9+xIIO0=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/konsorten/go-windows-terminal-sequences v1.0.3/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=

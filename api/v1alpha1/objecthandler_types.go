@@ -97,6 +97,30 @@ type PullRequestApproveReporterStatus struct {
 type PullRequestCommandHandler struct {
 	// +optional
 	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
+
+	// +required
+	Commands []PullRequestCommandHandlerCommandSpec `json:"commands"`
+}
+
+type PullRequestCommandHandlerCommandSpec struct {
+	// +required
+	Name string `json:"name"`
+	// +optional
+	Description string `json:"description,omitempty"`
+	// +required
+	Actions []PullRequestCommandHandlerActionSpec `json:"actions"`
+}
+
+type PullRequestCommandHandlerActionSpec struct {
+	// +optional
+	Annotate *PullRequestCommandHandlerActionAnnotateSpec `json:"annotate"`
+}
+
+type PullRequestCommandHandlerActionAnnotateSpec struct {
+	// +required
+	Annotation string `json:"annotation"`
+	// +required
+	Value string `json:"value"`
 }
 
 type PullRequestCommandHandlerStatus struct {

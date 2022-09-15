@@ -3,15 +3,14 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"github.com/kluctl/go-jinja2"
 	"github.com/kluctl/template-controller/api/v1alpha1"
+	"github.com/kluctl/template-controller/controllers"
 	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"k8s.io/apimachinery/pkg/runtime"
+	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
-)
-
-const (
-	FluxReconcileRequestAnnotation string = "reconcile.fluxcd.io/requestedAt"
-	KluctlDeployRequestAnnotation         = "deploy.flux.kluctl.io/requestedAt"
 )
 
 type PullRequestCommandHandler struct {
@@ -36,6 +35,12 @@ func BuildPullRequestCommandHandler(ctx context.Context, client client.Client, n
 }
 
 func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.HandlerStatus) error {
+	j2, err := controllers.NewJinja2()
+	if err != nil {
+		return err
+	}
+	defer j2.Close()
+
 	if status.PullRequestCommand == nil {
 		status.PullRequestCommand = &v1alpha1.PullRequestCommandHandlerStatus{}
 	}
@@ -66,7 +71,7 @@ func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Cl
 	}
 
 	for _, n := range unprocessedNotes {
-		err = p.processGitlabStatusCommand(ctx, client, n, obj)
+		err = p.processGitlabStatusCommand(ctx, j2, client, n, obj)
 		if err != nil {
 			updateStatus()
 			break
@@ -78,50 +83,93 @@ func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Cl
 	return nil
 }
 
-func (p *PullRequestCommandHandler) processGitlabStatusCommand(ctx context.Context, c client.Client, n webgit.Note, obj client.Object) error {
+var commandRegex = regexp.MustCompile("^/([a-zA-Z][a-zA-Z0-9]*)$")
+
+func (p *PullRequestCommandHandler) processGitlabStatusCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, n webgit.Note, obj client.Object) error {
 	body := n.GetBody()
 	if hasMarkerComment(body, "pull-request-command-processed", p.clusterId, obj.GetNamespace(), obj.GetName()) {
 		return nil
 	}
 
-	addTimeAnnotation := func(n string) error {
-		patch := client.MergeFrom(obj.DeepCopyObject().(client.Object))
-
-		a := obj.GetAnnotations()
-		if a == nil {
-			a = make(map[string]string)
-		}
-		a[n] = time.Now().Format(time.RFC3339)
-		obj.SetAnnotations(a)
-		err := c.Patch(ctx, obj, patch)
-		if err != nil {
-			return err
-		}
+	m := commandRegex.FindStringSubmatch(body)
+	if m == nil {
 		return nil
 	}
+	commandName := m[1]
 
-	if body == "/reconcile" {
-		err := addTimeAnnotation(FluxReconcileRequestAnnotation)
-		if err != nil {
-			return err
+	found := false
+	var err error
+	for _, command := range p.spec.Commands {
+		if command.Name == commandName {
+			found = true
+			err = p.handleCommand(ctx, j2, c, obj, command)
+			break
 		}
-	} else if body == "/deploy" {
-		err := addTimeAnnotation(KluctlDeployRequestAnnotation)
-		if err != nil {
-			return err
-		}
-	} else {
+	}
+	if !found {
 		return nil
 	}
 
 	newBody := body
 	newBody += fmt.Sprintf("\n\n:robot: Command has been processed at %s\n", time.Now().Format(time.RFC3339))
+	if err != nil {
+		newBody += fmt.Sprintf("<br>:boom: Command failed with error: %s\n", err.Error())
+	}
 	newBody += generateMarkerComment("pull-request-command-processed", p.clusterId, obj.GetNamespace(), obj.GetName())
 
-	err := n.UpdateBody(newBody)
+	err = n.UpdateBody(newBody)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (p *PullRequestCommandHandler) handleCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, obj client.Object, command v1alpha1.PullRequestCommandHandlerCommandSpec) error {
+	for _, action := range command.Actions {
+		if action.Annotate != nil {
+			err := p.handleActionAnnotate(ctx, j2, c, obj, action.Annotate)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("action is missing in command %s", command.Name)
+		}
+	}
+	return nil
+}
+
+func (p *PullRequestCommandHandler) handleActionAnnotate(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, obj client.Object, action *v1alpha1.PullRequestCommandHandlerActionAnnotateSpec) error {
+	vars := map[string]any{}
+
+	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
+	if err != nil {
+		return err
+	}
+
+	vars["object"] = u
+
+	name, err := j2.RenderString(action.Annotation, jinja2.WithGlobals(vars))
+	if err != nil {
+		return err
+	}
+	value, err := j2.RenderString(action.Value, jinja2.WithGlobals(vars))
+	if err != nil {
+		return err
+	}
+
+	patch := client.MergeFrom(obj.DeepCopyObject().(client.Object))
+
+	a := obj.GetAnnotations()
+	if a == nil {
+		a = map[string]string{}
+	}
+	a[name] = value
+	obj.SetAnnotations(a)
+
+	err = c.Patch(ctx, obj, patch)
+	if err != nil {
+		return err
+	}
 	return nil
 }

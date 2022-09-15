@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/kluctl/go-jinja2 v0.0.0-20220908201753-f33cd6224f2b
+	github.com/kluctl/go-jinja2 v0.0.0-20220915092153-31a9e083bdf2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.0
 	github.com/xanzy/go-gitlab v0.73.1
