@@ -13,8 +13,8 @@ type PullRequestCommentReporter struct {
 	clusterId string
 }
 
-func BuildPullRequestCommentReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestCommentReporter) (Handler, error) {
-	mr, err := buildWebgitMergeRequest(ctx, client, namespace, &spec)
+func BuildPullRequestCommentReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestCommentReporter, defaults *v1alpha1.ObjectHandlerDefaultsSpec) (Handler, error) {
+	mr, err := buildWebgitMergeRequest(ctx, client, namespace, &spec, defaults)
 	if err != nil {
 		return nil, err
 	}

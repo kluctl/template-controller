@@ -39,6 +39,13 @@ type MergeRequestInterface interface {
 }
 
 func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace string, info v1alpha1.GitlabProject) (ProjectInterface, error) {
+	if info.Project == nil {
+		return nil, fmt.Errorf("missing gitlab project")
+	}
+	if info.TokenRef == nil {
+		return nil, fmt.Errorf("missing tokenRef")
+	}
+
 	sn := types.NamespacedName{
 		Namespace: namespace,
 		Name:      info.TokenRef.SecretName,
@@ -60,5 +67,5 @@ func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace stri
 	if err != nil {
 		return nil, err
 	}
-	return g.GetProject(info.Project)
+	return g.GetProject(*info.Project)
 }

@@ -21,10 +21,10 @@ type GitlabMergeRequest struct {
 	mrId    int
 }
 
-func NewGitlab(baseUrl string, token string) (WebgitInterface, error) {
+func NewGitlab(baseUrl *string, token string) (WebgitInterface, error) {
 	var opts []gitlab.ClientOptionFunc
-	if baseUrl != "" {
-		opts = append(opts, gitlab.WithBaseURL(baseUrl))
+	if baseUrl != nil {
+		opts = append(opts, gitlab.WithBaseURL(*baseUrl))
 	}
 	client, err := gitlab.NewClient(token, opts...)
 	if err != nil {

@@ -35,6 +35,35 @@ spec:
           spec:
             description: ObjectHandlerSpec defines the desired state of ObjectHandler
             properties:
+              defaults:
+                properties:
+                  gitlab:
+                    properties:
+                      api:
+                        description: The GitLab API URL to talk to. If blank, uses
+                          https://gitlab.com/.
+                        type: string
+                      mergeRequestId:
+                        description: The merge request id
+                        type: integer
+                      project:
+                        description: GitLab project to scan. Required.
+                        type: string
+                      tokenRef:
+                        description: Authentication token reference.
+                        properties:
+                          key:
+                            type: string
+                          secretName:
+                            type: string
+                        required:
+                        - key
+                        - secretName
+                        type: object
+                    type: object
+                required:
+                - gitlab
+                type: object
               forObject:
                 properties:
                   apiVersion:
@@ -78,10 +107,6 @@ spec:
                               - key
                               - secretName
                               type: object
-                          required:
-                          - mergeRequestId
-                          - project
-                          - tokenRef
                           type: object
                         missingReadyConditionIsError:
                           default: false
@@ -139,10 +164,6 @@ spec:
                               - key
                               - secretName
                               type: object
-                          required:
-                          - mergeRequestId
-                          - project
-                          - tokenRef
                           type: object
                         postHelpComment:
                           type: boolean
@@ -174,10 +195,6 @@ spec:
                               - key
                               - secretName
                               type: object
-                          required:
-                          - mergeRequestId
-                          - project
-                          - tokenRef
                           type: object
                       type: object
                   type: object
