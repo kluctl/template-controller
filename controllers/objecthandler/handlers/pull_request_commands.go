@@ -6,6 +6,7 @@ import (
 	"github.com/kluctl/go-jinja2"
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers"
+	"github.com/kluctl/template-controller/controllers/objecthandler/comments/templates"
 	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
 	"k8s.io/apimachinery/pkg/runtime"
 	"regexp"
@@ -45,6 +46,11 @@ func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Cl
 		status.PullRequestCommand = &v1alpha1.PullRequestCommandHandlerStatus{}
 	}
 
+	err = p.reconcileHelpComment(j2, obj, status)
+	if err != nil {
+		return err
+	}
+
 	var origLastTime time.Time
 	if status.PullRequestCommand.LastProcessedCommentTime != nil {
 		x, err := time.Parse(time.RFC3339Nano, *status.PullRequestCommand.LastProcessedCommentTime)
@@ -79,6 +85,30 @@ func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Cl
 		newLastTime = n.GetCreatedAt()
 	}
 	updateStatus()
+
+	return nil
+}
+
+var helpCommandTemplate = templates.MustGetTemplate("commandhelp.md.jinja2")
+
+func (p *PullRequestCommandHandler) reconcileHelpComment(j2 *jinja2.Jinja2, obj client.Object, status *v1alpha1.HandlerStatus) error {
+	if !p.spec.PostHelpComment {
+		return nil
+	}
+
+	vars := map[string]any{}
+
+	vars["spec"] = &p.spec
+
+	comment, err := j2.RenderString(helpCommandTemplate, jinja2.WithGlobals(vars))
+	if err != nil {
+		return err
+	}
+
+	err = reconcileComment(p.clusterId, p.mr, "pull-request-command-help", obj, comment, &status.PullRequestCommand.HelpNoteId, &status.PullRequestCommand.HelpNoteBodyHash)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

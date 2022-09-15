@@ -98,6 +98,9 @@ type PullRequestCommandHandler struct {
 	// +optional
 	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
 
+	// +optional
+	PostHelpComment bool `json:"postHelpComment"`
+
 	// +required
 	Commands []PullRequestCommandHandlerCommandSpec `json:"commands"`
 }
@@ -126,6 +129,12 @@ type PullRequestCommandHandlerActionAnnotateSpec struct {
 type PullRequestCommandHandlerStatus struct {
 	// +optional
 	LastProcessedCommentTime *string `json:"lastProcessedCommentTime"`
+
+	// +optional
+	HelpNoteId string `json:"helpNoteId,omitempty"`
+
+	// +optional
+	HelpNoteBodyHash string `json:"helpNoteBodyHash,omitempty"`
 }
 
 // ObjectHandlerStatus defines the observed state of ObjectHandler

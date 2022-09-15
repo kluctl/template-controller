@@ -144,6 +144,8 @@ spec:
                           - project
                           - tokenRef
                           type: object
+                        postHelpComment:
+                          type: boolean
                       required:
                       - commands
                       type: object
@@ -273,6 +275,10 @@ spec:
                       type: object
                     pullRequestCommand:
                       properties:
+                        helpNoteBodyHash:
+                          type: string
+                        helpNoteId:
+                          type: string
                         lastProcessedCommentTime:
                           type: string
                       type: object
