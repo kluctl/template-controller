@@ -3,11 +3,8 @@ package handlers
 import (
 	"context"
 	"github.com/kluctl/template-controller/api/v1alpha1"
-	"github.com/kluctl/template-controller/controllers"
 	"github.com/kluctl/template-controller/controllers/objecthandler/comments"
 	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
-	"github.com/xanzy/go-gitlab"
-	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -48,7 +45,7 @@ func (p *PullRequestCommentReporter) Handle(ctx context.Context, client client.C
 		return err
 	}
 
-	err = p.reconcileComment(ctx, obj, comment, status.PullRequestComment)
+	err = p.reconcileComment(obj, comment, status.PullRequestComment)
 	if err != nil {
 		return err
 	}
@@ -56,63 +53,6 @@ func (p *PullRequestCommentReporter) Handle(ctx context.Context, client client.C
 	return nil
 }
 
-func (p *PullRequestCommentReporter) reconcileComment(ctx context.Context, obj client.Object, statusComment string, status *v1alpha1.PullRequestCommentReporterStatus) error {
-	var err error
-	body := generateMarkerComment("pull-request-comment", p.clusterId, obj.GetNamespace(), obj.GetName()) + "\n" + statusComment
-
-	var existingNote webgit.Note
-	if status.NoteId == "" {
-		existingNote, err = p.findNote(obj)
-		if err != nil {
-			return err
-		}
-		if existingNote != nil {
-			status.NoteId = existingNote.GetId()
-			status.LastPostedStatusHash = ""
-		} else {
-			existingNote, err = p.mr.CreateMergeRequestNote(body)
-			if err != nil {
-				return err
-			}
-			status.NoteId = existingNote.GetId()
-			status.LastPostedStatusHash = controllers.Sha256String(body)
-		}
-	} else {
-		var resp *gitlab.Response
-		existingNote, err = p.mr.GetMergeRequestNote(status.NoteId)
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				status.NoteId = ""
-				status.LastPostedStatusHash = ""
-			}
-			return err
-		}
-	}
-
-	if status.LastPostedStatusHash == controllers.Sha256String(body) {
-		return nil
-	}
-
-	err = existingNote.UpdateBody(body)
-	if err != nil {
-		status.NoteId = ""
-		status.LastPostedStatusHash = ""
-		return err
-	}
-	status.LastPostedStatusHash = controllers.Sha256String(body)
-	return nil
-}
-
-func (p *PullRequestCommentReporter) findNote(obj client.Object) (webgit.Note, error) {
-	notes, err := p.mr.ListMergeRequestNotes()
-	if err != nil {
-		return nil, err
-	}
-	for _, n := range notes {
-		if !hasMarkerComment(n.GetBody(), "pull-request-comment", p.clusterId, obj.GetNamespace(), obj.GetName()) {
-			continue
-		}
-		return n, nil
-	}
-	return nil, nil
+func (p *PullRequestCommentReporter) reconcileComment(obj client.Object, statusComment string, status *v1alpha1.PullRequestCommentReporterStatus) error {
+	return reconcileComment(p.clusterId, p.mr, "pull-request-comment", obj, statusComment, &status.NoteId, &status.LastPostedStatusHash)
 }
