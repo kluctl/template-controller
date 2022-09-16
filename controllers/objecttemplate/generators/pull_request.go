@@ -40,6 +40,11 @@ func (g *PullRequestGenerator) BuildContexts() ([]*GeneratedContext, error) {
 		targetBranch = g.spec.Gitlab.TargetBranch
 		sourceBranch = g.spec.Gitlab.SourceBranch
 		labels = g.spec.Gitlab.Labels
+	} else if g.spec.Github != nil {
+		state = g.spec.Github.PullRequestState
+		targetBranch = g.spec.Github.TargetBranch
+		sourceBranch = g.spec.Github.SourceBranch
+		labels = g.spec.Github.Labels
 	} else {
 		return nil, fmt.Errorf("no pull request provider spec specified")
 	}

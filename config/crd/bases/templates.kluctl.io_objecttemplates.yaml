@@ -105,6 +105,10 @@ spec:
                               type: string
                             repo:
                               type: string
+                            sourceBranch:
+                              type: string
+                            targetBranch:
+                              type: string
                             tokenRef:
                               description: Authentication token reference.
                               properties:

@@ -436,5 +436,5 @@ func BuildWebgitGithub(ctx context.Context, client client.Client, namespace stri
 	if err != nil {
 		return nil, err
 	}
-	return g.GetProject(fmt.Sprintf("%s/%s", info.Owner, info.Repo))
+	return g.GetProject(fmt.Sprintf("%s/%s", *info.Owner, *info.Repo))
 }

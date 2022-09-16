@@ -89,9 +89,20 @@ type PullRequestGeneratorGitlab struct {
 type PullRequestGeneratorGithub struct {
 	GithubProject `json:",inline"`
 
+	// +optional
+	TargetBranch *string `json:"targetBranch,omitempty"`
+
+	// +optional
+	SourceBranch *string `json:"sourceBranch,omitempty"`
+
 	// Labels is used to filter the MRs that you want to target
+	// +optional
 	Labels []string `json:"labels,omitempty"`
+
 	// PullRequestState is an additional MRs filter to get only those with a certain state. Default: "all"
+	// +optional
+	// +kubebuilder:validation:Enum=all;opened;closed;merged
+	// +kubebuilder:default:="all"
 	PullRequestState MergeRequestState `json:"pullRequestState,omitempty"`
 }
 

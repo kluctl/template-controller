@@ -754,6 +754,16 @@ func (in *PullRequestGenerator) DeepCopy() *PullRequestGenerator {
 func (in *PullRequestGeneratorGithub) DeepCopyInto(out *PullRequestGeneratorGithub) {
 	*out = *in
 	in.GithubProject.DeepCopyInto(&out.GithubProject)
+	if in.TargetBranch != nil {
+		in, out := &in.TargetBranch, &out.TargetBranch
+		*out = new(string)
+		**out = **in
+	}
+	if in.SourceBranch != nil {
+		in, out := &in.SourceBranch, &out.SourceBranch
+		*out = new(string)
+		**out = **in
+	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
 		*out = make([]string, len(*in))
