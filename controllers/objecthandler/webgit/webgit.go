@@ -11,15 +11,6 @@ import (
 	"time"
 )
 
-type MergeRequestState string
-
-const (
-	StateAll    MergeRequestState = "all"
-	StateOpened MergeRequestState = "opened"
-	StateClosed MergeRequestState = "closed"
-	StateMerged MergeRequestState = "merged"
-)
-
 type Note interface {
 	GetId() string
 	GetBody() string
@@ -33,21 +24,21 @@ type WebgitInterface interface {
 }
 
 type ProjectInterface interface {
-	ListMergeRequests(state MergeRequestState) ([]MergeRequestInterface, error)
+	ListMergeRequests(state v1alpha1.MergeRequestState) ([]MergeRequestInterface, error)
 	GetMergeRequest(mrId string) (MergeRequestInterface, error)
 }
 
 type MergeRequestInfo struct {
-	ID           int               `json:"id"`
-	TargetBranch string            `json:"targetBranch"`
-	SourceBranch string            `json:"sourceBranch"`
-	Title        string            `json:"title"`
-	State        MergeRequestState `json:"state"`
-	CreatedAt    metav1.Time       `json:"createdAt"`
-	UpdatedAt    metav1.Time       `json:"updatedAt"`
-	Author       string            `json:"author"`
-	Labels       []string          `json:"labels"`
-	Draft        bool              `json:"draft"`
+	ID           int                        `json:"id"`
+	TargetBranch string                     `json:"targetBranch"`
+	SourceBranch string                     `json:"sourceBranch"`
+	Title        string                     `json:"title"`
+	State        v1alpha1.MergeRequestState `json:"state"`
+	CreatedAt    metav1.Time                `json:"createdAt"`
+	UpdatedAt    metav1.Time                `json:"updatedAt"`
+	Author       string                     `json:"author"`
+	Labels       []string                   `json:"labels"`
+	Draft        bool                       `json:"draft"`
 }
 
 type MergeRequestInterface interface {

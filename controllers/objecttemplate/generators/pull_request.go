@@ -31,12 +31,12 @@ func (g *PullRequestGenerator) BuildContexts() ([]*GeneratedContext, error) {
 	var err error
 	var mrs []webgit.MergeRequestInterface
 
-	var state webgit.MergeRequestState
+	var state templatesv1alpha1.MergeRequestState
 	var targetBranch, sourceBranch *string
 	var labels []string
 
 	if g.spec.Gitlab != nil {
-		state = webgit.MergeRequestState(g.spec.Gitlab.PullRequestState)
+		state = g.spec.Gitlab.PullRequestState
 		targetBranch = g.spec.Gitlab.TargetBranch
 		sourceBranch = g.spec.Gitlab.SourceBranch
 		labels = g.spec.Gitlab.Labels

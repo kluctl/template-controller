@@ -83,7 +83,7 @@ type PullRequestGeneratorGitlab struct {
 	// +optional
 	// +kubebuilder:validation:Enum=all;opened;closed;merged
 	// +kubebuilder:default:="all"
-	PullRequestState string `json:"pullRequestState,omitempty"`
+	PullRequestState MergeRequestState `json:"pullRequestState,omitempty"`
 }
 
 type PullRequestGeneratorGithub struct {
@@ -91,8 +91,8 @@ type PullRequestGeneratorGithub struct {
 
 	// Labels is used to filter the MRs that you want to target
 	Labels []string `json:"labels,omitempty"`
-	// PullRequestState is an additional MRs filter to get only those with a certain state. Default: "" (all states)
-	PullRequestState string `json:"pullRequestState,omitempty"`
+	// PullRequestState is an additional MRs filter to get only those with a certain state. Default: "all"
+	PullRequestState MergeRequestState `json:"pullRequestState,omitempty"`
 }
 
 // ObjectTemplateStatus defines the observed state of ObjectTemplate

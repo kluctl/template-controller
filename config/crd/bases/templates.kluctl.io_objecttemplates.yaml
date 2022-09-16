@@ -93,9 +93,15 @@ spec:
                             owner:
                               type: string
                             pullRequestState:
+                              default: all
                               description: 'PullRequestState is an additional MRs
                                 filter to get only those with a certain state. Default:
-                                "" (all states)'
+                                "all"'
+                              enum:
+                              - all
+                              - opened
+                              - closed
+                              - merged
                               type: string
                             repo:
                               type: string

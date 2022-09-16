@@ -90,7 +90,7 @@ func (g *Github) GetProject(projectId string) (ProjectInterface, error) {
 	}, nil
 }
 
-func (g *GithubProject) ListMergeRequests(state MergeRequestState) ([]MergeRequestInterface, error) {
+func (g *GithubProject) ListMergeRequests(state v1alpha1.MergeRequestState) ([]MergeRequestInterface, error) {
 	opts := &github.PullRequestListOptions{
 		State: string(state),
 	}
@@ -127,28 +127,28 @@ func (g *GithubMergeRequest) convertComment(n *github.IssueComment) Note {
 	}
 }
 
-func (g *GithubMergeRequest) convertStateToGithub(state MergeRequestState) (string, error) {
+func (g *GithubMergeRequest) convertStateToGithub(state v1alpha1.MergeRequestState) (string, error) {
 	switch state {
-	case StateAll:
+	case v1alpha1.StateAll:
 		return "all", nil
-	case StateOpened:
+	case v1alpha1.StateOpened:
 		return "open", nil
-	case StateClosed:
+	case v1alpha1.StateClosed:
 		return "closed", nil
-	case StateMerged:
+	case v1alpha1.StateMerged:
 		return "closed", nil
 	}
 	return "", fmt.Errorf("invalid state %s", state)
 }
 
-func (g *GithubMergeRequest) convertStateFromGithub(state string) (MergeRequestState, error) {
+func (g *GithubMergeRequest) convertStateFromGithub(state string) (v1alpha1.MergeRequestState, error) {
 	switch state {
 	case "all":
-		return StateAll, nil
+		return v1alpha1.StateAll, nil
 	case "open":
-		return StateOpened, nil
+		return v1alpha1.StateOpened, nil
 	case "closed":
-		return StateClosed, nil
+		return v1alpha1.StateClosed, nil
 	}
 	return "", fmt.Errorf("invalid state %s", state)
 }

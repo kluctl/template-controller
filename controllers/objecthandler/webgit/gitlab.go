@@ -60,7 +60,7 @@ func (g *Gitlab) GetProject(projectId string) (ProjectInterface, error) {
 	}, nil
 }
 
-func (p *GitlabProject) ListMergeRequests(state MergeRequestState) ([]MergeRequestInterface, error) {
+func (p *GitlabProject) ListMergeRequests(state v1alpha1.MergeRequestState) ([]MergeRequestInterface, error) {
 	opts := &gitlab.ListProjectMergeRequestsOptions{
 		State: (*string)(&state),
 	}
@@ -111,12 +111,17 @@ func (g *GitlabMergeRequest) Info() (*MergeRequestInfo, error) {
 		g.mr = mr
 	}
 
+	state, err := v1alpha1.StateFromString(g.mr.State)
+	if err != nil {
+		return nil, err
+	}
+
 	return &MergeRequestInfo{
 		ID:           g.mr.IID,
 		TargetBranch: g.mr.TargetBranch,
 		SourceBranch: g.mr.SourceBranch,
 		Title:        g.mr.Title,
-		State:        MergeRequestState(g.mr.State),
+		State:        state,
 		CreatedAt:    metav1.NewTime(*g.mr.CreatedAt),
 		UpdatedAt:    metav1.NewTime(*g.mr.UpdatedAt),
 		Author:       g.mr.Author.Username,
