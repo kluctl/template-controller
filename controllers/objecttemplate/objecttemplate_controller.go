@@ -26,6 +26,7 @@ import (
 	"io"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"strings"
 
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
@@ -263,8 +264,11 @@ func (r *ObjectTemplateReconciler) buildGenerator(ctx context.Context, namespace
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&templatesv1alpha1.ObjectTemplate{}).
+		WithOptions(controller.Options{
+			MaxConcurrentReconciles: concurrent,
+		}).
 		Complete(r)
 }

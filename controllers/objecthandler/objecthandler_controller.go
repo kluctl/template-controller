@@ -92,7 +92,7 @@ func (r *ObjectHandlerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
 	r.watchedKinds = map[schema.GroupVersionKind]bool{}
 
 	// Index the ObjectHandler by the objects they are for.
@@ -108,6 +108,9 @@ func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	c, err := ctrl.NewControllerManagedBy(mgr).
 		For(&templatesv1alpha1.ObjectHandler{}).
+		WithOptions(controller.Options{
+			MaxConcurrentReconciles: concurrent,
+		}).
 		Build(r)
 	if err != nil {
 		return err
