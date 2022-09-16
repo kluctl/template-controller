@@ -77,7 +77,7 @@ func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Cl
 	}
 
 	for _, n := range unprocessedNotes {
-		err = p.processGitlabStatusCommand(ctx, j2, client, n, obj)
+		err = p.processCommand(ctx, j2, client, n, obj)
 		if err != nil {
 			updateStatus()
 			break
@@ -115,7 +115,7 @@ func (p *PullRequestCommandHandler) reconcileHelpComment(j2 *jinja2.Jinja2, obj 
 
 var commandRegex = regexp.MustCompile("^/([a-zA-Z][a-zA-Z0-9]*)$")
 
-func (p *PullRequestCommandHandler) processGitlabStatusCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, n webgit.Note, obj client.Object) error {
+func (p *PullRequestCommandHandler) processCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, n webgit.Note, obj client.Object) error {
 	body := n.GetBody()
 	if hasMarkerComment(body, "pull-request-command-processed", p.clusterId, obj.GetNamespace(), obj.GetName()) {
 		return nil
