@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
@@ -40,16 +38,16 @@ type ProjectInterface interface {
 }
 
 type MergeRequestInfo struct {
-	ID           int         `json:"id"`
-	TargetBranch string      `json:"targetBranch"`
-	SourceBranch string      `json:"sourceBranch"`
-	Title        string      `json:"title"`
-	State        string      `json:"state"`
-	CreatedAt    metav1.Time `json:"createdAt"`
-	UpdatedAt    metav1.Time `json:"updatedAt"`
-	Author       string      `json:"author"`
-	Labels       []string    `json:"labels"`
-	Draft        bool        `json:"draft"`
+	ID           int               `json:"id"`
+	TargetBranch string            `json:"targetBranch"`
+	SourceBranch string            `json:"sourceBranch"`
+	Title        string            `json:"title"`
+	State        MergeRequestState `json:"state"`
+	CreatedAt    metav1.Time       `json:"createdAt"`
+	UpdatedAt    metav1.Time       `json:"updatedAt"`
+	Author       string            `json:"author"`
+	Labels       []string          `json:"labels"`
+	Draft        bool              `json:"draft"`
 }
 
 type MergeRequestInterface interface {
@@ -65,38 +63,6 @@ type MergeRequestInterface interface {
 	ListMergeRequestNotesAfter(t time.Time) ([]Note, error)
 }
 
-func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace string, info v1alpha1.GitlabProject) (ProjectInterface, error) {
-	if info.Project == nil {
-		return nil, fmt.Errorf("missing gitlab project")
-	}
-	if info.TokenRef == nil {
-		return nil, fmt.Errorf("missing tokenRef")
-	}
-
-	sn := types.NamespacedName{
-		Namespace: namespace,
-		Name:      info.TokenRef.SecretName,
-	}
-
-	var secret v1.Secret
-	err := client.Get(ctx, sn, &secret)
-	if err != nil {
-		return nil, err
-	}
-
-	tokenBytes, ok := secret.Data[info.TokenRef.Key]
-	if !ok {
-		return nil, fmt.Errorf("gitlab token is missing in secret")
-	}
-	token := string(tokenBytes)
-
-	g, err := NewGitlab(info.API, token)
-	if err != nil {
-		return nil, err
-	}
-	return g.GetProject(*info.Project)
-}
-
 func BuildWebgit(ctx context.Context, client client.Client, namespace string, spec any, defaults any) (ProjectInterface, error) {
 	merged, err := mergeSpec(spec, defaults)
 	if err != nil {
@@ -104,13 +70,25 @@ func BuildWebgit(ctx context.Context, client client.Client, namespace string, sp
 	}
 
 	if m, ok := merged["gitlab"]; ok {
-		var gitlab v1alpha1.GitlabMergeRequest
+		var gitlab v1alpha1.GitlabProject
 		err = mapToObject(m, &gitlab)
 		if err != nil {
 			return nil, err
 		}
 
-		project, err := BuildWebgitGitlab(ctx, client, namespace, gitlab.GitlabProject)
+		project, err := BuildWebgitGitlab(ctx, client, namespace, gitlab)
+		if err != nil {
+			return nil, err
+		}
+		return project, nil
+	} else if m, ok := merged["github"]; ok {
+		var github v1alpha1.GithubProject
+		err = mapToObject(m, &github)
+		if err != nil {
+			return nil, err
+		}
+
+		project, err := BuildWebgitGithub(ctx, client, namespace, github)
 		if err != nil {
 			return nil, err
 		}
@@ -141,6 +119,16 @@ func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespac
 			return nil, fmt.Errorf("missing mergeRequestId")
 		}
 		return project.GetMergeRequest(fmt.Sprintf("%d", *gitlab.MergeRequestId))
+	} else if m, ok := merged["github"]; ok {
+		var github v1alpha1.GithubPullRequest
+		err = mapToObject(m, &github)
+		if err != nil {
+			return nil, err
+		}
+		if github.PullRequestId == nil {
+			return nil, fmt.Errorf("missing pullRequestId")
+		}
+		return project.GetMergeRequest(fmt.Sprintf("%d", *github.PullRequestId))
 	} else {
 		return nil, fmt.Errorf("no pullRequest spec provided")
 	}

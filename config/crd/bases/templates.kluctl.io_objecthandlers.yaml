@@ -37,6 +37,26 @@ spec:
             properties:
               defaults:
                 properties:
+                  github:
+                    properties:
+                      owner:
+                        type: string
+                      pullRequestId:
+                        type: integer
+                      repo:
+                        type: string
+                      tokenRef:
+                        description: Authentication token reference.
+                        properties:
+                          key:
+                            type: string
+                          secretName:
+                            type: string
+                        required:
+                        - key
+                        - secretName
+                        type: object
+                    type: object
                   gitlab:
                     properties:
                       api:
@@ -82,6 +102,26 @@ spec:
                   properties:
                     pullRequestApprove:
                       properties:
+                        github:
+                          properties:
+                            owner:
+                              type: string
+                            pullRequestId:
+                              type: integer
+                            repo:
+                              type: string
+                            tokenRef:
+                              description: Authentication token reference.
+                              properties:
+                                key:
+                                  type: string
+                                secretName:
+                                  type: string
+                              required:
+                              - key
+                              - secretName
+                              type: object
+                          type: object
                         gitlab:
                           properties:
                             api:
@@ -139,6 +179,26 @@ spec:
                             - name
                             type: object
                           type: array
+                        github:
+                          properties:
+                            owner:
+                              type: string
+                            pullRequestId:
+                              type: integer
+                            repo:
+                              type: string
+                            tokenRef:
+                              description: Authentication token reference.
+                              properties:
+                                key:
+                                  type: string
+                                secretName:
+                                  type: string
+                              required:
+                              - key
+                              - secretName
+                              type: object
+                          type: object
                         gitlab:
                           properties:
                             api:
@@ -170,6 +230,26 @@ spec:
                       type: object
                     pullRequestComment:
                       properties:
+                        github:
+                          properties:
+                            owner:
+                              type: string
+                            pullRequestId:
+                              type: integer
+                            repo:
+                              type: string
+                            tokenRef:
+                              description: Authentication token reference.
+                              properties:
+                                key:
+                                  type: string
+                                secretName:
+                                  type: string
+                              required:
+                              - key
+                              - secretName
+                              type: object
+                          type: object
                         gitlab:
                           properties:
                             api:

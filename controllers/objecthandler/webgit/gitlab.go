@@ -1,9 +1,14 @@
 package webgit
 
 import (
+	"context"
 	"fmt"
+	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/xanzy/go-gitlab"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 	"sync"
 	"time"
@@ -111,7 +116,7 @@ func (g *GitlabMergeRequest) Info() (*MergeRequestInfo, error) {
 		TargetBranch: g.mr.TargetBranch,
 		SourceBranch: g.mr.SourceBranch,
 		Title:        g.mr.Title,
-		State:        g.mr.State,
+		State:        MergeRequestState(g.mr.State),
 		CreatedAt:    metav1.NewTime(*g.mr.CreatedAt),
 		UpdatedAt:    metav1.NewTime(*g.mr.UpdatedAt),
 		Author:       g.mr.Author.Username,
@@ -269,4 +274,36 @@ func (n *GitlabNote) UpdateBody(body string) error {
 	}
 	n.note = n2
 	return nil
+}
+
+func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace string, info v1alpha1.GitlabProject) (ProjectInterface, error) {
+	if info.Project == nil {
+		return nil, fmt.Errorf("missing gitlab project")
+	}
+	if info.TokenRef == nil {
+		return nil, fmt.Errorf("missing tokenRef")
+	}
+
+	sn := types.NamespacedName{
+		Namespace: namespace,
+		Name:      info.TokenRef.SecretName,
+	}
+
+	var secret v1.Secret
+	err := client.Get(ctx, sn, &secret)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenBytes, ok := secret.Data[info.TokenRef.Key]
+	if !ok {
+		return nil, fmt.Errorf("gitlab token is missing in secret")
+	}
+	token := string(tokenBytes)
+
+	g, err := NewGitlab(info.API, token)
+	if err != nil {
+		return nil, err
+	}
+	return g.GetProject(*info.Project)
 }

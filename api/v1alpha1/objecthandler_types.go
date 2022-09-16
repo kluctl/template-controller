@@ -41,6 +41,9 @@ type ObjectHandlerSpec struct {
 type ObjectHandlerDefaultsSpec struct {
 	// +optional
 	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
+
+	// +optional
+	Github *GithubPullRequest `json:"github,omitempty"`
 }
 
 type Handler struct {
@@ -78,6 +81,9 @@ type HandlerStatus struct {
 type PullRequestCommentReporter struct {
 	// +optional
 	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
+
+	// +optional
+	Github *GithubPullRequest `json:"github,omitempty"`
 }
 
 type PullRequestCommentReporterStatus struct {
@@ -93,6 +99,9 @@ type PullRequestApproveReporter struct {
 	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
 
 	// +optional
+	Github *GithubPullRequest `json:"github,omitempty"`
+
+	// +optional
 	// +kubebuilder:default:=false
 	MissingReadyConditionIsError bool `json:"missingReadyConditionIsError"`
 }
@@ -105,6 +114,9 @@ type PullRequestApproveReporterStatus struct {
 type PullRequestCommandHandler struct {
 	// +optional
 	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
+
+	// +optional
+	Github *GithubPullRequest `json:"github,omitempty"`
 
 	// +optional
 	PostHelpComment bool `json:"postHelpComment"`

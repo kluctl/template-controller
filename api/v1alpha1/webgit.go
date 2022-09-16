@@ -21,3 +21,22 @@ type GitlabMergeRequest struct {
 	// +optional
 	MergeRequestId *int `json:"mergeRequestId,omitempty"`
 }
+
+type GithubProject struct {
+	// +optional
+	Owner *string `json:"owner"`
+
+	// +optional
+	Repo *string `json:"repo"`
+
+	// Authentication token reference.
+	// +optional
+	TokenRef *SecretRef `json:"tokenRef"`
+}
+
+type GithubPullRequest struct {
+	GithubProject `json:",inline"`
+
+	// +optional
+	PullRequestId *int `json:"pullRequestId,omitempty"`
+}

@@ -39,6 +39,9 @@ type ObjectTemplateSpec struct {
 type ObjectTemplateDefaultsSpec struct {
 	// +optional
 	Gitlab *GitlabProject `json:"gitlab,omitempty"`
+
+	// +optional
+	Github *GithubProject `json:"github,omitempty"`
 }
 
 type Template struct {
@@ -58,6 +61,9 @@ type Generator struct {
 type PullRequestGenerator struct {
 	// +optional
 	Gitlab *PullRequestGeneratorGitlab `json:"gitlab,omitempty"`
+
+	// +optional
+	Github *PullRequestGeneratorGithub `json:"github,omitempty"`
 }
 
 type PullRequestGeneratorGitlab struct {
@@ -77,6 +83,15 @@ type PullRequestGeneratorGitlab struct {
 	// +optional
 	// +kubebuilder:validation:Enum=all;opened;closed;merged
 	// +kubebuilder:default:="all"
+	PullRequestState string `json:"pullRequestState,omitempty"`
+}
+
+type PullRequestGeneratorGithub struct {
+	GithubProject `json:",inline"`
+
+	// Labels is used to filter the MRs that you want to target
+	Labels []string `json:"labels,omitempty"`
+	// PullRequestState is an additional MRs filter to get only those with a certain state. Default: "" (all states)
 	PullRequestState string `json:"pullRequestState,omitempty"`
 }
 
