@@ -333,22 +333,15 @@ func (g *GithubMergeRequest) ListMergeRequestNotes() ([]Note, error) {
 }
 
 func (g *GithubMergeRequest) ListMergeRequestNotesAfter(t time.Time) ([]Note, error) {
-	sort := "created"
-	direction := "desc"
-
 	opt := &github.IssueListCommentsOptions{}
 	opt.Page = 1
-	opt.PerPage = 10
-	opt.Sort = &sort
-	opt.Direction = &direction
+	opt.PerPage = 100
 
-	if t == (time.Time{}) {
-		opt.PerPage = 100
+	if t != (time.Time{}) {
+		opt.Since = &t
 	}
 
 	var ret []Note
-
-outer:
 	for true {
 		notes, _, err := g.project.github.client.Issues.ListComments(g.project.github.ctx, g.project.owner, g.project.repo, g.mrId, opt)
 		if err != nil {
@@ -356,9 +349,6 @@ outer:
 		}
 
 		for _, n := range notes {
-			if !n.CreatedAt.After(t) {
-				break outer
-			}
 			ret = append(ret, g.convertComment(n))
 		}
 
@@ -366,10 +356,6 @@ outer:
 			break
 		}
 		opt.Page++
-	}
-	// reverse ret
-	for i, j := 0, len(ret)-1; i < j; i, j = i+1, j-1 {
-		ret[i], ret[j] = ret[j], ret[i]
 	}
 	return ret, nil
 }
