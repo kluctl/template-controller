@@ -4,62 +4,102 @@ import (
 	"context"
 	"fmt"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"k8s.io/apimachinery/pkg/runtime"
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type MergeRequestInfo struct {
-	ID           int         `json:"id"`
-	TargetBranch string      `json:"targetBranch"`
-	SourceBranch string      `json:"sourceBranch"`
-	Title        string      `json:"title"`
-	State        string      `json:"state"`
-	CreatedAt    metav1.Time `json:"createdAt"`
-	UpdatedAt    metav1.Time `json:"updatedAt"`
-	Author       string      `json:"author"`
-	Labels       []string    `json:"labels"`
-	Draft        bool        `json:"draft"`
+type PullRequestGenerator struct {
+	project webgit.ProjectInterface
+	spec    templatesv1alpha1.PullRequestGenerator
 }
 
-func BuildPullRequestGenerator(ctx context.Context, client client.Client, namespace string, spec templatesv1alpha1.PullRequestGenerator) (Generator, error) {
-	if spec.Gitlab != nil {
-		return buildPullRequestGeneratorGitlab(ctx, client, namespace, spec)
+func BuildPullRequestGenerator(ctx context.Context, client client.Client, namespace string, spec templatesv1alpha1.PullRequestGenerator, defaults *templatesv1alpha1.ObjectTemplateDefaultsSpec) (Generator, error) {
+	p, err := webgit.BuildWebgit(ctx, client, namespace, spec, defaults)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PullRequestGenerator{
+		project: p,
+		spec:    spec,
+	}, nil
+}
+
+func (g *PullRequestGenerator) BuildContexts() ([]*GeneratedContext, error) {
+	var err error
+	var mrs []webgit.MergeRequestInterface
+
+	var state webgit.MergeRequestState
+	var targetBranch, sourceBranch *string
+	var labels []string
+
+	if g.spec.Gitlab != nil {
+		state = webgit.MergeRequestState(g.spec.Gitlab.PullRequestState)
+		targetBranch = g.spec.Gitlab.TargetBranch
+		sourceBranch = g.spec.Gitlab.SourceBranch
+		labels = g.spec.Gitlab.Labels
 	} else {
-		return nil, fmt.Errorf("no pullRequest generator specified")
+		return nil, fmt.Errorf("no pull request provider spec specified")
 	}
-}
 
-func filterPullRequests(mrs []MergeRequestInfo, filters []templatesv1alpha1.PullRequestGeneratorFilter) ([]MergeRequestInfo, error) {
-	var branchMatchPatterns []*regexp.Regexp
-
-	for _, f := range filters {
-		var err error
-		var p *regexp.Regexp
-		if f.BranchMatch != nil {
-			p, err = regexp.Compile(*f.BranchMatch)
-			if err != nil {
-				return nil, err
-			}
+	var targetBranchRE, sourceBranchRE *regexp.Regexp
+	if targetBranch != nil {
+		targetBranchRE, err = regexp.Compile(*targetBranch)
+		if err != nil {
+			return nil, err
 		}
-
-		branchMatchPatterns = append(branchMatchPatterns, p)
+	}
+	if sourceBranch != nil {
+		sourceBranchRE, err = regexp.Compile(*sourceBranch)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	ret := make([]MergeRequestInfo, 0, len(mrs))
+	mrs, err = g.project.ListMergeRequests(state)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []*GeneratedContext
+
+outer:
 	for _, mr := range mrs {
-		match := true
-		for i, f := range filters {
-			if f.BranchMatch != nil {
-				if !branchMatchPatterns[i].MatchString(mr.SourceBranch) {
-					match = false
-					break
-				}
+		info, err := mr.Info()
+		if err != nil {
+			return nil, err
+		}
+		if targetBranchRE != nil && !targetBranchRE.MatchString(info.TargetBranch) {
+			continue
+		}
+		if sourceBranchRE != nil && !sourceBranchRE.MatchString(info.SourceBranch) {
+			continue
+		}
+		labelsMap := map[string]bool{}
+		for _, l := range info.Labels {
+			labelsMap[l] = true
+		}
+		for _, l := range labels {
+			if _, ok := labelsMap[l]; !ok {
+				continue outer
 			}
 		}
-		if match {
-			ret = append(ret, mr)
+
+		u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&info)
+		if err != nil {
+			return nil, err
 		}
+
+		vars := map[string]any{
+			"mergeRequest": u,
+		}
+
+		ret = append(ret, &GeneratedContext{
+			Vars: vars,
+		})
 	}
+
 	return ret, nil
 }

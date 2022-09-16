@@ -40,7 +40,7 @@ type ObjectHandlerSpec struct {
 
 type ObjectHandlerDefaultsSpec struct {
 	// +optional
-	Gitlab *GitlabDefaults `json:"gitlab,omitempty"`
+	Gitlab *GitlabMergeRequest `json:"gitlab,omitempty"`
 }
 
 type Handler struct {

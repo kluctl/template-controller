@@ -3,7 +3,9 @@ package webgit
 import (
 	"fmt"
 	"github.com/xanzy/go-gitlab"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -19,6 +21,9 @@ type GitlabProject struct {
 type GitlabMergeRequest struct {
 	project *GitlabProject
 	mrId    int
+
+	mr    *gitlab.MergeRequest
+	mutex sync.Mutex
 }
 
 func NewGitlab(baseUrl *string, token string) (WebgitInterface, error) {
@@ -50,12 +55,12 @@ func (g *Gitlab) GetProject(projectId string) (ProjectInterface, error) {
 	}, nil
 }
 
-func (p *GitlabProject) ListMergeRequests(targetBranch *string, sourceBranch *string) ([]MergeRequestInterface, error) {
-	opt := &gitlab.ListProjectMergeRequestsOptions{
-		TargetBranch: targetBranch,
-		SourceBranch: sourceBranch,
+func (p *GitlabProject) ListMergeRequests(state MergeRequestState) ([]MergeRequestInterface, error) {
+	opts := &gitlab.ListProjectMergeRequestsOptions{
+		State: (*string)(&state),
 	}
-	mrs, _, err := p.gitlab.client.MergeRequests.ListProjectMergeRequests(p.projectId, opt)
+
+	mrs, _, err := p.gitlab.client.MergeRequests.ListProjectMergeRequests(p.projectId, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +69,7 @@ func (p *GitlabProject) ListMergeRequests(targetBranch *string, sourceBranch *st
 		ret = append(ret, &GitlabMergeRequest{
 			project: p,
 			mrId:    mr.ID,
+			mr:      mr,
 		})
 	}
 	return ret, nil
@@ -85,6 +91,33 @@ func (g *GitlabMergeRequest) convertNote(n *gitlab.Note) Note {
 		g:    g,
 		note: n,
 	}
+}
+
+func (g *GitlabMergeRequest) Info() (*MergeRequestInfo, error) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	if g.mr == nil {
+		opt := &gitlab.GetMergeRequestsOptions{}
+		mr, _, err := g.project.gitlab.client.MergeRequests.GetMergeRequest(g.project.projectId, g.mrId, opt)
+		if err != nil {
+			return nil, err
+		}
+		g.mr = mr
+	}
+
+	return &MergeRequestInfo{
+		ID:           g.mr.IID,
+		TargetBranch: g.mr.TargetBranch,
+		SourceBranch: g.mr.SourceBranch,
+		Title:        g.mr.Title,
+		State:        g.mr.State,
+		CreatedAt:    metav1.NewTime(*g.mr.CreatedAt),
+		UpdatedAt:    metav1.NewTime(*g.mr.UpdatedAt),
+		Author:       g.mr.Author.Username,
+		Labels:       g.mr.Labels,
+		Draft:        g.mr.Draft,
+	}, nil
 }
 
 func (g *GitlabMergeRequest) HasApproved() (bool, error) {

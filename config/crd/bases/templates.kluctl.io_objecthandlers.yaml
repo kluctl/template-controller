@@ -61,8 +61,6 @@ spec:
                         - secretName
                         type: object
                     type: object
-                required:
-                - gitlab
                 type: object
               forObject:
                 properties:

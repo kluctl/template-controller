@@ -21,7 +21,3 @@ type GitlabMergeRequest struct {
 	// +optional
 	MergeRequestId *int `json:"mergeRequestId,omitempty"`
 }
-
-type GitlabDefaults struct {
-	GitlabMergeRequest `json:",inline"`
-}

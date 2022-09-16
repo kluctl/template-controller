@@ -7,9 +7,19 @@ import (
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
+)
+
+type MergeRequestState string
+
+const (
+	StateAll    MergeRequestState = "all"
+	StateOpened MergeRequestState = "opened"
+	StateClosed MergeRequestState = "closed"
+	StateMerged MergeRequestState = "merged"
 )
 
 type Note interface {
@@ -25,11 +35,26 @@ type WebgitInterface interface {
 }
 
 type ProjectInterface interface {
-	ListMergeRequests(targetBranch *string, sourceBranch *string) ([]MergeRequestInterface, error)
+	ListMergeRequests(state MergeRequestState) ([]MergeRequestInterface, error)
 	GetMergeRequest(mrId string) (MergeRequestInterface, error)
 }
 
+type MergeRequestInfo struct {
+	ID           int         `json:"id"`
+	TargetBranch string      `json:"targetBranch"`
+	SourceBranch string      `json:"sourceBranch"`
+	Title        string      `json:"title"`
+	State        string      `json:"state"`
+	CreatedAt    metav1.Time `json:"createdAt"`
+	UpdatedAt    metav1.Time `json:"updatedAt"`
+	Author       string      `json:"author"`
+	Labels       []string    `json:"labels"`
+	Draft        bool        `json:"draft"`
+}
+
 type MergeRequestInterface interface {
+	Info() (*MergeRequestInfo, error)
+
 	HasApproved() (bool, error)
 	Approve() error
 	Unapprove() error
@@ -72,7 +97,56 @@ func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace stri
 	return g.GetProject(*info.Project)
 }
 
-func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespace string, spec any, defaults *v1alpha1.ObjectHandlerDefaultsSpec) (MergeRequestInterface, error) {
+func BuildWebgit(ctx context.Context, client client.Client, namespace string, spec any, defaults any) (ProjectInterface, error) {
+	merged, err := mergeSpec(spec, defaults)
+	if err != nil {
+		return nil, err
+	}
+
+	if m, ok := merged["gitlab"]; ok {
+		var gitlab v1alpha1.GitlabMergeRequest
+		err = mapToObject(m, &gitlab)
+		if err != nil {
+			return nil, err
+		}
+
+		project, err := BuildWebgitGitlab(ctx, client, namespace, gitlab.GitlabProject)
+		if err != nil {
+			return nil, err
+		}
+		return project, nil
+	} else {
+		return nil, fmt.Errorf("no git project spec provided")
+	}
+}
+
+func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespace string, spec any, defaults any) (MergeRequestInterface, error) {
+	project, err := BuildWebgit(ctx, client, namespace, spec, defaults)
+	if err != nil {
+		return nil, err
+	}
+
+	merged, err := mergeSpec(spec, defaults)
+	if err != nil {
+		return nil, err
+	}
+
+	if m, ok := merged["gitlab"]; ok {
+		var gitlab v1alpha1.GitlabMergeRequest
+		err = mapToObject(m, &gitlab)
+		if err != nil {
+			return nil, err
+		}
+		if gitlab.MergeRequestId == nil {
+			return nil, fmt.Errorf("missing mergeRequestId")
+		}
+		return project.GetMergeRequest(fmt.Sprintf("%d", *gitlab.MergeRequestId))
+	} else {
+		return nil, fmt.Errorf("no pullRequest spec provided")
+	}
+}
+
+func mergeSpec(spec any, defaults any) (map[string]any, error) {
 	var err error
 	var mergedMap map[string]any
 
@@ -92,24 +166,7 @@ func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespac
 		}
 		controllers.MergeMap2(mergedMap, m2, true)
 	}
-
-	if m, ok := mergedMap["gitlab"]; ok {
-		var gitlab v1alpha1.GitlabMergeRequest
-		err = mapToObject(m, &gitlab)
-		if err != nil {
-			return nil, err
-		}
-		if gitlab.MergeRequestId == nil {
-			return nil, fmt.Errorf("missing mergeRequestId")
-		}
-		project, err := BuildWebgitGitlab(ctx, client, namespace, gitlab.GitlabProject)
-		if err != nil {
-			return nil, err
-		}
-		return project.GetMergeRequest(fmt.Sprintf("%d", *gitlab.MergeRequestId))
-	} else {
-		return nil, fmt.Errorf("no pullRequest spec provided")
-	}
+	return mergedMap, nil
 }
 
 func objectToMap(obj any) (map[string]any, error) {
@@ -122,6 +179,9 @@ func objectToMap(obj any) (map[string]any, error) {
 	err = json.Unmarshal(b, &ret)
 	if err != nil {
 		return nil, err
+	}
+	if ret == nil {
+		ret = map[string]any{}
 	}
 	return ret, nil
 }

@@ -105,7 +105,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	var allResources []*unstructured.Unstructured
 
 	for _, g := range rt.Spec.Generators {
-		g, err := r.buildGenerator(ctx, rt.GetNamespace(), g)
+		g, err := r.buildGenerator(ctx, rt.GetNamespace(), rt, g)
 		if err != nil {
 			return err
 		}
@@ -254,9 +254,9 @@ func (r *ObjectTemplateReconciler) buildBaseVars(ctx context.Context, rt *templa
 	return vars, nil
 }
 
-func (r *ObjectTemplateReconciler) buildGenerator(ctx context.Context, namespace string, spec templatesv1alpha1.Generator) (generators2.Generator, error) {
-	if spec.PullRequest != nil {
-		return generators2.BuildPullRequestGenerator(ctx, r.Client, namespace, *spec.PullRequest)
+func (r *ObjectTemplateReconciler) buildGenerator(ctx context.Context, namespace string, rt *templatesv1alpha1.ObjectTemplate, g templatesv1alpha1.Generator) (generators2.Generator, error) {
+	if g.PullRequest != nil {
+		return generators2.BuildPullRequestGenerator(ctx, r.Client, namespace, *g.PullRequest, rt.Spec.Defaults)
 	} else {
 		return nil, fmt.Errorf("no generator specified")
 	}

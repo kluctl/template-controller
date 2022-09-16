@@ -35,23 +35,35 @@ spec:
           spec:
             description: ObjectTemplateSpec defines the desired state of ObjectTemplate
             properties:
+              defaults:
+                properties:
+                  gitlab:
+                    properties:
+                      api:
+                        description: The GitLab API URL to talk to. If blank, uses
+                          https://gitlab.com/.
+                        type: string
+                      project:
+                        description: GitLab project to scan. Required.
+                        type: string
+                      tokenRef:
+                        description: Authentication token reference.
+                        properties:
+                          key:
+                            type: string
+                          secretName:
+                            type: string
+                        required:
+                        - key
+                        - secretName
+                        type: object
+                    type: object
+                type: object
               generators:
                 items:
                   properties:
                     pullRequest:
                       properties:
-                        filters:
-                          description: Filters for which pull requests should be considered.
-                          items:
-                            description: PullRequestGeneratorFilter is a single pull
-                              request filter. If multiple filter types are set on
-                              a single struct, they will be AND'd together. All filters
-                              must pass for a pull request to be included.
-                            properties:
-                              branchMatch:
-                                type: string
-                            type: object
-                          type: array
                         gitlab:
                           properties:
                             api:
@@ -68,9 +80,19 @@ spec:
                               description: GitLab project to scan. Required.
                               type: string
                             pullRequestState:
+                              default: all
                               description: 'PullRequestState is an additional MRs
                                 filter to get only those with a certain state. Default:
-                                "" (all states)'
+                                "all"'
+                              enum:
+                              - all
+                              - opened
+                              - closed
+                              - merged
+                              type: string
+                            sourceBranch:
+                              type: string
+                            targetBranch:
                               type: string
                             tokenRef:
                               description: Authentication token reference.
@@ -83,8 +105,6 @@ spec:
                               - key
                               - secretName
                               type: object
-                          required:
-                          - project
                           type: object
                       type: object
                   type: object
