@@ -120,6 +120,25 @@ func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager, concurrent 
 	return nil
 }
 
+type cachedPatch struct {
+	patch      client.Patch
+	obj        client.Object
+	cachedData []byte
+	cachedErr  error
+}
+
+func (c *cachedPatch) Type() types.PatchType {
+	return c.patch.Type()
+}
+
+func (c *cachedPatch) Data(obj client.Object) ([]byte, error) {
+	if obj != c.obj {
+		c.obj = obj
+		c.cachedData, c.cachedErr = c.patch.Data(obj)
+	}
+	return c.cachedData, c.cachedErr
+}
+
 func (r *ObjectHandlerReconciler) doReconcile(ctx context.Context, sr *templatesv1alpha1.ObjectHandler) error {
 	err := r.addWatchForKind(ctx, sr)
 	if err != nil {
@@ -146,6 +165,8 @@ func (r *ObjectHandlerReconciler) doReconcile(ctx context.Context, sr *templates
 	if err != nil {
 		return err
 	}
+
+	origObj := obj.DeepCopy()
 
 	existingStatuses := map[string]bool{}
 
@@ -196,6 +217,19 @@ func (r *ObjectHandlerReconciler) doReconcile(ctx context.Context, sr *templates
 	for _, x := range old {
 		if a, _ := existingStatuses[x.Key]; a {
 			sr.Status.HandlerStatus = append(sr.Status.HandlerStatus, x)
+		}
+	}
+
+	patch := cachedPatch{patch: client.MergeFrom(origObj)}
+	patchData, err := patch.Data(&obj)
+	if err != nil {
+		if err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	} else if len(patchData) != 2 || string(patchData) != "{}" {
+		err = r.Patch(ctx, &obj, &patch)
+		if err != nil {
+			errs = multierror.Append(errs, err)
 		}
 	}
 

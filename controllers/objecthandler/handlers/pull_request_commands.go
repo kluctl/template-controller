@@ -158,7 +158,7 @@ func (p *PullRequestCommandHandler) processCommand(ctx context.Context, j2 *jinj
 func (p *PullRequestCommandHandler) handleCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, obj client.Object, command v1alpha1.PullRequestCommandHandlerCommandSpec) error {
 	for _, action := range command.Actions {
 		if action.Annotate != nil {
-			err := p.handleActionAnnotate(ctx, j2, c, obj, action.Annotate)
+			err := p.handleActionAnnotate(j2, obj, action.Annotate)
 			if err != nil {
 				return err
 			}
@@ -169,7 +169,7 @@ func (p *PullRequestCommandHandler) handleCommand(ctx context.Context, j2 *jinja
 	return nil
 }
 
-func (p *PullRequestCommandHandler) handleActionAnnotate(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, obj client.Object, action *v1alpha1.PullRequestCommandHandlerActionAnnotateSpec) error {
+func (p *PullRequestCommandHandler) handleActionAnnotate(j2 *jinja2.Jinja2, obj client.Object, action *v1alpha1.PullRequestCommandHandlerActionAnnotateSpec) error {
 	vars := map[string]any{}
 
 	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
@@ -188,18 +188,12 @@ func (p *PullRequestCommandHandler) handleActionAnnotate(ctx context.Context, j2
 		return err
 	}
 
-	patch := client.MergeFrom(obj.DeepCopyObject().(client.Object))
-
 	a := obj.GetAnnotations()
-	if a == nil {
+	if a == nil { //asd
 		a = map[string]string{}
 	}
 	a[name] = value
 	obj.SetAnnotations(a)
 
-	err = c.Patch(ctx, obj, patch)
-	if err != nil {
-		return err
-	}
 	return nil
 }
