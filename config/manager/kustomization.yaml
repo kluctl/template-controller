@@ -5,4 +5,4 @@ resources:
 images:
   - name: ghcr.io/kluctl/template-controller
     newName: ghcr.io/kluctl/template-controller
-    newTag: v0.0.4
+    newTag: v0.1.0
