@@ -24,27 +24,27 @@ func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, 
 func (p *PullRequestApproveReporter) Handle(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.HandlerStatus) error {
 	if status.PullRequestApprove == nil {
 		status.PullRequestApprove = &v1alpha1.PullRequestApproveReporterStatus{}
-
-		approved, err := p.mr.HasApproved()
-		if err != nil {
-			return err
-		}
-		status.PullRequestApprove.Approved = &approved
 	}
+
+	approved, err := p.mr.HasApproved()
+	if err != nil {
+		return err
+	}
+	status.PullRequestApprove.Approved = &approved
 
 	ready, err := p.computeReady(ctx, client, obj)
 	if err != nil {
 		return err
 	}
 
-	if ready && !*status.PullRequestApprove.Approved {
+	if ready && !approved {
 		err = p.mr.Approve()
 		if err != nil {
 			return err
 		}
 		b := true
 		status.PullRequestApprove.Approved = &b
-	} else if !ready && *status.PullRequestApprove.Approved {
+	} else if !ready && approved {
 		err = p.mr.Unapprove()
 		if err != nil {
 			return err
