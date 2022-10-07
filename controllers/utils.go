@@ -13,6 +13,7 @@ func NewJinja2(opts ...jinja2.Jinja2Opt) (*jinja2.Jinja2, error) {
 		jinja2.WithStrict(false),
 		jinja2.WithExtension("jinja2.ext.loopcontrols"),
 		jinja2.WithExtension("go_jinja2.ext.kluctl"),
+		jinja2.WithExtension("go_jinja2.ext.time"),
 	)
 	return jinja2.NewJinja2("template-controller", 1, opts2...)
 }
