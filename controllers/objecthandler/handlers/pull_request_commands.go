@@ -158,7 +158,7 @@ func (p *PullRequestCommandHandler) processCommand(ctx context.Context, j2 *jinj
 func (p *PullRequestCommandHandler) handleCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, obj client.Object, command v1alpha1.PullRequestCommandHandlerCommandSpec) error {
 	for _, action := range command.Actions {
 		if action.Annotate != nil {
-			err := p.handleActionAnnotate(j2, obj, action.Annotate)
+			err := p.handleActionAnnotate(j2, obj, *action.Annotate)
 			if err != nil {
 				return err
 			}
@@ -169,21 +169,25 @@ func (p *PullRequestCommandHandler) handleCommand(ctx context.Context, j2 *jinja
 	return nil
 }
 
-func (p *PullRequestCommandHandler) handleActionAnnotate(j2 *jinja2.Jinja2, obj client.Object, action *v1alpha1.PullRequestCommandHandlerActionAnnotateSpec) error {
+func (p *PullRequestCommandHandler) buildJinja2Vars(obj client.Object) (map[string]any, error) {
 	vars := map[string]any{}
 
 	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	vars["object"] = u
+	return vars, nil
+}
 
-	name, err := j2.RenderString(action.Annotation, jinja2.WithGlobals(vars))
+func (p *PullRequestCommandHandler) handleActionAnnotate(j2 *jinja2.Jinja2, obj client.Object, action v1alpha1.PullRequestCommandHandlerActionAnnotateSpec) error {
+	vars, err := p.buildJinja2Vars(obj)
 	if err != nil {
 		return err
 	}
-	value, err := j2.RenderString(action.Value, jinja2.WithGlobals(vars))
+
+	_, err = j2.RenderStruct(&action, jinja2.WithGlobals(vars))
 	if err != nil {
 		return err
 	}
@@ -192,7 +196,7 @@ func (p *PullRequestCommandHandler) handleActionAnnotate(j2 *jinja2.Jinja2, obj 
 	if a == nil { //asd
 		a = map[string]string{}
 	}
-	a[name] = value
+	a[action.Annotation] = action.Value
 	obj.SetAnnotations(a)
 
 	return nil
