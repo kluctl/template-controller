@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // ObjectHandlerSpec defines the desired state of ObjectHandler
@@ -137,6 +138,9 @@ type PullRequestCommandHandlerCommandSpec struct {
 type PullRequestCommandHandlerActionSpec struct {
 	// +optional
 	Annotate *PullRequestCommandHandlerActionAnnotateSpec `json:"annotate"`
+	// +optional
+	// +kubebuilder:pruning:PreserveUnknownFields
+	JsonPatch *[]runtime.RawExtension `json:"jsonPatch"`
 }
 
 type PullRequestCommandHandlerActionAnnotateSpec struct {

@@ -168,6 +168,11 @@ spec:
                                       - annotation
                                       - value
                                       type: object
+                                    jsonPatch:
+                                      items:
+                                        type: object
+                                      type: array
+                                      x-kubernetes-preserve-unknown-fields: true
                                   type: object
                                 type: array
                               description:

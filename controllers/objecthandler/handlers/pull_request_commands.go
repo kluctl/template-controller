@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/kluctl/go-jinja2"
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers"
 	"github.com/kluctl/template-controller/controllers/objecthandler/comments/templates"
 	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -35,7 +38,7 @@ func BuildPullRequestCommandHandler(ctx context.Context, client client.Client, n
 	return &PullRequestCommandHandler{mr: mr, spec: spec, clusterId: clusterId}, nil
 }
 
-func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.HandlerStatus) error {
+func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Client, obj *unstructured.Unstructured, status *v1alpha1.HandlerStatus) error {
 	j2, err := controllers.NewJinja2()
 	if err != nil {
 		return err
@@ -91,7 +94,7 @@ func (p *PullRequestCommandHandler) Handle(ctx context.Context, client client.Cl
 
 var helpCommandTemplate = templates.MustGetTemplate("commandhelp.md.jinja2")
 
-func (p *PullRequestCommandHandler) reconcileHelpComment(j2 *jinja2.Jinja2, obj client.Object, status *v1alpha1.HandlerStatus) error {
+func (p *PullRequestCommandHandler) reconcileHelpComment(j2 *jinja2.Jinja2, obj *unstructured.Unstructured, status *v1alpha1.HandlerStatus) error {
 	if !p.spec.PostHelpComment {
 		return nil
 	}
@@ -115,7 +118,7 @@ func (p *PullRequestCommandHandler) reconcileHelpComment(j2 *jinja2.Jinja2, obj 
 
 var commandRegex = regexp.MustCompile("^/([a-zA-Z][a-zA-Z0-9]*)$")
 
-func (p *PullRequestCommandHandler) processCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, n webgit.Note, obj client.Object) error {
+func (p *PullRequestCommandHandler) processCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, n webgit.Note, obj *unstructured.Unstructured) error {
 	body := n.GetBody()
 	if hasMarkerComment(body, "pull-request-command-processed", p.clusterId, obj.GetNamespace(), obj.GetName()) {
 		return nil
@@ -155,10 +158,15 @@ func (p *PullRequestCommandHandler) processCommand(ctx context.Context, j2 *jinj
 	return nil
 }
 
-func (p *PullRequestCommandHandler) handleCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, obj client.Object, command v1alpha1.PullRequestCommandHandlerCommandSpec) error {
+func (p *PullRequestCommandHandler) handleCommand(ctx context.Context, j2 *jinja2.Jinja2, c client.Client, obj *unstructured.Unstructured, command v1alpha1.PullRequestCommandHandlerCommandSpec) error {
 	for _, action := range command.Actions {
 		if action.Annotate != nil {
 			err := p.handleActionAnnotate(j2, obj, *action.Annotate)
+			if err != nil {
+				return err
+			}
+		} else if action.JsonPatch != nil {
+			err := p.handleActionJsonPatch(j2, obj, *action.JsonPatch)
 			if err != nil {
 				return err
 			}
@@ -169,7 +177,7 @@ func (p *PullRequestCommandHandler) handleCommand(ctx context.Context, j2 *jinja
 	return nil
 }
 
-func (p *PullRequestCommandHandler) buildJinja2Vars(obj client.Object) (map[string]any, error) {
+func (p *PullRequestCommandHandler) buildJinja2Vars(obj *unstructured.Unstructured) (map[string]any, error) {
 	vars := map[string]any{}
 
 	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
@@ -181,7 +189,7 @@ func (p *PullRequestCommandHandler) buildJinja2Vars(obj client.Object) (map[stri
 	return vars, nil
 }
 
-func (p *PullRequestCommandHandler) handleActionAnnotate(j2 *jinja2.Jinja2, obj client.Object, action v1alpha1.PullRequestCommandHandlerActionAnnotateSpec) error {
+func (p *PullRequestCommandHandler) handleActionAnnotate(j2 *jinja2.Jinja2, obj *unstructured.Unstructured, action v1alpha1.PullRequestCommandHandlerActionAnnotateSpec) error {
 	vars, err := p.buildJinja2Vars(obj)
 	if err != nil {
 		return err
@@ -198,6 +206,46 @@ func (p *PullRequestCommandHandler) handleActionAnnotate(j2 *jinja2.Jinja2, obj 
 	}
 	a[action.Annotation] = action.Value
 	obj.SetAnnotations(a)
+
+	return nil
+}
+
+func (p *PullRequestCommandHandler) handleActionJsonPatch(j2 *jinja2.Jinja2, obj *unstructured.Unstructured, jsonPatch []runtime.RawExtension) error {
+	vars, err := p.buildJinja2Vars(obj)
+	if err != nil {
+		return err
+	}
+
+	b, err := json.Marshal(jsonPatch)
+	if err != nil {
+		return err
+	}
+
+	s, err := j2.RenderString(string(b), jinja2.WithGlobals(vars))
+	if err != nil {
+		return err
+	}
+	b = []byte(s)
+
+	objBytes, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+
+	parsedPatch, err := jsonpatch.DecodePatch(b)
+	if err != nil {
+		return err
+	}
+
+	objBytes, err = parsedPatch.Apply(objBytes)
+	if err != nil {
+		return err
+	}
+
+	err = obj.UnmarshalJSON(objBytes)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

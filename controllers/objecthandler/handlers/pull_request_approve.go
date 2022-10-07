@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -21,7 +22,7 @@ func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, 
 	return &PullRequestApproveReporter{mr: mr, spec: spec}, nil
 }
 
-func (p *PullRequestApproveReporter) Handle(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.HandlerStatus) error {
+func (p *PullRequestApproveReporter) Handle(ctx context.Context, client client.Client, obj *unstructured.Unstructured, status *v1alpha1.HandlerStatus) error {
 	if status.PullRequestApprove == nil {
 		status.PullRequestApprove = &v1alpha1.PullRequestApproveReporterStatus{}
 	}

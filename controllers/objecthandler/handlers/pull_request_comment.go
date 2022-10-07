@@ -5,6 +5,7 @@ import (
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers/objecthandler/comments"
 	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -30,7 +31,7 @@ func BuildPullRequestCommentReporter(ctx context.Context, client client.Client, 
 	}, nil
 }
 
-func (p *PullRequestCommentReporter) Handle(ctx context.Context, client client.Client, obj client.Object, status *v1alpha1.HandlerStatus) error {
+func (p *PullRequestCommentReporter) Handle(ctx context.Context, client client.Client, obj *unstructured.Unstructured, status *v1alpha1.HandlerStatus) error {
 	if status.PullRequestComment == nil {
 		status.PullRequestComment = &v1alpha1.PullRequestCommentReporterStatus{}
 	}
