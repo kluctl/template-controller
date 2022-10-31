@@ -56,7 +56,7 @@ type GitlabProject struct {
 	TokenRef *SecretRef `json:"tokenRef"`
 }
 
-type GitlabMergeRequest struct {
+type GitlabMergeRequest1 struct {
 	GitlabProject `json:",inline"`
 
 	// The merge request id
@@ -76,7 +76,7 @@ type GithubProject struct {
 	TokenRef *SecretRef `json:"tokenRef"`
 }
 
-type GithubPullRequest struct {
+type GithubPullRequest1 struct {
 	GithubProject `json:",inline"`
 
 	// +optional

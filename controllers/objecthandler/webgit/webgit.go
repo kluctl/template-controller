@@ -101,7 +101,7 @@ func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespac
 	}
 
 	if m, ok := merged["gitlab"]; ok {
-		var gitlab v1alpha1.GitlabMergeRequest
+		var gitlab v1alpha1.GitlabMergeRequest1
 		err = mapToObject(m, &gitlab)
 		if err != nil {
 			return nil, err
@@ -111,7 +111,7 @@ func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespac
 		}
 		return project.GetMergeRequest(fmt.Sprintf("%d", *gitlab.MergeRequestId))
 	} else if m, ok := merged["github"]; ok {
-		var github v1alpha1.GithubPullRequest
+		var github v1alpha1.GithubPullRequest1
 		err = mapToObject(m, &github)
 		if err != nil {
 			return nil, err
