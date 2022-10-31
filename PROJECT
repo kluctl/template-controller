@@ -22,4 +22,22 @@ resources:
   kind: ObjectHandler
   path: kluctl/template-controller/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kluctl.io
+  group: templates
+  kind: QueryGitlabMergeRequests
+  path: kluctl/template-controller/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kluctl.io
+  group: templates
+  kind: QueryGithubPullRequests
+  path: kluctl/template-controller/api/v1alpha1
+  version: v1alpha1
 version: "3"

@@ -1,0 +1,27 @@
+# permissions for end users to view querygithubpullrequests.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: querygithubpullrequests-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: template-controller
+    app.kubernetes.io/part-of: template-controller
+    app.kubernetes.io/managed-by: kustomize
+  name: querygithubpullrequests-viewer-role
+rules:
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - querygithubpullrequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - querygithubpullrequests/status
+  verbs:
+  - get

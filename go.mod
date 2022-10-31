@@ -3,6 +3,7 @@ module github.com/kluctl/template-controller
 go 1.19
 
 require (
+	github.com/evanphx/json-patch v5.6.0+incompatible
 	github.com/google/go-github/v47 v47.0.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/kluctl/go-jinja2 v0.0.0-20220927093149-38ad307371ca
@@ -31,7 +32,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
-	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect

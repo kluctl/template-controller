@@ -18,9 +18,12 @@ package main
 
 import (
 	"flag"
+	"os"
+
+	"github.com/kluctl/template-controller/controllers"
+
 	"github.com/kluctl/template-controller/controllers/objecthandler"
 	"github.com/kluctl/template-controller/controllers/objecttemplate"
-	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -115,6 +118,20 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr, concurrent); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ObjectHandler")
+		os.Exit(1)
+	}
+	if err = (&controllers.QueryGitlabMergeRequestsReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "QueryGitlabMergeRequests")
+		os.Exit(1)
+	}
+	if err = (&controllers.QueryGithubPullRequestsReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "QueryGithubPullRequests")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
