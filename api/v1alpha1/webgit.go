@@ -65,11 +65,11 @@ type GitlabMergeRequest1 struct {
 }
 
 type GithubProject struct {
-	// +optional
-	Owner *string `json:"owner"`
+	// +required
+	Owner string `json:"owner"`
 
-	// +optional
-	Repo *string `json:"repo"`
+	// +required
+	Repo string `json:"repo"`
 
 	// Authentication token reference.
 	// +optional

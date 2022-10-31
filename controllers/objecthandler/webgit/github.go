@@ -391,10 +391,10 @@ func (n *GithubNote) UpdateBody(body string) error {
 }
 
 func BuildWebgitGithub(ctx context.Context, client client.Client, namespace string, info v1alpha1.GithubProject) (ProjectInterface, error) {
-	if info.Owner == nil {
+	if info.Owner == "" {
 		return nil, fmt.Errorf("missing github owner")
 	}
-	if info.Repo == nil {
+	if info.Repo == "" {
 		return nil, fmt.Errorf("missing github owner")
 	}
 	if info.TokenRef == nil {
@@ -422,5 +422,5 @@ func BuildWebgitGithub(ctx context.Context, client client.Client, namespace stri
 	if err != nil {
 		return nil, err
 	}
-	return g.GetProject(fmt.Sprintf("%s/%s", *info.Owner, *info.Repo))
+	return g.GetProject(fmt.Sprintf("%s/%s", info.Owner, info.Repo))
 }

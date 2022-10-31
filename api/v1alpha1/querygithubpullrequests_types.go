@@ -18,24 +18,50 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
-
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // QueryGithubPullRequestsSpec defines the desired state of QueryGithubPullRequests
 type QueryGithubPullRequestsSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Interval is the interval at which to query the Gitlab API.
+	// Defaults to 5m.
+	// +optional
+	// +kubebuilder:default:="5m"
+	// +kubebuilder:validation:Type=string
+	// +kubebuilder:validation:Pattern="^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$"
+	Interval metav1.Duration `json:"interval"`
 
-	// Foo is an example field of QueryGithubPullRequests. Edit querygithubpullrequests_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	GithubProject `json:",inline"`
+
+	// +optional
+	Head *string `json:"head,omitempty"`
+
+	// +optional
+	Base *string `json:"base,omitempty"`
+
+	// Labels is used to filter the MRs that you want to target
+	// +optional
+	Labels []string `json:"labels,omitempty"`
+
+	// State is an additional PR filter to get only those with a certain state. Default: "all"
+	// +optional
+	// +kubebuilder:validation:Enum=all;open;closed
+	// +kubebuilder:default:="all"
+	State string `json:"state,omitempty"`
+
+	// Limit limits the maximum number of pull requests to fetch. Defaults to 100
+	// +kubebuilder:default:=100
+	Limit int `json:"limit"`
 }
 
 // QueryGithubPullRequestsStatus defines the observed state of QueryGithubPullRequests
 type QueryGithubPullRequestsStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// +optional
+	// +kubebuilder:pruning:PreserveUnknownFields
+	PullRequests []runtime.RawExtension `json:"pullRequests,omitempty"`
 }
 
 //+kubebuilder:object:root=true

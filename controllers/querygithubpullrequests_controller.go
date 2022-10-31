@@ -18,11 +18,20 @@ package controllers
 
 import (
 	"context"
-
+	"encoding/json"
+	"fmt"
+	"github.com/google/go-github/v47/github"
+	"golang.org/x/oauth2"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"net/http"
+	"reflect"
+	"regexp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sort"
 
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 )
@@ -36,22 +45,239 @@ type QueryGithubPullRequestsReconciler struct {
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygithubpullrequests,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygithubpullrequests/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygithubpullrequests/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the QueryGithubPullRequests object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *QueryGithubPullRequestsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	var obj templatesv1alpha1.QueryGithubPullRequests
+	err := r.Get(ctx, req.NamespacedName, &obj)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
-	return ctrl.Result{}, nil
+	err = r.doReconcile(ctx, &obj)
+	if err != nil {
+		c := metav1.Condition{
+			Type:               "Ready",
+			Status:             metav1.ConditionFalse,
+			ObservedGeneration: obj.GetGeneration(),
+			Reason:             "Error",
+			Message:            err.Error(),
+		}
+		apimeta.SetStatusCondition(&obj.Status.Conditions, c)
+	} else {
+		c := metav1.Condition{
+			Type:               "Ready",
+			Status:             metav1.ConditionTrue,
+			ObservedGeneration: obj.GetGeneration(),
+			Reason:             "Success",
+			Message:            "Success",
+		}
+		apimeta.SetStatusCondition(&obj.Status.Conditions, c)
+	}
+
+	// TODO optimize the update as it currently causes to update all merge requests on every call
+	// patching is not working very well as causes nulls to be pruned and full array replacement for every single change
+	err = r.Status().Update(ctx, &obj)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{
+		RequeueAfter: obj.Spec.Interval.Duration,
+	}, nil
+}
+
+func (r *QueryGithubPullRequestsReconciler) doReconcile(ctx context.Context, obj *templatesv1alpha1.QueryGithubPullRequests) error {
+	var token string
+	var err error
+
+	if obj.Spec.TokenRef != nil {
+		token, err = GetSecretToken(ctx, r.Client, obj.Namespace, *obj.Spec.TokenRef)
+		if err != nil {
+			return err
+		}
+	}
+
+	allRegex := regexp.MustCompile(".*")
+	headRegex := allRegex
+	baseRegex := allRegex
+
+	if obj.Spec.Head != nil {
+		headRegex, err = regexp.Compile(fmt.Sprintf("^%s$", *obj.Spec.Head))
+		if err != nil {
+			return err
+		}
+	}
+	if obj.Spec.Base != nil {
+		baseRegex, err = regexp.Compile(fmt.Sprintf("^%s$", *obj.Spec.Base))
+		if err != nil {
+			return err
+		}
+	}
+
+	var tc *http.Client
+	if token != "" {
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: token},
+		)
+		tc = oauth2.NewClient(ctx, ts)
+	}
+	gh := github.NewClient(tc)
+
+	listOpts := &github.PullRequestListOptions{}
+	listOpts.State = obj.Spec.State
+	listOpts.Page = 1
+	listOpts.PerPage = 10
+
+	var result []*github.PullRequest
+	for true {
+		if len(result)+listOpts.PerPage > obj.Spec.Limit {
+			listOpts.PerPage = obj.Spec.Limit - len(result)
+		}
+
+		page, _, err := gh.PullRequests.List(ctx, obj.Spec.Owner, obj.Spec.Repo, listOpts)
+		if err != nil {
+			return err
+		}
+		result = append(result, page...)
+		if len(page) != listOpts.PerPage || len(result) >= obj.Spec.Limit {
+			break
+		}
+		listOpts.Page += 1
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return *result[i].ID < *result[j].ID
+	})
+
+	newPullRequests := make([]runtime.RawExtension, 0, len(result))
+
+	for _, pr := range result {
+		if !headRegex.MatchString(pr.Head.GetLabel()) {
+			continue
+		}
+		if !baseRegex.MatchString(*pr.Base.Ref) {
+			continue
+		}
+
+		err := r.simplifyObject(reflect.ValueOf(pr))
+		if err != nil {
+			return err
+		}
+
+		j, err := json.Marshal(pr)
+		if err != nil {
+			return err
+		}
+
+		newPullRequests = append(newPullRequests, runtime.RawExtension{Raw: j})
+	}
+
+	obj.Status.PullRequests = newPullRequests
+
+	return nil
+}
+
+func (r *QueryGithubPullRequestsReconciler) simplifyObject(v reflect.Value) error {
+	switch v.Kind() {
+	case reflect.Pointer:
+		return r.simplifyObject(v.Elem())
+	case reflect.Struct:
+		fv := v.Addr().Interface()
+		switch x := fv.(type) {
+		case *github.PullRequest:
+			return r.simplifyPullRequest(x)
+		case *github.User:
+			return r.simplifyUser(x)
+		case *github.Organization:
+			return r.simplifyOrganisation(x)
+		case *github.Repository:
+			return r.simplifyRepository(x)
+		case *github.Label:
+			return r.simplifyLabel(x)
+		default:
+			return r.simplifyObjectGeneric(v)
+		}
+	case reflect.Slice:
+		l := v.Len()
+		for i := 0; i < l; i++ {
+			x := v.Index(i)
+			err := r.simplifyObject(x)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (r *QueryGithubPullRequestsReconciler) simplifyObjectGeneric(v reflect.Value) error {
+	v = reflect.Indirect(v)
+	for _, field := range reflect.VisibleFields(v.Type()) {
+		f := v.FieldByIndex(field.Index)
+		if f.IsZero() {
+			continue
+		}
+		err := r.simplifyObject(f)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *QueryGithubPullRequestsReconciler) simplifyPullRequest(x *github.PullRequest) error {
+	x.Links = nil
+	return r.simplifyObjectGeneric(reflect.ValueOf(x))
+}
+
+func (r *QueryGithubPullRequestsReconciler) simplifyUser(x *github.User) error {
+	if x == nil {
+		return nil
+	}
+	*x = github.User{
+		ID:    x.ID,
+		Login: x.Login,
+	}
+	return nil
+}
+
+func (r *QueryGithubPullRequestsReconciler) simplifyOrganisation(x *github.Organization) error {
+	if x == nil {
+		return nil
+	}
+	*x = github.Organization{
+		ID:    x.ID,
+		Login: x.Login,
+	}
+	return nil
+}
+
+func (r *QueryGithubPullRequestsReconciler) simplifyRepository(x *github.Repository) error {
+	if x == nil {
+		return nil
+	}
+	*x = github.Repository{
+		ID:       x.ID,
+		Owner:    x.Owner,
+		Name:     x.Name,
+		FullName: x.FullName,
+	}
+	return r.simplifyObjectGeneric(reflect.ValueOf(x))
+}
+
+func (r *QueryGithubPullRequestsReconciler) simplifyLabel(x *github.Label) error {
+	if x == nil {
+		return nil
+	}
+	*x = github.Label{
+		ID:   x.ID,
+		Name: x.Name,
+	}
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

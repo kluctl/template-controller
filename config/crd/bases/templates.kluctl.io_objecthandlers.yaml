@@ -56,6 +56,9 @@ spec:
                         - key
                         - secretName
                         type: object
+                    required:
+                    - owner
+                    - repo
                     type: object
                   gitlab:
                     properties:
@@ -123,6 +126,9 @@ spec:
                               - key
                               - secretName
                               type: object
+                          required:
+                          - owner
+                          - repo
                           type: object
                         gitlab:
                           properties:
@@ -207,6 +213,9 @@ spec:
                               - key
                               - secretName
                               type: object
+                          required:
+                          - owner
+                          - repo
                           type: object
                         gitlab:
                           properties:
@@ -260,6 +269,9 @@ spec:
                               - key
                               - secretName
                               type: object
+                          required:
+                          - owner
+                          - repo
                           type: object
                         gitlab:
                           properties:
