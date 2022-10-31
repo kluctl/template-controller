@@ -1,9 +1,15 @@
 package controllers
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/kluctl/go-jinja2"
+	"github.com/kluctl/template-controller/api/v1alpha1"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func NewJinja2(opts ...jinja2.Jinja2Opt) (*jinja2.Jinja2, error) {
@@ -49,4 +55,24 @@ func Sha256String(data string) string {
 func Sha256Bytes(data []byte) string {
 	h := sha256.Sum256(data)
 	return hex.EncodeToString(h[:])
+}
+
+func GetSecretToken(ctx context.Context, client client.Client, namespace string, ref v1alpha1.SecretRef) (string, error) {
+	sn := types.NamespacedName{
+		Namespace: namespace,
+		Name:      ref.SecretName,
+	}
+
+	var secret v1.Secret
+	err := client.Get(ctx, sn, &secret)
+	if err != nil {
+		return "", err
+	}
+
+	tokenBytes, ok := secret.Data[ref.Key]
+	if !ok {
+		return "", fmt.Errorf("token is missing in secret")
+	}
+	token := string(tokenBytes)
+	return token, nil
 }

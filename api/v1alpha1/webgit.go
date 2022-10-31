@@ -44,8 +44,8 @@ func (s *MergeRequestState) UnmarshalJSON(data []byte) error {
 
 type GitlabProject struct {
 	// GitLab project to scan. Required.
-	// +optional
-	Project *string `json:"project"`
+	// +required
+	Project string `json:"project"`
 
 	// The GitLab API URL to talk to. If blank, uses https://gitlab.com/.
 	// +optional

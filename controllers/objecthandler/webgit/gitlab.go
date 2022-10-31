@@ -282,7 +282,7 @@ func (n *GitlabNote) UpdateBody(body string) error {
 }
 
 func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace string, info v1alpha1.GitlabProject) (ProjectInterface, error) {
-	if info.Project == nil {
+	if info.Project == "" {
 		return nil, fmt.Errorf("missing gitlab project")
 	}
 	if info.TokenRef == nil {
@@ -310,5 +310,5 @@ func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace stri
 	if err != nil {
 		return nil, err
 	}
-	return g.GetProject(*info.Project)
+	return g.GetProject(info.Project)
 }

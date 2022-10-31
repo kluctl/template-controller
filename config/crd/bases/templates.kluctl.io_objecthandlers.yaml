@@ -80,6 +80,8 @@ spec:
                         - key
                         - secretName
                         type: object
+                    required:
+                    - project
                     type: object
                 type: object
               forObject:
@@ -145,6 +147,8 @@ spec:
                               - key
                               - secretName
                               type: object
+                          required:
+                          - project
                           type: object
                         missingReadyConditionIsError:
                           default: false
@@ -227,6 +231,8 @@ spec:
                               - key
                               - secretName
                               type: object
+                          required:
+                          - project
                           type: object
                         postHelpComment:
                           type: boolean
@@ -278,6 +284,8 @@ spec:
                               - key
                               - secretName
                               type: object
+                          required:
+                          - project
                           type: object
                       type: object
                   type: object

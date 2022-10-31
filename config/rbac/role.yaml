@@ -81,3 +81,55 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - querygithubpullrequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - querygithubpullrequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - querygithubpullrequests/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - querygitlabmergerequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - querygitlabmergerequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - querygitlabmergerequests/status
+  verbs:
+  - get
+  - patch
+  - update
