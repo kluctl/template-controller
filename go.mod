@@ -6,7 +6,7 @@ require (
 	github.com/evanphx/json-patch v5.6.0+incompatible
 	github.com/google/go-github/v47 v47.0.0
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/kluctl/go-jinja2 v0.0.0-20220927093149-38ad307371ca
+	github.com/kluctl/go-jinja2 v0.0.0-20221017153334-80addb432305
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.0
 	github.com/xanzy/go-gitlab v0.73.1
@@ -60,7 +60,7 @@ require (
 	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kluctl/go-embed-python v0.0.0-3.10.6-20220906-2 // indirect
+	github.com/kluctl/go-embed-python v0.0.0-3.10.7-20221017-1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
@@ -81,8 +81,8 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
-	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b // indirect
-	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
+	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
+	golang.org/x/sys v0.0.0-20221013171732-95e765b1cc43 // indirect
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
