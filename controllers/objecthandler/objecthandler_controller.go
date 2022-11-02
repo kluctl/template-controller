@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-multierror"
+	"github.com/kluctl/template-controller/controllers"
 	"github.com/kluctl/template-controller/controllers/objecthandler/handlers"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,6 +38,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+const forObjectIndexKey = "spec.forObject"
 
 // ObjectHandlerReconciler reconciles a ObjectHandler object
 type ObjectHandlerReconciler struct {
@@ -100,7 +103,7 @@ func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager, concurrent 
 		func(object client.Object) []string {
 			sr := object.(*templatesv1alpha1.ObjectHandler)
 			return []string{
-				buildRefIndexValue(sr.Spec.ForObject, sr.GetNamespace()),
+				controllers.BuildRefIndexValue(sr.Spec.ForObject, sr.GetNamespace()),
 			}
 		}); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
@@ -255,7 +258,7 @@ func (r *ObjectHandlerReconciler) addWatchForKind(ctx context.Context, sr *templ
 	err = r.controller.Watch(&source.Kind{Type: &dummy}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
 		var list templatesv1alpha1.ObjectHandlerList
 		err := r.List(context.Background(), &list, client.MatchingFields{
-			forObjectIndexKey: buildObjectIndexValue(object),
+			forObjectIndexKey: controllers.BuildObjectIndexValue(object),
 		})
 		if err != nil {
 			return nil
