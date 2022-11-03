@@ -53,7 +53,7 @@ spec:
                   type: string
                 type: array
               limit:
-                default: 15
+                default: 100
                 description: Limit limits the maximum number of pull requests to fetch.
                   Defaults to 100
                 type: integer

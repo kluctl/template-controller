@@ -14,35 +14,45 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package objecttemplate
+package controllers
 
 import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-multierror"
 	"github.com/kluctl/go-jinja2"
-	"github.com/kluctl/template-controller/controllers"
-	generators2 "github.com/kluctl/template-controller/controllers/objecttemplate/generators"
-	"io"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/util/yaml"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"strings"
-
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
+	"github.com/ohler55/ojg/jp"
+	"io"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strings"
+	"sync"
 )
+
+const forMatrixObjectKey = "spec.matrix.object.ref"
 
 // ObjectTemplateReconciler reconciles a ObjectTemplate object
 type ObjectTemplateReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme       *runtime.Scheme
+	FieldManager string
+
+	controller   controller.Controller
+	watchedKinds map[schema.GroupVersionKind]bool
+	mutex        sync.Mutex
 }
 
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecttemplates,verbs=get;list;watch;create;update;patch;delete
@@ -58,6 +68,19 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	err := r.Get(ctx, req.NamespacedName, &rt)
 	if err != nil {
 		return ctrl.Result{}, err
+	}
+
+	for _, me := range rt.Spec.Matrix {
+		if me.Object != nil {
+			gvk, err := me.Object.Ref.GroupVersionKind()
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			err = r.addWatchForKind(gvk)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 	}
 
 	patch := client.MergeFrom(rt.DeepCopy())
@@ -91,13 +114,98 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}, nil
 }
 
+func (r *ObjectTemplateReconciler) multiplyMatrix(matrix []map[string]any, key string, newElems []any) []map[string]any {
+	var newMatrix []map[string]any
+
+	for _, m := range matrix {
+		for _, e := range newElems {
+			newME := map[string]any{}
+			for k, v := range m {
+				newME[k] = v
+			}
+			newME[key] = e
+			newMatrix = append(newMatrix, newME)
+		}
+	}
+
+	return newMatrix
+}
+
+func (r *ObjectTemplateReconciler) buildMatrixObjectElements(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, me *templatesv1alpha1.MatrixEntryObject) ([]any, error) {
+	gvk, err := me.Ref.GroupVersionKind()
+	if err != nil {
+		return nil, err
+	}
+	namespace := rt.Namespace
+	if me.Ref.Namespace != "" {
+		namespace = me.Ref.Namespace
+	}
+
+	var o unstructured.Unstructured
+	o.SetGroupVersionKind(gvk)
+
+	err = r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: me.Ref.Name}, &o)
+	if err != nil {
+		return nil, err
+	}
+
+	jp, err := jp.ParseString(me.JsonPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var elems []any
+	for _, x := range jp.Get(o.Object) {
+		if me.ExpandLists {
+			if l, ok := x.([]any); ok {
+				elems = append(elems, l...)
+			} else {
+				elems = append(elems, x)
+			}
+		} else {
+			elems = append(elems, x)
+		}
+	}
+	return elems, nil
+}
+
+func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) ([]map[string]any, error) {
+	var err error
+	var matrixEntries []map[string]any
+	matrixEntries = append(matrixEntries, map[string]any{})
+
+	for _, me := range rt.Spec.Matrix {
+		var elems []any
+		if me.Object != nil {
+			elems, err = r.buildMatrixObjectElements(ctx, rt, me.Object)
+			if err != nil {
+				return nil, err
+			}
+		} else if me.List != nil {
+			for _, le := range me.List {
+				var e any
+				err := yaml.Unmarshal(le.Raw, &e)
+				if err != nil {
+					return nil, err
+				}
+				elems = append(elems, e)
+			}
+		} else {
+			return nil, fmt.Errorf("missing matrix value")
+		}
+
+		matrixEntries = r.multiplyMatrix(matrixEntries, me.Name, elems)
+	}
+	return matrixEntries, nil
+}
+
 func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) error {
 	baseVars, err := r.buildBaseVars(ctx, rt)
 	if err != nil {
 		return err
 	}
 
-	j2, err := controllers.NewJinja2()
+	j2, err := NewJinja2()
 	if err != nil {
 		return err
 	}
@@ -105,25 +213,27 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 
 	var allResources []*unstructured.Unstructured
 
-	for _, g := range rt.Spec.Generators {
-		g, err := r.buildGenerator(ctx, rt.GetNamespace(), rt, g)
+	matrixEntries, err := r.buildMatrixEntries(ctx, rt)
+	if err != nil {
+		return err
+	}
+
+	for _, matrix := range matrixEntries {
+		vars := runtime.DeepCopyJSON(baseVars)
+		MergeMap(vars, map[string]interface{}{
+			"matrix": matrix,
+		})
+
+		resources, err := r.renderTemplates(ctx, j2, rt, vars)
 		if err != nil {
 			return err
 		}
-		contexts, err := g.BuildContexts()
-		if err != nil {
-			return err
-		}
+		allResources = append(allResources, resources...)
+	}
 
-		for _, c := range contexts {
-			vars := runtime.DeepCopyJSON(baseVars)
-			controllers.MergeMap(vars, c.Vars)
-
-			resources, err := r.renderTemplates(ctx, j2, rt, vars)
-			if err != nil {
-				return err
-			}
-			allResources = append(allResources, resources...)
+	for _, x := range allResources {
+		if x.GetNamespace() == "" {
+			x.SetNamespace(rt.Namespace)
 		}
 	}
 
@@ -188,23 +298,9 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 }
 
 func (r *ObjectTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, rendered *unstructured.Unstructured) error {
-	log := ctrl.LoggerFrom(ctx)
-
-	x := rendered.DeepCopy()
-
-	mres, err := controllerutil.CreateOrUpdate(ctx, r.Client, x, func() error {
-		if err := controllerutil.SetControllerReference(rt, x, r.Scheme); err != nil {
-			return err
-		}
-		controllers.MergeMap(x.Object, rendered.Object)
-		return nil
-	})
+	err := r.Client.Patch(ctx, rendered, client.Apply, client.FieldOwner(r.FieldManager))
 	if err != nil {
 		return err
-	}
-
-	if mres != controllerutil.OperationResultNone {
-		log.Info(fmt.Sprintf("CreateOrUpdate returned %v", mres), "ref", templatesv1alpha1.ObjectRefFromObject(rendered))
 	}
 	return nil
 }
@@ -251,24 +347,77 @@ func (r *ObjectTemplateReconciler) buildBaseVars(ctx context.Context, rt *templa
 		return nil, err
 	}
 
-	vars["resourceTemplate"] = u
+	vars["objectTemplate"] = u
 	return vars, nil
-}
-
-func (r *ObjectTemplateReconciler) buildGenerator(ctx context.Context, namespace string, rt *templatesv1alpha1.ObjectTemplate, g templatesv1alpha1.Generator) (generators2.Generator, error) {
-	if g.PullRequest != nil {
-		return generators2.BuildPullRequestGenerator(ctx, r.Client, namespace, *g.PullRequest, rt.Spec.Defaults)
-	} else {
-		return nil, fmt.Errorf("no generator specified")
-	}
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
-	return ctrl.NewControllerManagedBy(mgr).
+	r.watchedKinds = map[schema.GroupVersionKind]bool{}
+
+	// Index the ObjectHandler by the objects they are for.
+	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.ObjectTemplate{}, forMatrixObjectKey,
+		func(object client.Object) []string {
+			o := object.(*templatesv1alpha1.ObjectTemplate)
+			var ret []string
+			for _, me := range o.Spec.Matrix {
+				if me.Object != nil {
+					ret = append(ret, BuildRefIndexValue(me.Object.Ref, o.GetNamespace()))
+				}
+			}
+			return ret
+		}); err != nil {
+		return fmt.Errorf("failed setting index fields: %w", err)
+	}
+
+	c, err := ctrl.NewControllerManagedBy(mgr).
 		For(&templatesv1alpha1.ObjectTemplate{}).
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: concurrent,
 		}).
-		Complete(r)
+		Build(r)
+	if err != nil {
+		return err
+	}
+	r.controller = c
+
+	return nil
+}
+
+func (r *ObjectTemplateReconciler) addWatchForKind(gvk schema.GroupVersionKind) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if x, ok := r.watchedKinds[gvk]; ok && x {
+		return nil
+	}
+
+	var dummy unstructured.Unstructured
+	dummy.SetGroupVersionKind(gvk)
+
+	err := r.controller.Watch(&source.Kind{Type: &dummy}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+		var list templatesv1alpha1.ObjectTemplateList
+		err := r.List(context.Background(), &list, client.MatchingFields{
+			forMatrixObjectKey: BuildObjectIndexValue(object),
+		})
+		if err != nil {
+			return nil
+		}
+		var reqs []reconcile.Request
+		for _, x := range list.Items {
+			reqs = append(reqs, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: x.Namespace,
+					Name:      x.Name,
+				},
+			})
+		}
+		return reqs
+	}))
+	if err != nil {
+		return err
+	}
+
+	r.watchedKinds[gvk] = true
+	return nil
 }

@@ -35,150 +35,48 @@ spec:
           spec:
             description: ObjectTemplateSpec defines the desired state of ObjectTemplate
             properties:
-              defaults:
-                properties:
-                  github:
-                    properties:
-                      owner:
-                        type: string
-                      repo:
-                        type: string
-                      tokenRef:
-                        description: Authentication token reference.
-                        properties:
-                          key:
-                            type: string
-                          secretName:
-                            type: string
-                        required:
-                        - key
-                        - secretName
-                        type: object
-                    required:
-                    - owner
-                    - repo
-                    type: object
-                  gitlab:
-                    properties:
-                      api:
-                        description: The GitLab API URL to talk to. If blank, uses
-                          https://gitlab.com/.
-                        type: string
-                      project:
-                        description: GitLab project to scan. Required.
-                        type: string
-                      tokenRef:
-                        description: Authentication token reference.
-                        properties:
-                          key:
-                            type: string
-                          secretName:
-                            type: string
-                        required:
-                        - key
-                        - secretName
-                        type: object
-                    required:
-                    - project
-                    type: object
-                type: object
-              generators:
-                items:
-                  properties:
-                    pullRequest:
-                      properties:
-                        github:
-                          properties:
-                            labels:
-                              description: Labels is used to filter the MRs that you
-                                want to target
-                              items:
-                                type: string
-                              type: array
-                            owner:
-                              type: string
-                            pullRequestState:
-                              default: all
-                              description: 'PullRequestState is an additional MRs
-                                filter to get only those with a certain state. Default:
-                                "all"'
-                              enum:
-                              - all
-                              - opened
-                              - closed
-                              - merged
-                              type: string
-                            repo:
-                              type: string
-                            sourceBranch:
-                              type: string
-                            targetBranch:
-                              type: string
-                            tokenRef:
-                              description: Authentication token reference.
-                              properties:
-                                key:
-                                  type: string
-                                secretName:
-                                  type: string
-                              required:
-                              - key
-                              - secretName
-                              type: object
-                          required:
-                          - owner
-                          - repo
-                          type: object
-                        gitlab:
-                          properties:
-                            api:
-                              description: The GitLab API URL to talk to. If blank,
-                                uses https://gitlab.com/.
-                              type: string
-                            labels:
-                              description: Labels is used to filter the MRs that you
-                                want to target
-                              items:
-                                type: string
-                              type: array
-                            project:
-                              description: GitLab project to scan. Required.
-                              type: string
-                            pullRequestState:
-                              default: all
-                              description: 'PullRequestState is an additional MRs
-                                filter to get only those with a certain state. Default:
-                                "all"'
-                              enum:
-                              - all
-                              - opened
-                              - closed
-                              - merged
-                              type: string
-                            sourceBranch:
-                              type: string
-                            targetBranch:
-                              type: string
-                            tokenRef:
-                              description: Authentication token reference.
-                              properties:
-                                key:
-                                  type: string
-                                secretName:
-                                  type: string
-                              required:
-                              - key
-                              - secretName
-                              type: object
-                          required:
-                          - project
-                          type: object
-                      type: object
-                  type: object
-                type: array
               interval:
                 default: 30s
                 type: string
+              matrix:
+                items:
+                  properties:
+                    list:
+                      items:
+                        type: object
+                      type: array
+                      x-kubernetes-preserve-unknown-fields: true
+                    name:
+                      type: string
+                    object:
+                      properties:
+                        expandLists:
+                          type: boolean
+                        jsonPath:
+                          type: string
+                        ref:
+                          properties:
+                            apiVersion:
+                              type: string
+                            kind:
+                              type: string
+                            name:
+                              type: string
+                            namespace:
+                              type: string
+                          required:
+                          - apiVersion
+                          - kind
+                          - name
+                          type: object
+                      required:
+                      - jsonPath
+                      - ref
+                      type: object
+                  required:
+                  - name
+                  type: object
+                type: array
               templates:
                 items:
                   properties:
@@ -190,8 +88,8 @@ spec:
                   type: object
                 type: array
             required:
-            - generators
             - interval
+            - matrix
             - templates
             type: object
           status:

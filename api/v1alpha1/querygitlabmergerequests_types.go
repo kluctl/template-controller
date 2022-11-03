@@ -60,6 +60,7 @@ type QueryGitlabMergeRequestsStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
 	// +optional
+	// +kubebuilder:pruning:PreserveUnknownFields
 	MergeRequests []runtime.RawExtension `json:"mergeRequests,omitempty"`
 }
 

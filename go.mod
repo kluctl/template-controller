@@ -7,6 +7,7 @@ require (
 	github.com/google/go-github/v47 v47.0.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/kluctl/go-jinja2 v0.0.0-20221017153334-80addb432305
+	github.com/ohler55/ojg v1.14.5
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.0
 	github.com/xanzy/go-gitlab v0.73.1

@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // ObjectTemplateSpec defines the desired state of ObjectTemplate
@@ -26,22 +27,34 @@ type ObjectTemplateSpec struct {
 	// +kubebuilder:default:="30s"
 	Interval metav1.Duration `json:"interval"`
 
-	// +optional
-	Defaults *ObjectTemplateDefaultsSpec `json:"defaults,omitempty"`
-
 	// +required
-	Generators []Generator `json:"generators"`
+	Matrix []*MatrixEntry `json:"matrix"`
 
 	// +required
 	Templates []Template `json:"templates"`
 }
 
-type ObjectTemplateDefaultsSpec struct {
-	// +optional
-	Gitlab *GitlabProject `json:"gitlab,omitempty"`
+type MatrixEntry struct {
+	// +required
+	Name string `json:"name"`
 
 	// +optional
-	Github *GithubProject `json:"github,omitempty"`
+	Object *MatrixEntryObject `json:"object,omitempty"`
+
+	// +optional
+	// +kubebuilder:pruning:PreserveUnknownFields
+	List []runtime.RawExtension `json:"list,omitempty"`
+}
+
+type MatrixEntryObject struct {
+	// +required
+	Ref ObjectRef `json:"ref"`
+
+	// +required
+	JsonPath string `json:"jsonPath"`
+
+	// +optional
+	ExpandLists bool `json:"expandLists,omitempty"`
 }
 
 type Template struct {
@@ -51,59 +64,6 @@ type Template struct {
 
 	// +optional
 	Raw *string `json:"raw,omitempty"`
-}
-
-type Generator struct {
-	// +optional
-	PullRequest *PullRequestGenerator `json:"pullRequest,omitempty"`
-}
-
-type PullRequestGenerator struct {
-	// +optional
-	Gitlab *PullRequestGeneratorGitlab `json:"gitlab,omitempty"`
-
-	// +optional
-	Github *PullRequestGeneratorGithub `json:"github,omitempty"`
-}
-
-type PullRequestGeneratorGitlab struct {
-	GitlabProject `json:",inline"`
-
-	// +optional
-	TargetBranch *string `json:"targetBranch,omitempty"`
-
-	// +optional
-	SourceBranch *string `json:"sourceBranch,omitempty"`
-
-	// Labels is used to filter the MRs that you want to target
-	// +optional
-	Labels []string `json:"labels,omitempty"`
-
-	// PullRequestState is an additional MRs filter to get only those with a certain state. Default: "all"
-	// +optional
-	// +kubebuilder:validation:Enum=all;opened;closed;merged
-	// +kubebuilder:default:="all"
-	PullRequestState MergeRequestState `json:"pullRequestState,omitempty"`
-}
-
-type PullRequestGeneratorGithub struct {
-	GithubProject `json:",inline"`
-
-	// +optional
-	TargetBranch *string `json:"targetBranch,omitempty"`
-
-	// +optional
-	SourceBranch *string `json:"sourceBranch,omitempty"`
-
-	// Labels is used to filter the MRs that you want to target
-	// +optional
-	Labels []string `json:"labels,omitempty"`
-
-	// PullRequestState is an additional MRs filter to get only those with a certain state. Default: "all"
-	// +optional
-	// +kubebuilder:validation:Enum=all;opened;closed;merged
-	// +kubebuilder:default:="all"
-	PullRequestState MergeRequestState `json:"pullRequestState,omitempty"`
 }
 
 // ObjectTemplateStatus defines the observed state of ObjectTemplate
