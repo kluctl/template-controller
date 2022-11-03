@@ -33,9 +33,12 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
@@ -63,22 +66,29 @@ type ObjectTemplateReconciler struct {
 //+kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
 
 // Reconcile a resource
-func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
+	logger := log.FromContext(ctx)
+
+	logger.V(1).Info("Starting reconcile")
+	defer logger.V(1).Info("Finished reconcile", "err", err)
+
 	var rt templatesv1alpha1.ObjectTemplate
-	err := r.Get(ctx, req.NamespacedName, &rt)
+	err = r.Get(ctx, req.NamespacedName, &rt)
 	if err != nil {
-		return ctrl.Result{}, err
+		logger.Error(err, "Get failed")
+		return
 	}
 
 	for _, me := range rt.Spec.Matrix {
 		if me.Object != nil {
-			gvk, err := me.Object.Ref.GroupVersionKind()
-			if err != nil {
-				return ctrl.Result{}, err
+			gvk, err2 := me.Object.Ref.GroupVersionKind()
+			if err2 != nil {
+				err = err2
+				return
 			}
-			err = r.addWatchForKind(gvk)
+			err = r.addWatchForKind(ctx, gvk)
 			if err != nil {
-				return ctrl.Result{}, err
+				return
 			}
 		}
 	}
@@ -106,12 +116,11 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 	err = r.Status().Patch(ctx, &rt, patch)
 	if err != nil {
-		return ctrl.Result{}, err
+		return
 	}
 
-	return ctrl.Result{
-		RequeueAfter: rt.Spec.Interval.Duration,
-	}, nil
+	result.RequeueAfter = rt.Spec.Interval.Duration
+	return
 }
 
 func (r *ObjectTemplateReconciler) multiplyMatrix(matrix []map[string]any, key string, newElems []any) []map[string]any {
@@ -200,6 +209,8 @@ func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *t
 }
 
 func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) error {
+	logger := log.FromContext(ctx)
+
 	baseVars, err := r.buildBaseVars(ctx, rt)
 	if err != nil {
 		return err
@@ -300,6 +311,8 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 
 	wg.Add(len(toDelete))
 	for _, ref := range toDelete {
+		logger.Info("Deleting object", "ref", ref)
+
 		gvk, err := ref.GroupVersionKind()
 		if err != nil {
 			return err
@@ -325,10 +338,30 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 }
 
 func (r *ObjectTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, rendered *unstructured.Unstructured) error {
-	err := r.Client.Patch(ctx, rendered, client.Apply, client.FieldOwner(r.FieldManager))
+	logger := log.FromContext(ctx)
+
+	var origMeta metav1.PartialObjectMetadata
+	origObjFound := false
+	origMeta.SetGroupVersionKind(rendered.GroupVersionKind())
+
+	err := r.Client.Get(ctx, client.ObjectKeyFromObject(rendered), &origMeta)
+	if err == nil {
+		origObjFound = true
+	}
+
+	err = r.Client.Patch(ctx, rendered, client.Apply, client.FieldOwner(r.FieldManager))
 	if err != nil {
 		return err
 	}
+
+	if !origObjFound {
+		logger.Info("Created new object", "ref", templatesv1alpha1.ObjectRefFromObject(rendered))
+	} else {
+		if origMeta.GetResourceVersion() != rendered.GetResourceVersion() {
+			logger.Info("Updated existing object", "ref", templatesv1alpha1.ObjectRefFromObject(rendered))
+		}
+	}
+
 	return nil
 }
 
@@ -398,7 +431,9 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 	}
 
 	c, err := ctrl.NewControllerManagedBy(mgr).
-		For(&templatesv1alpha1.ObjectTemplate{}).
+		For(&templatesv1alpha1.ObjectTemplate{}, builder.WithPredicates(
+			predicate.Or(predicate.GenerationChangedPredicate{}),
+		)).
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: concurrent,
 		}).
@@ -411,13 +446,17 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 	return nil
 }
 
-func (r *ObjectTemplateReconciler) addWatchForKind(gvk schema.GroupVersionKind) error {
+func (r *ObjectTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema.GroupVersionKind) error {
+	logger := log.FromContext(ctx)
+
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
 	if x, ok := r.watchedKinds[gvk]; ok && x {
 		return nil
 	}
+
+	logger.V(1).Info("Starting watch for new kind", "gvk", gvk)
 
 	var dummy unstructured.Unstructured
 	dummy.SetGroupVersionKind(gvk)
