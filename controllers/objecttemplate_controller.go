@@ -36,11 +36,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -209,8 +211,6 @@ func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *t
 }
 
 func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) error {
-	logger := log.FromContext(ctx)
-
 	baseVars, err := r.buildBaseVars(ctx, rt)
 	if err != nil {
 		return err
@@ -264,81 +264,126 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 		}
 	}
 
-	toDelete := make(map[templatesv1alpha1.ObjectRef]templatesv1alpha1.ObjectRef)
+	newAppliedResources := map[templatesv1alpha1.ObjectRef]templatesv1alpha1.AppliedResourceInfo{}
 	for _, n := range rt.Status.AppliedResources {
-		gvk, err := n.Ref.GroupVersionKind()
-		if err != nil {
-			return err
-		}
-		ref := n.Ref
-		ref.APIVersion = gvk.Group
-		toDelete[ref] = n.Ref
+		newAppliedResources[n.Ref.WithoutVersion()] = n
 	}
-
-	rt.Status.AppliedResources = nil
 
 	wg.Add(len(allResources))
 	for _, resource := range allResources {
 		resource := resource
 
-		ref := templatesv1alpha1.ObjectRefFromObject(resource)
-		gvk, err := ref.GroupVersionKind()
-		if err != nil {
-			return err
-		}
-
-		ari := templatesv1alpha1.AppliedResourceInfo{
-			Ref:     ref,
-			Success: true,
-		}
-
-		ref.APIVersion = gvk.Group
-		delete(toDelete, ref)
-
 		go func() {
 			defer wg.Done()
 			err := r.applyTemplate(ctx, rt, resource)
+			mutex.Lock()
+			defer mutex.Unlock()
+
+			ari := templatesv1alpha1.AppliedResourceInfo{
+				Ref:     templatesv1alpha1.ObjectRefFromObject(resource),
+				Success: true,
+			}
+
 			if err != nil {
 				ari.Success = false
 				ari.Error = err.Error()
 				errs = multierror.Append(errs, err)
 			}
+			newAppliedResources[ari.Ref.WithoutVersion()] = ari
 		}()
-
-		rt.Status.AppliedResources = append(rt.Status.AppliedResources, ari)
 	}
 	wg.Wait()
 
-	wg.Add(len(toDelete))
-	for _, ref := range toDelete {
-		logger.Info("Deleting object", "ref", ref)
+	defer func() {
+		rt.Status.AppliedResources = make([]templatesv1alpha1.AppliedResourceInfo, 0, len(newAppliedResources))
+		for _, ari := range newAppliedResources {
+			rt.Status.AppliedResources = append(rt.Status.AppliedResources, ari)
+		}
+		sort.Slice(rt.Status.AppliedResources, func(i, j int) bool {
+			return rt.Status.AppliedResources[i].Ref.String() < rt.Status.AppliedResources[j].Ref.String()
+		})
+	}()
 
-		gvk, err := ref.GroupVersionKind()
+	if errs != nil {
+		return errs
+	}
+
+	err = r.prune(ctx, rt, allResources, newAppliedResources)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ObjectTemplateReconciler) prune(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, allResources []*unstructured.Unstructured, appliedResources map[templatesv1alpha1.ObjectRef]templatesv1alpha1.AppliedResourceInfo) error {
+	logger := log.FromContext(ctx)
+
+	if !rt.Spec.Prune {
+		return nil
+	}
+
+	var errs *multierror.Error
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+
+	existingRefs := map[templatesv1alpha1.ObjectRef]templatesv1alpha1.ObjectRef{}
+	for _, resource := range allResources {
+		ref := templatesv1alpha1.ObjectRefFromObject(resource)
+		existingRefs[ref.WithoutVersion()] = ref
+	}
+
+	var deleted []templatesv1alpha1.ObjectRef
+	for _, ari := range appliedResources {
+		ari := ari
+		if _, ok := existingRefs[ari.Ref.WithoutVersion()]; ok {
+			continue
+		}
+
+		logger.Info("Deleting object", "ref", ari.Ref)
+
+		gvk, err := ari.Ref.GroupVersionKind()
 		if err != nil {
 			return err
 		}
 		m := metav1.PartialObjectMetadata{}
 		m.SetGroupVersionKind(gvk)
-		m.SetNamespace(ref.Namespace)
-		m.SetName(ref.Name)
+		m.SetNamespace(ari.Ref.Namespace)
+		m.SetName(ari.Ref.Name)
 
+		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			err := r.Delete(ctx, &m)
+			mutex.Lock()
+			defer mutex.Unlock()
 			if err != nil {
-				if !errors.IsNotFound(err) {
+				if errors.IsNotFound(err) {
+					err = nil
+				} else {
 					errs = multierror.Append(errs, err)
 				}
+			}
+			if err == nil {
+				deleted = append(deleted, ari.Ref)
 			}
 		}()
 	}
 	wg.Wait()
+
+	for _, ref := range deleted {
+		delete(appliedResources, ref.WithoutVersion())
+	}
 
 	return errs.ErrorOrNil()
 }
 
 func (r *ObjectTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, rendered *unstructured.Unstructured) error {
 	logger := log.FromContext(ctx)
+
+	if err := controllerutil.SetControllerReference(rt, rendered, r.Scheme); err != nil {
+		return err
+	}
 
 	var origMeta metav1.PartialObjectMetadata
 	origObjFound := false

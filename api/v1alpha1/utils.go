@@ -44,6 +44,19 @@ func (r *ObjectRef) GroupVersionKind() (schema.GroupVersionKind, error) {
 	}, nil
 }
 
+func (r *ObjectRef) WithoutVersion() ObjectRef {
+	gv, err := schema.ParseGroupVersion(r.APIVersion)
+	if err != nil {
+		return *r
+	}
+	return ObjectRef{
+		APIVersion: gv.Group,
+		Kind:       r.Kind,
+		Namespace:  r.Namespace,
+		Name:       r.Name,
+	}
+}
+
 func (r *ObjectRef) String() string {
 	if r.Namespace != "" {
 		return fmt.Sprintf("%s/%s/%s", r.Namespace, r.Kind, r.Name)
