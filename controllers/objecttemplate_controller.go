@@ -212,23 +212,39 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	defer j2.Close()
 
 	var allResources []*unstructured.Unstructured
+	var errs *multierror.Error
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
 
 	matrixEntries, err := r.buildMatrixEntries(ctx, rt)
 	if err != nil {
 		return err
 	}
 
+	wg.Add(len(matrixEntries))
 	for _, matrix := range matrixEntries {
-		vars := runtime.DeepCopyJSON(baseVars)
-		MergeMap(vars, map[string]interface{}{
-			"matrix": matrix,
-		})
+		matrix := matrix
+		go func() {
+			defer wg.Done()
+			vars := runtime.DeepCopyJSON(baseVars)
+			MergeMap(vars, map[string]interface{}{
+				"matrix": matrix,
+			})
 
-		resources, err := r.renderTemplates(ctx, j2, rt, vars)
-		if err != nil {
-			return err
-		}
-		allResources = append(allResources, resources...)
+			resources, err := r.renderTemplates(ctx, j2, rt, vars)
+			if err != nil {
+				errs = multierror.Append(errs, err)
+				return
+			}
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			allResources = append(allResources, resources...)
+		}()
+	}
+	wg.Wait()
+	if errs != nil {
+		return errs
 	}
 
 	for _, x := range allResources {
@@ -250,8 +266,10 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 
 	rt.Status.AppliedResources = nil
 
-	var errs *multierror.Error
+	wg.Add(len(allResources))
 	for _, resource := range allResources {
+		resource := resource
+
 		ref := templatesv1alpha1.ObjectRefFromObject(resource)
 		gvk, err := ref.GroupVersionKind()
 		if err != nil {
@@ -266,16 +284,21 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 		ref.APIVersion = gvk.Group
 		delete(toDelete, ref)
 
-		err = r.applyTemplate(ctx, rt, resource)
-		if err != nil {
-			ari.Success = false
-			ari.Error = err.Error()
-			errs = multierror.Append(errs, err)
-		}
+		go func() {
+			defer wg.Done()
+			err := r.applyTemplate(ctx, rt, resource)
+			if err != nil {
+				ari.Success = false
+				ari.Error = err.Error()
+				errs = multierror.Append(errs, err)
+			}
+		}()
 
 		rt.Status.AppliedResources = append(rt.Status.AppliedResources, ari)
 	}
+	wg.Wait()
 
+	wg.Add(len(toDelete))
 	for _, ref := range toDelete {
 		gvk, err := ref.GroupVersionKind()
 		if err != nil {
@@ -286,13 +309,17 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 		m.SetNamespace(ref.Namespace)
 		m.SetName(ref.Name)
 
-		err = r.Delete(ctx, &m)
-		if err != nil {
-			if !errors.IsNotFound(err) {
-				errs = multierror.Append(errs, err)
+		go func() {
+			defer wg.Done()
+			err := r.Delete(ctx, &m)
+			if err != nil {
+				if !errors.IsNotFound(err) {
+					errs = multierror.Append(errs, err)
+				}
 			}
-		}
+		}()
 	}
+	wg.Wait()
 
 	return errs.ErrorOrNil()
 }
