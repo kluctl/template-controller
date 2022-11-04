@@ -98,7 +98,7 @@ func (g *GitlabMergeRequest) convertNote(n *gitlab.Note) Note {
 	}
 }
 
-func (g *GitlabMergeRequest) Info() (*MergeRequestInfo, error) {
+func (g *GitlabMergeRequest) Info() (*v1alpha1.MergeRequestInfo, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
@@ -116,7 +116,7 @@ func (g *GitlabMergeRequest) Info() (*MergeRequestInfo, error) {
 		return nil, err
 	}
 
-	return &MergeRequestInfo{
+	return &v1alpha1.MergeRequestInfo{
 		ID:           g.mr.IID,
 		TargetBranch: g.mr.TargetBranch,
 		SourceBranch: g.mr.SourceBranch,

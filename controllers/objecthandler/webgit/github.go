@@ -153,7 +153,7 @@ func (g *GithubMergeRequest) convertStateFromGithub(state string) (v1alpha1.Merg
 	return "", fmt.Errorf("invalid state %s", state)
 }
 
-func (g *GithubMergeRequest) Info() (*MergeRequestInfo, error) {
+func (g *GithubMergeRequest) Info() (*v1alpha1.MergeRequestInfo, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
@@ -179,7 +179,7 @@ func (g *GithubMergeRequest) Info() (*MergeRequestInfo, error) {
 		labels = append(labels, *l.Name)
 	}
 
-	return &MergeRequestInfo{
+	return &v1alpha1.MergeRequestInfo{
 		ID:           *g.pr.Number,
 		TargetBranch: *g.pr.Base.Ref,
 		SourceBranch: *g.pr.Head.Ref,

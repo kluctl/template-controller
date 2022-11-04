@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kluctl/template-controller/api/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
@@ -27,21 +26,8 @@ type ProjectInterface interface {
 	GetMergeRequest(mrId string) (MergeRequestInterface, error)
 }
 
-type MergeRequestInfo struct {
-	ID           int                        `json:"id"`
-	TargetBranch string                     `json:"targetBranch"`
-	SourceBranch string                     `json:"sourceBranch"`
-	Title        string                     `json:"title"`
-	State        v1alpha1.MergeRequestState `json:"state"`
-	CreatedAt    metav1.Time                `json:"createdAt"`
-	UpdatedAt    metav1.Time                `json:"updatedAt"`
-	Author       string                     `json:"author"`
-	Labels       []string                   `json:"labels"`
-	Draft        bool                       `json:"draft"`
-}
-
 type MergeRequestInterface interface {
-	Info() (*MergeRequestInfo, error)
+	Info() (*v1alpha1.MergeRequestInfo, error)
 
 	HasApproved() (bool, error)
 	Approve() error
