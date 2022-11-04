@@ -24,8 +24,8 @@ type PullRequestCommandHandler struct {
 	clusterId string
 }
 
-func BuildPullRequestCommandHandler(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestCommandHandler, defaults *v1alpha1.ObjectHandlerDefaultsSpec) (Handler, error) {
-	mr, err := webgit.BuildWebgitMergeRequest(ctx, client, namespace, &spec, defaults)
+func BuildPullRequestCommandHandler(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestCommandHandler) (Handler, error) {
+	mr, err := webgit.BuildWebgitMergeRequest(ctx, client, namespace, &spec)
 	if err != nil {
 		return nil, err
 	}

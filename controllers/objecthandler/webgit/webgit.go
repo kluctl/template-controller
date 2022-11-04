@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kluctl/template-controller/api/v1alpha1"
-	"github.com/kluctl/template-controller/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
@@ -54,13 +53,13 @@ type MergeRequestInterface interface {
 	ListMergeRequestNotesAfter(t time.Time) ([]Note, error)
 }
 
-func BuildWebgit(ctx context.Context, client client.Client, namespace string, spec any, defaults any) (ProjectInterface, error) {
-	merged, err := mergeSpec(spec, defaults)
+func BuildWebgit(ctx context.Context, client client.Client, namespace string, spec any) (ProjectInterface, error) {
+	specMap, err := objectToMap(spec)
 	if err != nil {
 		return nil, err
 	}
 
-	if m, ok := merged["gitlab"]; ok {
+	if m, ok := specMap["gitlab"]; ok {
 		var gitlab v1alpha1.GitlabProject
 		err = mapToObject(m, &gitlab)
 		if err != nil {
@@ -72,7 +71,7 @@ func BuildWebgit(ctx context.Context, client client.Client, namespace string, sp
 			return nil, err
 		}
 		return project, nil
-	} else if m, ok := merged["github"]; ok {
+	} else if m, ok := specMap["github"]; ok {
 		var github v1alpha1.GithubProject
 		err = mapToObject(m, &github)
 		if err != nil {
@@ -89,18 +88,15 @@ func BuildWebgit(ctx context.Context, client client.Client, namespace string, sp
 	}
 }
 
-func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespace string, spec any, defaults any) (MergeRequestInterface, error) {
-	project, err := BuildWebgit(ctx, client, namespace, spec, defaults)
+func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespace string, spec any) (MergeRequestInterface, error) {
+	project, err := BuildWebgit(ctx, client, namespace, spec)
 	if err != nil {
 		return nil, err
 	}
 
-	merged, err := mergeSpec(spec, defaults)
-	if err != nil {
-		return nil, err
-	}
+	specMap, err := objectToMap(spec)
 
-	if m, ok := merged["gitlab"]; ok {
+	if m, ok := specMap["gitlab"]; ok {
 		var gitlab v1alpha1.GitlabMergeRequestRef
 		err = mapToObject(m, &gitlab)
 		if err != nil {
@@ -110,7 +106,7 @@ func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespac
 			return nil, fmt.Errorf("missing mergeRequestId")
 		}
 		return project.GetMergeRequest(fmt.Sprintf("%d", *gitlab.MergeRequestId))
-	} else if m, ok := merged["github"]; ok {
+	} else if m, ok := specMap["github"]; ok {
 		var github v1alpha1.GithubPullRequestRef
 		err = mapToObject(m, &github)
 		if err != nil {
@@ -123,29 +119,6 @@ func BuildWebgitMergeRequest(ctx context.Context, client client.Client, namespac
 	} else {
 		return nil, fmt.Errorf("no pullRequest spec provided")
 	}
-}
-
-func mergeSpec(spec any, defaults any) (map[string]any, error) {
-	var err error
-	var mergedMap map[string]any
-
-	if defaults == nil {
-		mergedMap, err = objectToMap(spec)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		mergedMap, err = objectToMap(defaults)
-		if err != nil {
-			return nil, err
-		}
-		m2, err := objectToMap(spec)
-		if err != nil {
-			return nil, err
-		}
-		controllers.MergeMap2(mergedMap, m2, true)
-	}
-	return mergedMap, nil
 }
 
 func objectToMap(obj any) (map[string]any, error) {

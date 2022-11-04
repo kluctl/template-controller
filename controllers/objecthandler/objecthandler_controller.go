@@ -177,11 +177,11 @@ func (r *ObjectHandlerReconciler) doReconcile(ctx context.Context, sr *templates
 	for _, spec := range sr.Spec.Handlers {
 		var reporter handlers.Handler
 		if spec.PullRequestComment != nil {
-			reporter, err = handlers.BuildPullRequestCommentReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestComment, sr.Spec.Defaults)
+			reporter, err = handlers.BuildPullRequestCommentReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestComment)
 		} else if spec.PullRequestApprove != nil {
-			reporter, err = handlers.BuildPullRequestApproveReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestApprove, sr.Spec.Defaults)
+			reporter, err = handlers.BuildPullRequestApproveReporter(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestApprove)
 		} else if spec.PullRequestCommand != nil {
-			reporter, err = handlers.BuildPullRequestCommandHandler(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestCommand, sr.Spec.Defaults)
+			reporter, err = handlers.BuildPullRequestCommandHandler(ctx, r.Client, sr.GetNamespace(), *spec.PullRequestCommand)
 		} else {
 			return fmt.Errorf("no reporter specified")
 		}

@@ -13,8 +13,8 @@ type PullRequestApproveReporter struct {
 	spec v1alpha1.PullRequestApproveReporter
 }
 
-func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestApproveReporter, defaults *v1alpha1.ObjectHandlerDefaultsSpec) (Handler, error) {
-	mr, err := webgit.BuildWebgitMergeRequest(ctx, client, namespace, &spec, defaults)
+func BuildPullRequestApproveReporter(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestApproveReporter) (Handler, error) {
+	mr, err := webgit.BuildWebgitMergeRequest(ctx, client, namespace, &spec)
 	if err != nil {
 		return nil, err
 	}

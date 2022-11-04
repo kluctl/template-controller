@@ -32,19 +32,8 @@ type ObjectHandlerSpec struct {
 	// +required
 	ForObject ObjectRef `json:"forObject"`
 
-	// +optional
-	Defaults *ObjectHandlerDefaultsSpec `json:"defaults,omitempty"`
-
 	// +required
 	Handlers []Handler `json:"handlers"`
-}
-
-type ObjectHandlerDefaultsSpec struct {
-	// +optional
-	Gitlab *GitlabMergeRequestRef `json:"gitlab,omitempty"`
-
-	// +optional
-	Github *GithubPullRequestRef `json:"github,omitempty"`
 }
 
 type Handler struct {

@@ -57,6 +57,6 @@ type GithubProject struct {
 type GithubPullRequestRef struct {
 	GithubProject `json:",inline"`
 
-	// +optional
+	// +required
 	PullRequestId *int `json:"pullRequestId,omitempty"`
 }
