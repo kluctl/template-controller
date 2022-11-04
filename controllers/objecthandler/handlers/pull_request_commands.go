@@ -25,7 +25,7 @@ type PullRequestCommandHandler struct {
 }
 
 func BuildPullRequestCommandHandler(ctx context.Context, client client.Client, namespace string, spec v1alpha1.PullRequestCommandHandler) (Handler, error) {
-	mr, err := webgit.BuildWebgitMergeRequest(ctx, client, namespace, &spec)
+	mr, err := webgit.BuildWebgitMergeRequest(ctx, client, namespace, spec.PullRequestRefHolder)
 	if err != nil {
 		return nil, err
 	}

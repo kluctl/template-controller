@@ -68,12 +68,16 @@ type HandlerStatus struct {
 	PullRequestCommand *PullRequestCommandHandlerStatus `json:"pullRequestCommand,omitempty"`
 }
 
-type PullRequestCommentReporter struct {
+type PullRequestRefHolder struct {
 	// +optional
 	Gitlab *GitlabMergeRequestRef `json:"gitlab,omitempty"`
 
 	// +optional
 	Github *GithubPullRequestRef `json:"github,omitempty"`
+}
+
+type PullRequestCommentReporter struct {
+	PullRequestRefHolder `json:"-,inline"`
 }
 
 type PullRequestCommentReporterStatus struct {
@@ -85,11 +89,7 @@ type PullRequestCommentReporterStatus struct {
 }
 
 type PullRequestApproveReporter struct {
-	// +optional
-	Gitlab *GitlabMergeRequestRef `json:"gitlab,omitempty"`
-
-	// +optional
-	Github *GithubPullRequestRef `json:"github,omitempty"`
+	PullRequestRefHolder `json:"-,inline"`
 
 	// +optional
 	// +kubebuilder:default:=false
@@ -102,11 +102,7 @@ type PullRequestApproveReporterStatus struct {
 }
 
 type PullRequestCommandHandler struct {
-	// +optional
-	Gitlab *GitlabMergeRequestRef `json:"gitlab,omitempty"`
-
-	// +optional
-	Github *GithubPullRequestRef `json:"github,omitempty"`
+	PullRequestRefHolder `json:"-,inline"`
 
 	// +optional
 	PostHelpComment bool `json:"postHelpComment"`

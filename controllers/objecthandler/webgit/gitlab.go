@@ -6,7 +6,6 @@ import (
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/xanzy/go-gitlab"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
@@ -14,81 +13,17 @@ import (
 	"time"
 )
 
-type Gitlab struct {
-	client *gitlab.Client
-}
-
-type GitlabProject struct {
-	gitlab    *Gitlab
-	projectId string
-}
-
 type GitlabMergeRequest struct {
-	project *GitlabProject
-	mrId    int
+	client *gitlab.Client
+
+	projectId string
+	mrId      int
+
+	currentUserCache *gitlab.User
+	currentUserMutex sync.Mutex
 
 	mr    *gitlab.MergeRequest
 	mutex sync.Mutex
-}
-
-func NewGitlab(baseUrl *string, token string) (WebgitInterface, error) {
-	var opts []gitlab.ClientOptionFunc
-	if baseUrl != nil {
-		opts = append(opts, gitlab.WithBaseURL(*baseUrl))
-	}
-	client, err := gitlab.NewClient(token, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &Gitlab{
-		client: client,
-	}, nil
-}
-
-func (g *Gitlab) CurrentUserId() (string, error) {
-	u, _, err := g.client.Users.CurrentUser()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%d", u.ID), nil
-}
-
-func (g *Gitlab) GetProject(projectId string) (ProjectInterface, error) {
-	return &GitlabProject{
-		gitlab:    g,
-		projectId: projectId,
-	}, nil
-}
-
-func (p *GitlabProject) ListMergeRequests(state v1alpha1.MergeRequestState) ([]MergeRequestInterface, error) {
-	opts := &gitlab.ListProjectMergeRequestsOptions{
-		State: (*string)(&state),
-	}
-
-	mrs, _, err := p.gitlab.client.MergeRequests.ListProjectMergeRequests(p.projectId, opts)
-	if err != nil {
-		return nil, err
-	}
-	var ret []MergeRequestInterface
-	for _, mr := range mrs {
-		ret = append(ret, &GitlabMergeRequest{
-			project: p,
-			mrId:    mr.ID,
-			mr:      mr,
-		})
-	}
-	return ret, nil
-}
-
-func (p *GitlabProject) GetMergeRequest(mrId string) (MergeRequestInterface, error) {
-	mrIdInt, err := strconv.ParseInt(mrId, 0, 32)
-	if err != nil {
-		return nil, err
-	}
-	return &GitlabMergeRequest{
-		project: p,
-		mrId:    int(mrIdInt),
-	}, nil
 }
 
 func (g *GitlabMergeRequest) convertNote(n *gitlab.Note) Note {
@@ -98,49 +33,32 @@ func (g *GitlabMergeRequest) convertNote(n *gitlab.Note) Note {
 	}
 }
 
-func (g *GitlabMergeRequest) Info() (*v1alpha1.MergeRequestInfo, error) {
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
-
-	if g.mr == nil {
-		opt := &gitlab.GetMergeRequestsOptions{}
-		mr, _, err := g.project.gitlab.client.MergeRequests.GetMergeRequest(g.project.projectId, g.mrId, opt)
-		if err != nil {
-			return nil, err
-		}
-		g.mr = mr
+func (g *GitlabMergeRequest) currentUser() (*gitlab.User, error) {
+	g.currentUserMutex.Lock()
+	defer g.currentUserMutex.Unlock()
+	if g.currentUserCache != nil {
+		return g.currentUserCache, nil
 	}
-
-	state, err := v1alpha1.StateFromString(g.mr.State)
+	var err error
+	g.currentUserCache, _, err = g.client.Users.CurrentUser()
 	if err != nil {
 		return nil, err
 	}
-
-	return &v1alpha1.MergeRequestInfo{
-		ID:           g.mr.IID,
-		TargetBranch: g.mr.TargetBranch,
-		SourceBranch: g.mr.SourceBranch,
-		Title:        g.mr.Title,
-		State:        state,
-		CreatedAt:    metav1.NewTime(*g.mr.CreatedAt),
-		UpdatedAt:    metav1.NewTime(*g.mr.UpdatedAt),
-		Author:       g.mr.Author.Username,
-		Labels:       g.mr.Labels,
-		Draft:        g.mr.Draft,
-	}, nil
+	return g.currentUserCache, nil
 }
 
 func (g *GitlabMergeRequest) HasApproved() (bool, error) {
-	userId, err := g.project.gitlab.CurrentUserId()
+	cu, err := g.currentUser()
 	if err != nil {
 		return false, err
 	}
-	mc, _, err := g.project.gitlab.client.MergeRequestApprovals.GetConfiguration(g.project.projectId, g.mrId)
+
+	mc, _, err := g.client.MergeRequestApprovals.GetConfiguration(g.projectId, g.mrId)
 	if err != nil {
 		return false, err
 	}
 	for _, u := range mc.ApprovedBy {
-		if fmt.Sprintf("%d", u.User.ID) == userId {
+		if u.User.ID == cu.ID {
 			return true, nil
 		}
 	}
@@ -149,12 +67,12 @@ func (g *GitlabMergeRequest) HasApproved() (bool, error) {
 
 func (g *GitlabMergeRequest) Approve() error {
 	opt := &gitlab.ApproveMergeRequestOptions{}
-	_, _, err := g.project.gitlab.client.MergeRequestApprovals.ApproveMergeRequest(g.project.projectId, g.mrId, opt)
+	_, _, err := g.client.MergeRequestApprovals.ApproveMergeRequest(g.projectId, g.mrId, opt)
 	return err
 }
 
 func (g *GitlabMergeRequest) Unapprove() error {
-	_, err := g.project.gitlab.client.MergeRequestApprovals.UnapproveMergeRequest(g.project.projectId, g.mrId)
+	_, err := g.client.MergeRequestApprovals.UnapproveMergeRequest(g.projectId, g.mrId)
 	return err
 }
 
@@ -162,7 +80,7 @@ func (g *GitlabMergeRequest) CreateMergeRequestNote(body string) (Note, error) {
 	opt := &gitlab.CreateMergeRequestNoteOptions{
 		Body: &body,
 	}
-	n, _, err := g.project.gitlab.client.Notes.CreateMergeRequestNote(g.project.projectId, g.mrId, opt)
+	n, _, err := g.client.Notes.CreateMergeRequestNote(g.projectId, g.mrId, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +92,7 @@ func (g *GitlabMergeRequest) GetMergeRequestNote(noteId string) (Note, error) {
 	if err != nil {
 		return nil, err
 	}
-	n, _, err := g.project.gitlab.client.Notes.GetMergeRequestNote(g.project.projectId, g.mrId, int(noteId2))
+	n, _, err := g.client.Notes.GetMergeRequestNote(g.projectId, g.mrId, int(noteId2))
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +111,7 @@ func (g *GitlabMergeRequest) ListMergeRequestNotes() ([]Note, error) {
 
 	var ret []Note
 	for true {
-		notes, _, err := g.project.gitlab.client.Notes.ListMergeRequestNotes(g.project.projectId, g.mrId, opt)
+		notes, _, err := g.client.Notes.ListMergeRequestNotes(g.projectId, g.mrId, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -228,7 +146,7 @@ func (g *GitlabMergeRequest) ListMergeRequestNotesAfter(t time.Time) ([]Note, er
 
 outer:
 	for true {
-		notes, _, err := g.project.gitlab.client.Notes.ListMergeRequestNotes(g.project.projectId, g.mrId, opt)
+		notes, _, err := g.client.Notes.ListMergeRequestNotes(g.projectId, g.mrId, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -273,7 +191,7 @@ func (n *GitlabNote) UpdateBody(body string) error {
 	opt := &gitlab.UpdateMergeRequestNoteOptions{
 		Body: &body,
 	}
-	n2, _, err := n.g.project.gitlab.client.Notes.UpdateMergeRequestNote(n.g.project.projectId, n.g.mrId, n.note.ID, opt)
+	n2, _, err := n.g.client.Notes.UpdateMergeRequestNote(n.g.projectId, n.g.mrId, n.note.ID, opt)
 	if err != nil {
 		return err
 	}
@@ -281,7 +199,7 @@ func (n *GitlabNote) UpdateBody(body string) error {
 	return nil
 }
 
-func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace string, info v1alpha1.GitlabProject) (ProjectInterface, error) {
+func BuildWebgitMergeRequestGitlab(ctx context.Context, client client.Client, namespace string, info v1alpha1.GitlabMergeRequestRef) (*GitlabMergeRequest, error) {
 	if info.Project == "" {
 		return nil, fmt.Errorf("missing gitlab project")
 	}
@@ -306,9 +224,18 @@ func BuildWebgitGitlab(ctx context.Context, client client.Client, namespace stri
 	}
 	token := string(tokenBytes)
 
-	g, err := NewGitlab(info.API, token)
+	var opts []gitlab.ClientOptionFunc
+	if info.API != nil {
+		opts = append(opts, gitlab.WithBaseURL(*info.API))
+	}
+	glClient, err := gitlab.NewClient(token, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return g.GetProject(info.Project)
+
+	return &GitlabMergeRequest{
+		client:    glClient,
+		projectId: info.Project,
+		mrId:      info.MergeRequestId,
+	}, nil
 }

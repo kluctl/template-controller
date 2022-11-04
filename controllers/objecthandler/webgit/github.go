@@ -7,59 +7,35 @@ import (
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"golang.org/x/oauth2"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
 
-type Github struct {
-	ctx    context.Context
+type GithubMergeRequest struct {
+	ctx context.Context
+
 	client *github.Client
-
-	currentUser *github.User
-	mutex       sync.Mutex
-}
-
-type GithubProject struct {
-	github *Github
 	owner  string
 	repo   string
-}
+	prId   int
 
-type GithubMergeRequest struct {
-	project *GithubProject
-	mrId    int
+	currentUserCache *github.User
+	currentUserMutex sync.Mutex
 
 	pr     *github.PullRequest
 	review *github.PullRequestReview
 	mutex  sync.Mutex
 }
 
-func NewGithub(ctx context.Context, token string) (WebgitInterface, error) {
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
+func (g *GithubMergeRequest) getCurrentUser() (*github.User, error) {
+	g.currentUserMutex.Lock()
+	defer g.currentUserMutex.Unlock()
 
-	client := github.NewClient(tc)
-	g := &Github{
-		ctx:    ctx,
-		client: client,
-	}
-
-	return g, nil
-}
-
-func (g *Github) getCurrentUser() (*github.User, error) {
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
-
-	if g.currentUser != nil {
-		return g.currentUser, nil
+	if g.currentUserCache != nil {
+		return g.currentUserCache, nil
 	}
 
 	req, err := g.client.NewRequest("GET", "/user", nil)
@@ -73,51 +49,9 @@ func (g *Github) getCurrentUser() (*github.User, error) {
 		return nil, err
 	}
 
-	g.currentUser = &user
+	g.currentUserCache = &user
 
-	return g.currentUser, nil
-}
-
-func (g *Github) GetProject(projectId string) (ProjectInterface, error) {
-	p := strings.SplitN(projectId, "/", 2)
-	if len(p) < 2 {
-		return nil, fmt.Errorf("invalid project id %s", projectId)
-	}
-	return &GithubProject{
-		github: g,
-		owner:  p[0],
-		repo:   p[1],
-	}, nil
-}
-
-func (g *GithubProject) ListMergeRequests(state v1alpha1.MergeRequestState) ([]MergeRequestInterface, error) {
-	opts := &github.PullRequestListOptions{
-		State: string(state),
-	}
-	prs, _, err := g.github.client.PullRequests.List(g.github.ctx, g.owner, g.repo, opts)
-	if err != nil {
-		return nil, err
-	}
-	var ret []MergeRequestInterface
-	for _, pr := range prs {
-		ret = append(ret, &GithubMergeRequest{
-			project: g,
-			mrId:    *pr.Number,
-			pr:      pr,
-		})
-	}
-	return ret, nil
-}
-
-func (g *GithubProject) GetMergeRequest(mrId string) (MergeRequestInterface, error) {
-	mrIdInt, err := strconv.ParseInt(mrId, 0, 32)
-	if err != nil {
-		return nil, err
-	}
-	return &GithubMergeRequest{
-		project: g,
-		mrId:    int(mrIdInt),
-	}, nil
+	return g.currentUserCache, nil
 }
 
 func (g *GithubMergeRequest) convertComment(n *github.IssueComment) Note {
@@ -127,74 +61,8 @@ func (g *GithubMergeRequest) convertComment(n *github.IssueComment) Note {
 	}
 }
 
-func (g *GithubMergeRequest) convertStateToGithub(state v1alpha1.MergeRequestState) (string, error) {
-	switch state {
-	case v1alpha1.StateAll:
-		return "all", nil
-	case v1alpha1.StateOpened:
-		return "open", nil
-	case v1alpha1.StateClosed:
-		return "closed", nil
-	case v1alpha1.StateMerged:
-		return "closed", nil
-	}
-	return "", fmt.Errorf("invalid state %s", state)
-}
-
-func (g *GithubMergeRequest) convertStateFromGithub(state string) (v1alpha1.MergeRequestState, error) {
-	switch state {
-	case "all":
-		return v1alpha1.StateAll, nil
-	case "open":
-		return v1alpha1.StateOpened, nil
-	case "closed":
-		return v1alpha1.StateClosed, nil
-	}
-	return "", fmt.Errorf("invalid state %s", state)
-}
-
-func (g *GithubMergeRequest) Info() (*v1alpha1.MergeRequestInfo, error) {
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
-
-	if g.pr == nil {
-		pr, _, err := g.project.github.client.PullRequests.Get(g.project.github.ctx, g.project.owner, g.project.repo, int(g.mrId))
-		if err != nil {
-			return nil, err
-		}
-
-		if err != nil {
-			return nil, err
-		}
-		g.pr = pr
-	}
-
-	state, err := g.convertStateFromGithub(*g.pr.State)
-	if err != nil {
-		return nil, err
-	}
-
-	labels := make([]string, 0, len(g.pr.Labels))
-	for _, l := range g.pr.Labels {
-		labels = append(labels, *l.Name)
-	}
-
-	return &v1alpha1.MergeRequestInfo{
-		ID:           *g.pr.Number,
-		TargetBranch: *g.pr.Base.Ref,
-		SourceBranch: *g.pr.Head.Ref,
-		Title:        *g.pr.Title,
-		State:        state,
-		CreatedAt:    metav1.NewTime(*g.pr.CreatedAt),
-		UpdatedAt:    metav1.NewTime(*g.pr.UpdatedAt),
-		Author:       *g.pr.User.Login,
-		Labels:       labels,
-		Draft:        *g.pr.Draft,
-	}, nil
-}
-
 func (g *GithubMergeRequest) findReview() (*github.PullRequestReview, error) {
-	currentUser, err := g.project.github.getCurrentUser()
+	currentUser, err := g.getCurrentUser()
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +79,7 @@ func (g *GithubMergeRequest) findReview() (*github.PullRequestReview, error) {
 	opts.PerPage = 100
 
 	for {
-		reviews, _, err := g.project.github.client.PullRequests.ListReviews(g.project.github.ctx, g.project.owner, g.project.repo, g.mrId, opts)
+		reviews, _, err := g.client.PullRequests.ListReviews(g.ctx, g.owner, g.repo, g.prId, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -252,7 +120,7 @@ func (g *GithubMergeRequest) Approve() error {
 		Body:  &body,
 		Event: &event,
 	}
-	_, _, err := g.project.github.client.PullRequests.CreateReview(g.project.github.ctx, g.project.owner, g.project.repo, g.mrId, req)
+	_, _, err := g.client.PullRequests.CreateReview(g.ctx, g.owner, g.repo, g.prId, req)
 	if err != nil {
 		return err
 	}
@@ -273,7 +141,7 @@ func (g *GithubMergeRequest) Unapprove() error {
 	req := &github.PullRequestReviewDismissalRequest{
 		Message: &message,
 	}
-	_, _, err = g.project.github.client.PullRequests.DismissReview(g.project.github.ctx, g.project.owner, g.project.repo, g.mrId, *review.ID, req)
+	_, _, err = g.client.PullRequests.DismissReview(g.ctx, g.owner, g.repo, g.prId, *review.ID, req)
 	if err != nil {
 		return err
 	}
@@ -284,7 +152,7 @@ func (g *GithubMergeRequest) CreateMergeRequestNote(body string) (Note, error) {
 	comment := &github.IssueComment{
 		Body: &body,
 	}
-	n, _, err := g.project.github.client.Issues.CreateComment(g.project.github.ctx, g.project.owner, g.project.repo, g.mrId, comment)
+	n, _, err := g.client.Issues.CreateComment(g.ctx, g.owner, g.repo, g.prId, comment)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +164,7 @@ func (g *GithubMergeRequest) GetMergeRequestNote(noteId string) (Note, error) {
 	if err != nil {
 		return nil, err
 	}
-	n, _, err := g.project.github.client.Issues.GetComment(g.project.github.ctx, g.project.owner, g.project.repo, noteId2)
+	n, _, err := g.client.Issues.GetComment(g.ctx, g.owner, g.repo, noteId2)
 	if err != nil {
 		return nil, err
 	}
@@ -315,7 +183,7 @@ func (g *GithubMergeRequest) ListMergeRequestNotes() ([]Note, error) {
 
 	var ret []Note
 	for true {
-		notes, _, err := g.project.github.client.Issues.ListComments(g.project.github.ctx, g.project.owner, g.project.repo, g.mrId, opt)
+		notes, _, err := g.client.Issues.ListComments(g.ctx, g.owner, g.repo, g.prId, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -343,7 +211,7 @@ func (g *GithubMergeRequest) ListMergeRequestNotesAfter(t time.Time) ([]Note, er
 
 	var ret []Note
 	for true {
-		notes, _, err := g.project.github.client.Issues.ListComments(g.project.github.ctx, g.project.owner, g.project.repo, g.mrId, opt)
+		notes, _, err := g.client.Issues.ListComments(g.ctx, g.owner, g.repo, g.prId, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -382,7 +250,7 @@ func (n *GithubNote) UpdateBody(body string) error {
 		Body: &body,
 	}
 
-	newComment, _, err := n.g.project.github.client.Issues.EditComment(n.g.project.github.ctx, n.g.project.owner, n.g.project.repo, *n.comment.ID, &updateComment)
+	newComment, _, err := n.g.client.Issues.EditComment(n.g.ctx, n.g.owner, n.g.repo, *n.comment.ID, &updateComment)
 	if err != nil {
 		return err
 	}
@@ -390,7 +258,7 @@ func (n *GithubNote) UpdateBody(body string) error {
 	return nil
 }
 
-func BuildWebgitGithub(ctx context.Context, client client.Client, namespace string, info v1alpha1.GithubProject) (ProjectInterface, error) {
+func BuildWebgitMergeRequestGithub(ctx context.Context, client client.Client, namespace string, info v1alpha1.GithubPullRequestRef) (*GithubMergeRequest, error) {
 	if info.Owner == "" {
 		return nil, fmt.Errorf("missing github owner")
 	}
@@ -418,9 +286,16 @@ func BuildWebgitGithub(ctx context.Context, client client.Client, namespace stri
 	}
 	token := string(tokenBytes)
 
-	g, err := NewGithub(ctx, token)
-	if err != nil {
-		return nil, err
-	}
-	return g.GetProject(fmt.Sprintf("%s/%s", info.Owner, info.Repo))
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+
+	return &GithubMergeRequest{
+		ctx:    ctx,
+		client: github.NewClient(tc),
+		owner:  info.Owner,
+		repo:   info.Repo,
+		prId:   info.PullRequestId,
+	}, nil
 }
