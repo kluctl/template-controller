@@ -42,28 +42,6 @@ func (s *MergeRequestState) UnmarshalJSON(data []byte) error {
 	return err
 }
 
-type GitlabProject struct {
-	// GitLab project to scan. Required.
-	// +required
-	Project string `json:"project"`
-
-	// The GitLab API URL to talk to. If blank, uses https://gitlab.com/.
-	// +optional
-	API *string `json:"api,omitempty"`
-
-	// Authentication token reference.
-	// +optional
-	TokenRef *SecretRef `json:"tokenRef"`
-}
-
-type GitlabMergeRequest1 struct {
-	GitlabProject `json:",inline"`
-
-	// The merge request id
-	// +optional
-	MergeRequestId *int `json:"mergeRequestId,omitempty"`
-}
-
 type GithubProject struct {
 	// +required
 	Owner string `json:"owner"`
@@ -76,7 +54,7 @@ type GithubProject struct {
 	TokenRef *SecretRef `json:"tokenRef"`
 }
 
-type GithubPullRequest1 struct {
+type GithubPullRequestRef struct {
 	GithubProject `json:",inline"`
 
 	// +optional

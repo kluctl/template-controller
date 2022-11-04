@@ -41,10 +41,10 @@ type ObjectHandlerSpec struct {
 
 type ObjectHandlerDefaultsSpec struct {
 	// +optional
-	Gitlab *GitlabMergeRequest1 `json:"gitlab,omitempty"`
+	Gitlab *GitlabMergeRequestRef `json:"gitlab,omitempty"`
 
 	// +optional
-	Github *GithubPullRequest1 `json:"github,omitempty"`
+	Github *GithubPullRequestRef `json:"github,omitempty"`
 }
 
 type Handler struct {
@@ -81,10 +81,10 @@ type HandlerStatus struct {
 
 type PullRequestCommentReporter struct {
 	// +optional
-	Gitlab *GitlabMergeRequest1 `json:"gitlab,omitempty"`
+	Gitlab *GitlabMergeRequestRef `json:"gitlab,omitempty"`
 
 	// +optional
-	Github *GithubPullRequest1 `json:"github,omitempty"`
+	Github *GithubPullRequestRef `json:"github,omitempty"`
 }
 
 type PullRequestCommentReporterStatus struct {
@@ -97,10 +97,10 @@ type PullRequestCommentReporterStatus struct {
 
 type PullRequestApproveReporter struct {
 	// +optional
-	Gitlab *GitlabMergeRequest1 `json:"gitlab,omitempty"`
+	Gitlab *GitlabMergeRequestRef `json:"gitlab,omitempty"`
 
 	// +optional
-	Github *GithubPullRequest1 `json:"github,omitempty"`
+	Github *GithubPullRequestRef `json:"github,omitempty"`
 
 	// +optional
 	// +kubebuilder:default:=false
@@ -114,10 +114,10 @@ type PullRequestApproveReporterStatus struct {
 
 type PullRequestCommandHandler struct {
 	// +optional
-	Gitlab *GitlabMergeRequest1 `json:"gitlab,omitempty"`
+	Gitlab *GitlabMergeRequestRef `json:"gitlab,omitempty"`
 
 	// +optional
-	Github *GithubPullRequest1 `json:"github,omitempty"`
+	Github *GithubPullRequestRef `json:"github,omitempty"`
 
 	// +optional
 	PostHelpComment bool `json:"postHelpComment"`
