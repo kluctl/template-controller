@@ -119,18 +119,18 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "ObjectHandler")
 		os.Exit(1)
 	}
-	if err = (&controllers.QueryGitlabMergeRequestsReconciler{
+	if err = (&controllers.ListGitlabMergeRequestsReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "QueryGitlabMergeRequests")
+		setupLog.Error(err, "unable to create controller", "controller", "ListGitlabMergeRequests")
 		os.Exit(1)
 	}
-	if err = (&controllers.QueryGithubPullRequestsReconciler{
+	if err = (&controllers.ListGithubPullRequestsReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "QueryGithubPullRequests")
+		setupLog.Error(err, "unable to create controller", "controller", "ListGithubPullRequests")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

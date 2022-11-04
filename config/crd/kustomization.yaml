@@ -4,8 +4,8 @@
 resources:
 - bases/templates.kluctl.io_objecttemplates.yaml
 - bases/templates.kluctl.io_objecthandlers.yaml
-- bases/templates.kluctl.io_querygitlabmergerequests.yaml
-- bases/templates.kluctl.io_querygithubpullrequests.yaml
+- bases/templates.kluctl.io_listgitlabmergerequests.yaml
+- bases/templates.kluctl.io_listgithubpullrequests.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
@@ -13,16 +13,16 @@ patchesStrategicMerge:
 # patches here are for enabling the conversion webhook for each CRD
 #- patches/webhook_in_objecttemplates.yaml
 #- patches/webhook_in_objecthandlers.yaml
-#- patches/webhook_in_querygitlabmergerequests.yaml
-#- patches/webhook_in_querygithubpullrequests.yaml
+#- patches/webhook_in_listgitlabmergerequests.yaml
+#- patches/webhook_in_listgithubpullrequests.yaml
 #+kubebuilder:scaffold:crdkustomizewebhookpatch
 
 # [CERTMANAGER] To enable cert-manager, uncomment all the sections with [CERTMANAGER] prefix.
 # patches here are for enabling the CA injection for each CRD
 #- patches/cainjection_in_objecttemplates.yaml
 #- patches/cainjection_in_objecthandlers.yaml
-#- patches/cainjection_in_querygitlabmergerequests.yaml
-#- patches/cainjection_in_querygithubpullrequests.yaml
+#- patches/cainjection_in_listgitlabmergerequests.yaml
+#- patches/cainjection_in_listgithubpullrequests.yaml
 #+kubebuilder:scaffold:crdkustomizecainjectionpatch
 
 # the following config is for teaching kustomize how to do kustomization for CRDs.

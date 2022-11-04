@@ -5,20 +5,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
-  name: querygithubpullrequests.templates.kluctl.io
+  name: listgithubpullrequests.templates.kluctl.io
 spec:
   group: templates.kluctl.io
   names:
-    kind: QueryGithubPullRequests
-    listKind: QueryGithubPullRequestsList
-    plural: querygithubpullrequests
-    singular: querygithubpullrequests
+    kind: ListGithubPullRequests
+    listKind: ListGithubPullRequestsList
+    plural: listgithubpullrequests
+    singular: listgithubpullrequests
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: QueryGithubPullRequests is the Schema for the querygithubpullrequests
+        description: ListGithubPullRequests is the Schema for the listgithubpullrequests
           API
         properties:
           apiVersion:
@@ -34,8 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: QueryGithubPullRequestsSpec defines the desired state of
-              QueryGithubPullRequests
+            description: ListGithubPullRequestsSpec defines the desired state of ListGithubPullRequests
             properties:
               base:
                 type: string
@@ -87,8 +86,8 @@ spec:
             - repo
             type: object
           status:
-            description: QueryGithubPullRequestsStatus defines the observed state
-              of QueryGithubPullRequests
+            description: ListGithubPullRequestsStatus defines the observed state of
+              ListGithubPullRequests
             properties:
               conditions:
                 items:

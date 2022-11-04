@@ -1,12 +1,12 @@
 apiVersion: templates.kluctl.io/v1alpha1
-kind: QueryGitlabMergeRequests
+kind: ListGitlabMergeRequests
 metadata:
   labels:
-    app.kubernetes.io/name: querygitlabmergerequests
-    app.kubernetes.io/instance: querygitlabmergerequests-sample
+    app.kubernetes.io/name: listgitlabmergerequests
+    app.kubernetes.io/instance: listgitlabmergerequests-sample
     app.kubernetes.io/part-of: template-controller
     app.kuberentes.io/managed-by: kustomize
     app.kubernetes.io/created-by: template-controller
-  name: querygitlabmergerequests-sample
+  name: listgitlabmergerequests-sample
 spec:
   # TODO(user): Add fields here

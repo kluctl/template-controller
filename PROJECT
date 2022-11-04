@@ -28,7 +28,7 @@ resources:
   controller: true
   domain: kluctl.io
   group: templates
-  kind: QueryGitlabMergeRequests
+  kind: ListGitlabMergeRequests
   path: kluctl/template-controller/api/v1alpha1
   version: v1alpha1
 - api:
@@ -37,7 +37,7 @@ resources:
   controller: true
   domain: kluctl.io
   group: templates
-  kind: QueryGithubPullRequests
+  kind: ListGithubPullRequests
   path: kluctl/template-controller/api/v1alpha1
   version: v1alpha1
 version: "3"

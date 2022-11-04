@@ -21,8 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// QueryGithubPullRequestsSpec defines the desired state of QueryGithubPullRequests
-type QueryGithubPullRequestsSpec struct {
+// ListGithubPullRequestsSpec defines the desired state of ListGithubPullRequests
+type ListGithubPullRequestsSpec struct {
 	// Interval is the interval at which to query the Gitlab API.
 	// Defaults to 5m.
 	// +optional
@@ -54,8 +54,8 @@ type QueryGithubPullRequestsSpec struct {
 	Limit int `json:"limit"`
 }
 
-// QueryGithubPullRequestsStatus defines the observed state of QueryGithubPullRequests
-type QueryGithubPullRequestsStatus struct {
+// ListGithubPullRequestsStatus defines the observed state of ListGithubPullRequests
+type ListGithubPullRequestsStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
@@ -67,24 +67,24 @@ type QueryGithubPullRequestsStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// QueryGithubPullRequests is the Schema for the querygithubpullrequests API
-type QueryGithubPullRequests struct {
+// ListGithubPullRequests is the Schema for the listgithubpullrequests API
+type ListGithubPullRequests struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   QueryGithubPullRequestsSpec   `json:"spec,omitempty"`
-	Status QueryGithubPullRequestsStatus `json:"status,omitempty"`
+	Spec   ListGithubPullRequestsSpec   `json:"spec,omitempty"`
+	Status ListGithubPullRequestsStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// QueryGithubPullRequestsList contains a list of QueryGithubPullRequests
-type QueryGithubPullRequestsList struct {
+// ListGithubPullRequestsList contains a list of ListGithubPullRequests
+type ListGithubPullRequestsList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []QueryGithubPullRequests `json:"items"`
+	Items           []ListGithubPullRequests `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&QueryGithubPullRequests{}, &QueryGithubPullRequestsList{})
+	SchemeBuilder.Register(&ListGithubPullRequests{}, &ListGithubPullRequestsList{})
 }

@@ -32,21 +32,21 @@ import (
 	"sort"
 )
 
-// QueryGitlabMergeRequestsReconciler reconciles a QueryGitlabMergeRequests object
-type QueryGitlabMergeRequestsReconciler struct {
+// ListGitlabMergeRequestsReconciler reconciles a ListGitlabMergeRequests object
+type ListGitlabMergeRequestsReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygitlabmergerequests,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygitlabmergerequests/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygitlabmergerequests/finalizers,verbs=update
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=listgitlabmergerequests,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=listgitlabmergerequests/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=listgitlabmergerequests/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
-func (r *QueryGitlabMergeRequestsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *ListGitlabMergeRequestsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	var obj templatesv1alpha1.QueryGitlabMergeRequests
+	var obj templatesv1alpha1.ListGitlabMergeRequests
 	err := r.Get(ctx, req.NamespacedName, &obj)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -85,7 +85,7 @@ func (r *QueryGitlabMergeRequestsReconciler) Reconcile(ctx context.Context, req 
 	}, nil
 }
 
-func (r *QueryGitlabMergeRequestsReconciler) doReconcile(ctx context.Context, obj *templatesv1alpha1.QueryGitlabMergeRequests) error {
+func (r *ListGitlabMergeRequestsReconciler) doReconcile(ctx context.Context, obj *templatesv1alpha1.ListGitlabMergeRequests) error {
 	var token string
 	var err error
 
@@ -173,8 +173,8 @@ func (r *QueryGitlabMergeRequestsReconciler) doReconcile(ctx context.Context, ob
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *QueryGitlabMergeRequestsReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ListGitlabMergeRequestsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&templatesv1alpha1.QueryGitlabMergeRequests{}).
+		For(&templatesv1alpha1.ListGitlabMergeRequests{}).
 		Complete(r)
 }

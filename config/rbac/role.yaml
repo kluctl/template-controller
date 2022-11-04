@@ -32,6 +32,58 @@ rules:
 - apiGroups:
   - templates.kluctl.io
   resources:
+  - listgithubpullrequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - listgithubpullrequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - listgithubpullrequests/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - listgitlabmergerequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - listgitlabmergerequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - listgitlabmergerequests/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
   - objecthandlers
   verbs:
   - create
@@ -77,58 +129,6 @@ rules:
   - templates.kluctl.io
   resources:
   - objecttemplates/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - querygithubpullrequests
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - querygithubpullrequests/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - querygithubpullrequests/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - querygitlabmergerequests
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - querygitlabmergerequests/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - templates.kluctl.io
-  resources:
-  - querygitlabmergerequests/status
   verbs:
   - get
   - patch

@@ -36,21 +36,21 @@ import (
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 )
 
-// QueryGithubPullRequestsReconciler reconciles a QueryGithubPullRequests object
-type QueryGithubPullRequestsReconciler struct {
+// ListGithubPullRequestsReconciler reconciles a ListGithubPullRequests object
+type ListGithubPullRequestsReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygithubpullrequests,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygithubpullrequests/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=templates.kluctl.io,resources=querygithubpullrequests/finalizers,verbs=update
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=listgithubpullrequests,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=listgithubpullrequests/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=templates.kluctl.io,resources=listgithubpullrequests/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
-func (r *QueryGithubPullRequestsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *ListGithubPullRequestsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	var obj templatesv1alpha1.QueryGithubPullRequests
+	var obj templatesv1alpha1.ListGithubPullRequests
 	err := r.Get(ctx, req.NamespacedName, &obj)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -89,7 +89,7 @@ func (r *QueryGithubPullRequestsReconciler) Reconcile(ctx context.Context, req c
 	}, nil
 }
 
-func (r *QueryGithubPullRequestsReconciler) doReconcile(ctx context.Context, obj *templatesv1alpha1.QueryGithubPullRequests) error {
+func (r *ListGithubPullRequestsReconciler) doReconcile(ctx context.Context, obj *templatesv1alpha1.ListGithubPullRequests) error {
 	var token string
 	var err error
 
@@ -180,7 +180,7 @@ func (r *QueryGithubPullRequestsReconciler) doReconcile(ctx context.Context, obj
 	return nil
 }
 
-func (r *QueryGithubPullRequestsReconciler) simplifyObject(v reflect.Value) error {
+func (r *ListGithubPullRequestsReconciler) simplifyObject(v reflect.Value) error {
 	switch v.Kind() {
 	case reflect.Pointer:
 		return r.simplifyObject(v.Elem())
@@ -214,7 +214,7 @@ func (r *QueryGithubPullRequestsReconciler) simplifyObject(v reflect.Value) erro
 	return nil
 }
 
-func (r *QueryGithubPullRequestsReconciler) simplifyObjectGeneric(v reflect.Value) error {
+func (r *ListGithubPullRequestsReconciler) simplifyObjectGeneric(v reflect.Value) error {
 	v = reflect.Indirect(v)
 	for _, field := range reflect.VisibleFields(v.Type()) {
 		f := v.FieldByIndex(field.Index)
@@ -229,12 +229,12 @@ func (r *QueryGithubPullRequestsReconciler) simplifyObjectGeneric(v reflect.Valu
 	return nil
 }
 
-func (r *QueryGithubPullRequestsReconciler) simplifyPullRequest(x *github.PullRequest) error {
+func (r *ListGithubPullRequestsReconciler) simplifyPullRequest(x *github.PullRequest) error {
 	x.Links = nil
 	return r.simplifyObjectGeneric(reflect.ValueOf(x))
 }
 
-func (r *QueryGithubPullRequestsReconciler) simplifyUser(x *github.User) error {
+func (r *ListGithubPullRequestsReconciler) simplifyUser(x *github.User) error {
 	if x == nil {
 		return nil
 	}
@@ -245,7 +245,7 @@ func (r *QueryGithubPullRequestsReconciler) simplifyUser(x *github.User) error {
 	return nil
 }
 
-func (r *QueryGithubPullRequestsReconciler) simplifyOrganisation(x *github.Organization) error {
+func (r *ListGithubPullRequestsReconciler) simplifyOrganisation(x *github.Organization) error {
 	if x == nil {
 		return nil
 	}
@@ -256,7 +256,7 @@ func (r *QueryGithubPullRequestsReconciler) simplifyOrganisation(x *github.Organ
 	return nil
 }
 
-func (r *QueryGithubPullRequestsReconciler) simplifyRepository(x *github.Repository) error {
+func (r *ListGithubPullRequestsReconciler) simplifyRepository(x *github.Repository) error {
 	if x == nil {
 		return nil
 	}
@@ -269,7 +269,7 @@ func (r *QueryGithubPullRequestsReconciler) simplifyRepository(x *github.Reposit
 	return r.simplifyObjectGeneric(reflect.ValueOf(x))
 }
 
-func (r *QueryGithubPullRequestsReconciler) simplifyLabel(x *github.Label) error {
+func (r *ListGithubPullRequestsReconciler) simplifyLabel(x *github.Label) error {
 	if x == nil {
 		return nil
 	}
@@ -281,8 +281,8 @@ func (r *QueryGithubPullRequestsReconciler) simplifyLabel(x *github.Label) error
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *QueryGithubPullRequestsReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ListGithubPullRequestsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&templatesv1alpha1.QueryGithubPullRequests{}).
+		For(&templatesv1alpha1.ListGithubPullRequests{}).
 		Complete(r)
 }

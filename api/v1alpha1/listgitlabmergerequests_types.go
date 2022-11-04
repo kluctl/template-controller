@@ -21,8 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// QueryGitlabMergeRequestsSpec defines the desired state of QueryGitlabMergeRequests
-type QueryGitlabMergeRequestsSpec struct {
+// ListGitlabMergeRequestsSpec defines the desired state of ListGitlabMergeRequests
+type ListGitlabMergeRequestsSpec struct {
 	// Interval is the interval at which to query the Gitlab API.
 	// Defaults to 5m.
 	// +optional
@@ -54,8 +54,8 @@ type QueryGitlabMergeRequestsSpec struct {
 	Limit int `json:"limit"`
 }
 
-// QueryGitlabMergeRequestsStatus defines the observed state of QueryGitlabMergeRequests
-type QueryGitlabMergeRequestsStatus struct {
+// ListGitlabMergeRequestsStatus defines the observed state of ListGitlabMergeRequests
+type ListGitlabMergeRequestsStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
@@ -67,24 +67,24 @@ type QueryGitlabMergeRequestsStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// QueryGitlabMergeRequests is the Schema for the querygitlabmergerequests API
-type QueryGitlabMergeRequests struct {
+// ListGitlabMergeRequests is the Schema for the listgitlabmergerequests API
+type ListGitlabMergeRequests struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   QueryGitlabMergeRequestsSpec   `json:"spec,omitempty"`
-	Status QueryGitlabMergeRequestsStatus `json:"status,omitempty"`
+	Spec   ListGitlabMergeRequestsSpec   `json:"spec,omitempty"`
+	Status ListGitlabMergeRequestsStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// QueryGitlabMergeRequestsList contains a list of QueryGitlabMergeRequests
-type QueryGitlabMergeRequestsList struct {
+// ListGitlabMergeRequestsList contains a list of ListGitlabMergeRequests
+type ListGitlabMergeRequestsList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []QueryGitlabMergeRequests `json:"items"`
+	Items           []ListGitlabMergeRequests `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&QueryGitlabMergeRequests{}, &QueryGitlabMergeRequestsList{})
+	SchemeBuilder.Register(&ListGitlabMergeRequests{}, &ListGitlabMergeRequestsList{})
 }
