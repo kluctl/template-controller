@@ -44,7 +44,8 @@ const forObjectIndexKey = "spec.forObject"
 // ObjectHandlerReconciler reconciles a ObjectHandler object
 type ObjectHandlerReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme       *runtime.Scheme
+	FieldManager string
 
 	controller   controller.Controller
 	watchedKinds map[schema.GroupVersionKind]bool
@@ -230,7 +231,7 @@ func (r *ObjectHandlerReconciler) doReconcile(ctx context.Context, sr *templates
 			errs = multierror.Append(errs, err)
 		}
 	} else if len(patchData) != 2 || string(patchData) != "{}" {
-		err = r.Patch(ctx, &obj, &patch)
+		err = r.Patch(ctx, &obj, &patch, client.FieldOwner(r.FieldManager))
 		if err != nil {
 			errs = multierror.Append(errs, err)
 		}
