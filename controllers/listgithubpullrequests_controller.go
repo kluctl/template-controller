@@ -129,7 +129,7 @@ func (r *ListGithubPullRequestsReconciler) doReconcile(ctx context.Context, obj 
 	listOpts := &github.PullRequestListOptions{}
 	listOpts.State = obj.Spec.State
 	listOpts.Page = 1
-	listOpts.PerPage = 10
+	listOpts.PerPage = 100
 
 	var result []*github.PullRequest
 	for true {
