@@ -1,6 +1,0 @@
-apiVersion: templates.kluctl.io/v1alpha1
-kind: ObjectTemplate
-metadata:
-  name: objecttemplate-sample
-spec:
-  # TODO(user): Add fields here

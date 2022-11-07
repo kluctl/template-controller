@@ -1,94 +1,23 @@
-# template-controller
-// TODO(user): Add simple overview of use/purpose
+# Template Controller
 
-## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+The Template Controller is a controller originating from the [Kluctl](https://kluctl.io) project, but not limited to
+Kluctl. It allows to define template objects which are rendered and applied into the cluster based on an input matrix.
 
-## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
-**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
+In its easiest form, an `ObjectTemplate` takes one input object (e.g. a ConfigMap) and creates another object
+(e.g. a Secret) which is then applied into the cluster.
 
-### Running on the cluster
-1. Install Instances of Custom Resources:
+The Template Controller also offers CRDs which allow to query external resources (e.g. GitHub Pull Requests) which can
+then be used as inputs into `ObjectTemplates`.
 
-```sh
-kubectl apply -f config/samples/
-```
+## Use Cases
 
-2. Build and push your image to the location specified by `IMG`:
-	
-```sh
-make docker-build docker-push IMG=<some-registry>/template-controller:tag
-```
-	
-3. Deploy the controller to the cluster with the image specified by `IMG`:
+Template Controller has many use case. Some are for example:
+1. [Dynamic environments for Pull Requests](./docs/use-case-gitops.md)
 
-```sh
-make deploy IMG=<some-registry>/template-controller:tag
-```
+## Documentation
 
-### Uninstall CRDs
-To delete the CRDs from the cluster:
+Reference documentation is available [here](./docs/spec/v1alpha1).
 
-```sh
-make uninstall
-```
+## Installation
 
-### Undeploy controller
-UnDeploy the controller to the cluster:
-
-```sh
-make undeploy
-```
-
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-### How it works
-This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
-
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/) 
-which provides a reconcile function responsible for synchronizing resources untile the desired state is reached on the cluster 
-
-### Test It Out
-1. Install the CRDs into the cluster:
-
-```sh
-make install
-```
-
-2. Run your controller (this will run in the foreground, so switch to a new terminal if you want to leave it running):
-
-```sh
-make run
-```
-
-**NOTE:** You can also run this in one step by running: `make install run`
-
-### Modifying the API definitions
-If you are editing the API definitions, generate the manifests such as CRs or CRDs using:
-
-```sh
-make manifests
-```
-
-**NOTE:** Run `make --help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
-
-## License
-
-Copyright 2022.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+Installation instructions can be found [here](./docs/install.md)
