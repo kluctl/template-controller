@@ -81,6 +81,12 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return
 	}
 
+	// Return early if the KluctlDeployment is suspended.
+	if rt.Spec.Suspend {
+		logger.Info("Reconciliation is suspended for this object")
+		return ctrl.Result{}, nil
+	}
+
 	for _, me := range rt.Spec.Matrix {
 		if me.Object != nil {
 			gvk, err2 := me.Object.Ref.GroupVersionKind()

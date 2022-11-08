@@ -80,6 +80,9 @@ spec:
               prune:
                 default: false
                 type: boolean
+              suspend:
+                default: false
+                type: boolean
               templates:
                 items:
                   properties:

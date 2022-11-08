@@ -27,6 +27,10 @@ type ObjectTemplateSpec struct {
 	// +kubebuilder:default:="30s"
 	Interval metav1.Duration `json:"interval"`
 
+	// +optional
+	// +kubebuilder:default:=false
+	Suspend bool `json:"suspend"`
+
 	// +kubebuilder:default:=false
 	// +optional
 	Prune bool `json:"prune"`
