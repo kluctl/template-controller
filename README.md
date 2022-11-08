@@ -12,7 +12,7 @@ then be used as inputs into `ObjectTemplates`.
 ## Use Cases
 
 Template Controller has many use case. Some are for example:
-1. [Dynamic environments for Pull Requests](./docs/use-case-gitops.md)
+1. [Dynamic environments for Pull Requests](./docs/use-case-dynamic-environments.md)
 2. [Transformation of Secrets/Objects](./docs/use-case-transformation.md)
 
 ## Documentation

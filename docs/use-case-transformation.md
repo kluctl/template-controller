@@ -1,4 +1,4 @@
-# Use Case: Object Transformation
+# Use Case: Transformation of Secrets/Objects
 
 There are cases where an object can not be created before another object is created by some other component inside the
 cluster, meaning that you have no control over the input object.

@@ -1,4 +1,4 @@
-# Use Case: GitOps
+# Use Case: Dynamic environments for Pull Requests
 
 This use case was the initial and first use case why the Template Controller was created. You can use `ListGithubPullRequests`
 to query the GitHub API for a list of pull requests on a GitHub Repo and then use the result inside a `ObjectTemplate`
