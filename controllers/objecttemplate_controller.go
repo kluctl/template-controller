@@ -138,7 +138,7 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 		apimeta.SetStatusCondition(&rt.Status.Conditions, c)
 	}
-	err = r.Status().Patch(ctx, &rt, patch)
+	err = r.Status().Patch(ctx, &rt, patch, client.FieldOwner(r.FieldManager))
 	if err != nil {
 		return
 	}

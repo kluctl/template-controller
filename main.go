@@ -104,31 +104,36 @@ func main() {
 		os.Exit(1)
 	}
 
+	fieldManager := "template-controller"
+
 	if err = (&controllers.ObjectTemplateReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
-		FieldManager: "template-controller",
+		FieldManager: fieldManager,
 	}).SetupWithManager(mgr, concurrent); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ObjectTemplate")
 		os.Exit(1)
 	}
 	if err = (&objecthandler.ObjectHandlerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		FieldManager: fieldManager,
 	}).SetupWithManager(mgr, concurrent); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ObjectHandler")
 		os.Exit(1)
 	}
 	if err = (&controllers.ListGitlabMergeRequestsReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		FieldManager: fieldManager,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ListGitlabMergeRequests")
 		os.Exit(1)
 	}
 	if err = (&controllers.ListGithubPullRequestsReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		FieldManager: fieldManager,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ListGithubPullRequests")
 		os.Exit(1)

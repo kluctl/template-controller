@@ -39,7 +39,8 @@ import (
 // ListGithubPullRequestsReconciler reconciles a ListGithubPullRequests object
 type ListGithubPullRequestsReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme       *runtime.Scheme
+	FieldManager string
 }
 
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=listgithubpullrequests,verbs=get;list;watch;create;update;patch;delete
@@ -79,7 +80,7 @@ func (r *ListGithubPullRequestsReconciler) Reconcile(ctx context.Context, req ct
 
 	// TODO optimize the update as it currently causes to update all merge requests on every call
 	// patching is not working very well as causes nulls to be pruned and full array replacement for every single change
-	err = r.Status().Update(ctx, &obj)
+	err = r.Status().Update(ctx, &obj, client.FieldOwner(r.FieldManager))
 	if err != nil {
 		return ctrl.Result{}, err
 	}
