@@ -78,6 +78,7 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	err = r.Get(ctx, req.NamespacedName, &rt)
 	if err != nil {
 		logger.Error(err, "Get failed")
+		err = client.IgnoreNotFound(err)
 		return
 	}
 
