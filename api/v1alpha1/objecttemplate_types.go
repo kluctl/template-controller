@@ -22,6 +22,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+const (
+	ObjectTemplateFinalizer = "finalizers.templates.kluctl.io"
+)
+
 // ObjectTemplateSpec defines the desired state of ObjectTemplate
 type ObjectTemplateSpec struct {
 	// +kubebuilder:default:="30s"

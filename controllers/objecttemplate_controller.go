@@ -82,6 +82,21 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return
 	}
 
+	// Add our finalizer if it does not exist
+	if !controllerutil.ContainsFinalizer(&rt, templatesv1alpha1.ObjectTemplateFinalizer) {
+		patch := client.MergeFrom(rt.DeepCopy())
+		controllerutil.AddFinalizer(&rt, templatesv1alpha1.ObjectTemplateFinalizer)
+		if err := r.Patch(ctx, &rt, patch, client.FieldOwner(r.FieldManager)); err != nil {
+			logger.Error(err, "unable to register finalizer")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Examine if the object is under deletion
+	if !rt.GetDeletionTimestamp().IsZero() {
+		return r.finalize(ctx, &rt)
+	}
+
 	// Return early if the KluctlDeployment is suspended.
 	if rt.Spec.Suspend {
 		logger.Info("Reconciliation is suspended for this object")
@@ -282,7 +297,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 
 		go func() {
 			defer wg.Done()
-			err := r.applyTemplate(ctx, rt, resource)
+			err := r.applyRenderedObject(ctx, resource)
 			mutex.Lock()
 			defer mutex.Unlock()
 
@@ -385,12 +400,8 @@ func (r *ObjectTemplateReconciler) prune(ctx context.Context, rt *templatesv1alp
 	return errs.ErrorOrNil()
 }
 
-func (r *ObjectTemplateReconciler) applyTemplate(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, rendered *unstructured.Unstructured) error {
+func (r *ObjectTemplateReconciler) applyRenderedObject(ctx context.Context, rendered *unstructured.Unstructured) error {
 	logger := log.FromContext(ctx)
-
-	if err := controllerutil.SetControllerReference(rt, rendered, r.Scheme); err != nil {
-		return err
-	}
 
 	var origMeta metav1.PartialObjectMetadata
 	origObjFound := false
@@ -538,4 +549,50 @@ func (r *ObjectTemplateReconciler) addWatchForKind(ctx context.Context, gvk sche
 
 	r.watchedKinds[gvk] = true
 	return nil
+}
+
+func (r *ObjectTemplateReconciler) finalize(ctx context.Context, obj *templatesv1alpha1.ObjectTemplate) (ctrl.Result, error) {
+	r.doFinalize(ctx, obj)
+
+	// Remove our finalizer from the list and update it
+	controllerutil.RemoveFinalizer(obj, templatesv1alpha1.ObjectTemplateFinalizer)
+	if err := r.Update(ctx, obj, client.FieldOwner(r.FieldManager)); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Stop reconciliation as the object is being deleted
+	return ctrl.Result{}, nil
+}
+
+func (r *ObjectTemplateReconciler) doFinalize(ctx context.Context, obj *templatesv1alpha1.ObjectTemplate) {
+	log := ctrl.LoggerFrom(ctx)
+
+	if !obj.Spec.Prune || obj.Spec.Suspend {
+		return
+	}
+
+	var wg sync.WaitGroup
+	for _, ar := range obj.Status.AppliedResources {
+		ar := ar
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			gvk, err := ar.Ref.GroupVersionKind()
+			if err != nil {
+				return
+			}
+
+			log.Info("Deleting applied object", "ref", ar.Ref)
+
+			var o unstructured.Unstructured
+			o.SetGroupVersionKind(gvk)
+			o.SetName(ar.Ref.Name)
+			o.SetNamespace(ar.Ref.Namespace)
+			err = r.Client.Delete(ctx, &o)
+			if err != nil && !errors.IsNotFound(err) {
+				log.Error(err, "Failed to delete applied object", "ref", ar.Ref)
+			}
+		}()
+	}
+	wg.Wait()
 }
