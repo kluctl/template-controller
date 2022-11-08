@@ -32,9 +32,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -147,6 +149,29 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	return
 }
 
+func (r *ObjectTemplateReconciler) getClientForObjects(obj *templatesv1alpha1.ObjectTemplate) (client.Client, error) {
+	restConfig, err := config.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	name := "default"
+	if obj.Spec.ServiceAccountName != "" {
+		name = obj.Spec.ServiceAccountName
+	}
+	if name == "" {
+		return nil, fmt.Errorf("empty serviceAccountName not allowed")
+	}
+	username := fmt.Sprintf("system:serviceaccount:%s:%s", obj.Namespace, name)
+	restConfig.Impersonate = rest.ImpersonationConfig{UserName: username}
+
+	c, err := client.New(restConfig, client.Options{Mapper: r.RESTMapper()})
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
 func (r *ObjectTemplateReconciler) multiplyMatrix(matrix []map[string]any, key string, newElems []any) []map[string]any {
 	var newMatrix []map[string]any
 
@@ -164,7 +189,7 @@ func (r *ObjectTemplateReconciler) multiplyMatrix(matrix []map[string]any, key s
 	return newMatrix
 }
 
-func (r *ObjectTemplateReconciler) buildMatrixObjectElements(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, me *templatesv1alpha1.MatrixEntryObject) ([]any, error) {
+func (r *ObjectTemplateReconciler) buildMatrixObjectElements(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, client client.Client, me *templatesv1alpha1.MatrixEntryObject) ([]any, error) {
 	gvk, err := me.Ref.GroupVersionKind()
 	if err != nil {
 		return nil, err
@@ -177,7 +202,7 @@ func (r *ObjectTemplateReconciler) buildMatrixObjectElements(ctx context.Context
 	var o unstructured.Unstructured
 	o.SetGroupVersionKind(gvk)
 
-	err = r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: me.Ref.Name}, &o)
+	err = client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: me.Ref.Name}, &o)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +227,7 @@ func (r *ObjectTemplateReconciler) buildMatrixObjectElements(ctx context.Context
 	return elems, nil
 }
 
-func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) ([]map[string]any, error) {
+func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, client client.Client) ([]map[string]any, error) {
 	var err error
 	var matrixEntries []map[string]any
 	matrixEntries = append(matrixEntries, map[string]any{})
@@ -210,7 +235,7 @@ func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *t
 	for _, me := range rt.Spec.Matrix {
 		var elems []any
 		if me.Object != nil {
-			elems, err = r.buildMatrixObjectElements(ctx, rt, me.Object)
+			elems, err = r.buildMatrixObjectElements(ctx, rt, client, me.Object)
 			if err != nil {
 				return nil, err
 			}
@@ -233,7 +258,7 @@ func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *t
 }
 
 func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) error {
-	baseVars, err := r.buildBaseVars(ctx, rt)
+	baseVars, err := r.buildBaseVars(rt)
 	if err != nil {
 		return err
 	}
@@ -249,7 +274,12 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
-	matrixEntries, err := r.buildMatrixEntries(ctx, rt)
+	objClient, err := r.getClientForObjects(rt)
+	if err != nil {
+		return err
+	}
+
+	matrixEntries, err := r.buildMatrixEntries(ctx, rt, objClient)
 	if err != nil {
 		return err
 	}
@@ -264,7 +294,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 				"matrix": matrix,
 			})
 
-			resources, err := r.renderTemplates(ctx, j2, rt, vars)
+			resources, err := r.renderTemplates(j2, rt, vars)
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				return
@@ -301,7 +331,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 
 		go func() {
 			defer wg.Done()
-			err := r.applyRenderedObject(ctx, resource)
+			err := r.applyRenderedObject(ctx, objClient, resource)
 			mutex.Lock()
 			defer mutex.Unlock()
 
@@ -334,7 +364,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 		return errs
 	}
 
-	err = r.prune(ctx, rt, allResources, newAppliedResources)
+	err = r.prune(ctx, objClient, rt, allResources, newAppliedResources)
 	if err != nil {
 		return err
 	}
@@ -342,7 +372,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	return nil
 }
 
-func (r *ObjectTemplateReconciler) prune(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, allResources []*unstructured.Unstructured, appliedResources map[templatesv1alpha1.ObjectRef]templatesv1alpha1.AppliedResourceInfo) error {
+func (r *ObjectTemplateReconciler) prune(ctx context.Context, objClient client.Client, rt *templatesv1alpha1.ObjectTemplate, allResources []*unstructured.Unstructured, appliedResources map[templatesv1alpha1.ObjectRef]templatesv1alpha1.AppliedResourceInfo) error {
 	logger := log.FromContext(ctx)
 
 	if !rt.Spec.Prune {
@@ -380,7 +410,7 @@ func (r *ObjectTemplateReconciler) prune(ctx context.Context, rt *templatesv1alp
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err := r.Delete(ctx, &m)
+			err := objClient.Delete(ctx, &m)
 			mutex.Lock()
 			defer mutex.Unlock()
 			if err != nil {
@@ -404,19 +434,19 @@ func (r *ObjectTemplateReconciler) prune(ctx context.Context, rt *templatesv1alp
 	return errs.ErrorOrNil()
 }
 
-func (r *ObjectTemplateReconciler) applyRenderedObject(ctx context.Context, rendered *unstructured.Unstructured) error {
+func (r *ObjectTemplateReconciler) applyRenderedObject(ctx context.Context, objClient client.Client, rendered *unstructured.Unstructured) error {
 	logger := log.FromContext(ctx)
 
 	var origMeta metav1.PartialObjectMetadata
 	origObjFound := false
 	origMeta.SetGroupVersionKind(rendered.GroupVersionKind())
 
-	err := r.Client.Get(ctx, client.ObjectKeyFromObject(rendered), &origMeta)
+	err := objClient.Get(ctx, client.ObjectKeyFromObject(rendered), &origMeta)
 	if err == nil {
 		origObjFound = true
 	}
 
-	err = r.Client.Patch(ctx, rendered, client.Apply, client.FieldOwner(r.FieldManager))
+	err = objClient.Patch(ctx, rendered, client.Apply, client.FieldOwner(r.FieldManager))
 	if err != nil {
 		return err
 	}
@@ -432,7 +462,7 @@ func (r *ObjectTemplateReconciler) applyRenderedObject(ctx context.Context, rend
 	return nil
 }
 
-func (r *ObjectTemplateReconciler) renderTemplates(ctx context.Context, j2 *jinja2.Jinja2, rt *templatesv1alpha1.ObjectTemplate, vars map[string]any) ([]*unstructured.Unstructured, error) {
+func (r *ObjectTemplateReconciler) renderTemplates(j2 *jinja2.Jinja2, rt *templatesv1alpha1.ObjectTemplate, vars map[string]any) ([]*unstructured.Unstructured, error) {
 	var ret []*unstructured.Unstructured
 	for _, t := range rt.Spec.Templates {
 		if t.Object != nil {
@@ -466,7 +496,7 @@ func (r *ObjectTemplateReconciler) renderTemplates(ctx context.Context, j2 *jinj
 	return ret, nil
 }
 
-func (r *ObjectTemplateReconciler) buildBaseVars(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) (map[string]any, error) {
+func (r *ObjectTemplateReconciler) buildBaseVars(rt *templatesv1alpha1.ObjectTemplate) (map[string]any, error) {
 	vars := map[string]any{}
 
 	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(rt)
@@ -575,6 +605,12 @@ func (r *ObjectTemplateReconciler) doFinalize(ctx context.Context, obj *template
 		return
 	}
 
+	objClient, err := r.getClientForObjects(obj)
+	if err != nil {
+		log.Error(err, "Failed to create objClient for deletion")
+		return
+	}
+
 	var wg sync.WaitGroup
 	for _, ar := range obj.Status.AppliedResources {
 		ar := ar
@@ -592,7 +628,7 @@ func (r *ObjectTemplateReconciler) doFinalize(ctx context.Context, obj *template
 			o.SetGroupVersionKind(gvk)
 			o.SetName(ar.Ref.Name)
 			o.SetNamespace(ar.Ref.Namespace)
-			err = r.Client.Delete(ctx, &o)
+			err = objClient.Delete(ctx, &o)
 			if err != nil && !errors.IsNotFound(err) {
 				log.Error(err, "Failed to delete applied object", "ref", ar.Ref)
 			}

@@ -80,6 +80,11 @@ spec:
               prune:
                 default: false
                 type: boolean
+              serviceAccountName:
+                description: The name of the Kubernetes service account to impersonate
+                  when reconciling this ObjectTemplate. If omitted, the "default"
+                  service account is used.
+                type: string
               suspend:
                 default: false
                 type: boolean

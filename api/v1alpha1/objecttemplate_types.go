@@ -35,6 +35,11 @@ type ObjectTemplateSpec struct {
 	// +kubebuilder:default:=false
 	Suspend bool `json:"suspend"`
 
+	// The name of the Kubernetes service account to impersonate
+	// when reconciling this ObjectTemplate. If omitted, the "default" service account is used.
+	// +optional
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+
 	// +kubebuilder:default:=false
 	// +optional
 	Prune bool `json:"prune"`
