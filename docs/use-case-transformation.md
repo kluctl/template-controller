@@ -52,7 +52,7 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     # give the ObjectTemplate access to the two involved secrets
-    resourceNames: ["foo-user.acid-minimal-cluster.credentials.postgresql.acid.zalan.do", "transformed-postgres-secret"]
+    resourceNames: ["zalando.acid-minimal-cluster.credentials.postgresql.acid.zalan.do", "transformed-postgres-secret"]
     verbs: ["*"]
 ---
 kind: RoleBinding
@@ -88,7 +88,7 @@ spec:
         ref:
           apiVersion: v1
           kind: Secret
-          name: foo-user.acid-minimal-cluster.credentials.postgresql.acid.zalan.do
+          name: zalando.acid-minimal-cluster.credentials.postgresql.acid.zalan.do
   templates:
   - object:
       apiVersion: v1
@@ -96,8 +96,8 @@ spec:
       metadata:
         name: "transformed-postgres-secret"
       stringData:
-        jdbc_url: "jdbc:postgresql://host/database?user={{ matrix.secret.data.username | b64decode }}&password={{ matrix.secret.data.password | b64decode }}"
-        # sometimes the key names inside a secret are not what another component requires, so we can simply use diffrent names if we want
+        jdbc_url: "jdbc:postgresql://acid-minimal-cluster/zalando?user={{ matrix.secret.data.username | b64decode }}&password={{ matrix.secret.data.password | b64decode }}"
+        # sometimes the key names inside a secret are not what another component requires, so we can simply use different names if we want
         username_with_different_key: "{{ matrix.secret.data.username | b64decode }}"
         password_with_different_key: "{{ matrix.secret.data.password | b64decode }}"
 ```
