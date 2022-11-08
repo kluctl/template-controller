@@ -13,15 +13,9 @@ objects. The means, that you should first [install Flux](https://fluxcd.io/flux/
 ## podtato-head as example
 
 This example uses the [podtato-head](https://github.com/podtato-head/podtato-head) demo project to demonstrate the
-Template Controller. Using the public repository of the podtato-head project will for listing PRs and creating
-environments inside your cluster.
-
-It will however not work when you get to the point where you'd like to create status comments or action handlers to
-the PRs. In that case, you'd have to fork the podtato-head repository and replace the `owner` fields in the examples
-appropriately. After that, you can try to create some example PRs inside your private fork.
-
-It might also be possible that there is no open pull request in the offictial podtato-head repository while you try this
-out. In that case, please create your own fork.
+Template Controller. You must fork the repository and replace all occurrences of `podtato-head` as `owner` with your
+own username. It is not recommended to blindly use the public repository as you this will lead to unverified and
+potentially dangerous environments being deployed into your cluster!
 
 ## GitHub credentials
 
@@ -94,9 +88,9 @@ spec:
   state: open
   # Only PR's that go against the main branch
   base: main
-  # Allow all heads, including from forks. In case you only want to allow PRs for branches from inside the same repo,
-  # use `my-repo:.*` for `head`.
-  head: .*
+  # Replace `podtato-head` with your username. This will only allows heads from your own fork!
+  # Otherwise, you risk deploying unsafe environments into your cluster!
+  head: podtato-head:.*
   tokenRef:
     secretName: git-credentials
     key: github-token
