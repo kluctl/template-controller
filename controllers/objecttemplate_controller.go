@@ -207,13 +207,20 @@ func (r *ObjectTemplateReconciler) buildMatrixObjectElements(ctx context.Context
 		return nil, err
 	}
 
-	jp, err := jp.ParseString(me.JsonPath)
-	if err != nil {
-		return nil, err
+	var results []any
+
+	if me.JsonPath != nil {
+		jp, err := jp.ParseString(*me.JsonPath)
+		if err != nil {
+			return nil, err
+		}
+		results = jp.Get(o.Object)
+	} else {
+		results = []any{o.Object}
 	}
 
 	var elems []any
-	for _, x := range jp.Get(o.Object) {
+	for _, x := range results {
 		if me.ExpandLists {
 			if l, ok := x.([]any); ok {
 				elems = append(elems, l...)

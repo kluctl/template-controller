@@ -67,8 +67,8 @@ type MatrixEntryObject struct {
 	// +required
 	Ref ObjectRef `json:"ref"`
 
-	// +required
-	JsonPath string `json:"jsonPath"`
+	// +optional
+	JsonPath *string `json:"jsonPath,omitempty"`
 
 	// +optional
 	ExpandLists bool `json:"expandLists,omitempty"`

@@ -70,7 +70,6 @@ spec:
                           - name
                           type: object
                       required:
-                      - jsonPath
                       - ref
                       type: object
                   required:
