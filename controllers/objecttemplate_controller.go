@@ -281,7 +281,11 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	}
 
 	for _, x := range allResources {
-		if x.GetNamespace() == "" {
+		rm, err := r.Client.RESTMapper().RESTMapping(x.GroupVersionKind().GroupKind(), x.GroupVersionKind().Version)
+		if err != nil {
+			return err
+		}
+		if rm.Scope.Name() == apimeta.RESTScopeNameNamespace && x.GetNamespace() == "" {
 			x.SetNamespace(rt.Namespace)
 		}
 	}
