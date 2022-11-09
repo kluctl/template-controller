@@ -29,6 +29,8 @@ const (
 // ObjectTemplateSpec defines the desired state of ObjectTemplate
 type ObjectTemplateSpec struct {
 	// +kubebuilder:default:="30s"
+	// +kubebuilder:validation:Type=string
+	// +kubebuilder:validation:Pattern="^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$"
 	Interval metav1.Duration `json:"interval"`
 
 	// +optional
