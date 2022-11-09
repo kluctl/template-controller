@@ -41,7 +41,8 @@ The ObjectTemplate requires a service account with proper access rights for the 
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: "postgres-secret-transformer"
+  name: postgres-secret-transformer
+  namespace: default
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1

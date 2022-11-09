@@ -48,7 +48,8 @@ the rendered objects.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: "podtato-head-envs-objecttemplate"
+  name: podtato-head-envs-objecttemplate
+  namespace: default
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
