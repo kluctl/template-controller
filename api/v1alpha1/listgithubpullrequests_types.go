@@ -39,7 +39,7 @@ type ListGithubPullRequestsSpec struct {
 	// +optional
 	Base *string `json:"base,omitempty"`
 
-	// Labels is used to filter the MRs that you want to target
+	// Labels is used to filter the PRs that you want to target
 	// +optional
 	Labels []string `json:"labels,omitempty"`
 

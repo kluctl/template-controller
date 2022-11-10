@@ -162,6 +162,23 @@ func (r *ListGithubPullRequestsReconciler) doReconcile(ctx context.Context, obj 
 		if !baseRegex.MatchString(*pr.Base.Ref) {
 			continue
 		}
+		allLabelsFound := true
+		for _, l := range obj.Spec.Labels {
+			found := false
+			for _, l2 := range pr.Labels {
+				if l == *l2.Name {
+					found = true
+					break
+				}
+			}
+			if !found {
+				allLabelsFound = false
+				break
+			}
+		}
+		if !allLabelsFound {
+			continue
+		}
 
 		err := r.simplifyObject(reflect.ValueOf(pr))
 		if err != nil {

@@ -43,13 +43,13 @@ type ListGitlabMergeRequestsSpec struct {
 	// +optional
 	Labels []string `json:"labels,omitempty"`
 
-	// PullRequestState is an additional MRs filter to get only those with a certain state. Default: "all"
+	// State is an additional MRs filter to get only those with a certain state. Default: "all"
 	// +optional
 	// +kubebuilder:validation:Enum=all;opened;closed;locked;merged
 	// +kubebuilder:default:="all"
 	State *string `json:"state,omitempty"`
 
-	// Limit limits the maximum number of pull requests to fetch. Defaults to 100
+	// Limit limits the maximum number of merge requests to fetch. Defaults to 100
 	// +kubebuilder:default:=100
 	Limit int `json:"limit"`
 }

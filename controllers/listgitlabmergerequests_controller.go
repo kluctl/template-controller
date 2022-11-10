@@ -161,6 +161,23 @@ func (r *ListGitlabMergeRequestsReconciler) doReconcile(ctx context.Context, obj
 		if !sourceBranchRegex.MatchString(mr.SourceBranch) || !targetBrachRegex.MatchString(mr.TargetBranch) {
 			continue
 		}
+		allLabelsFound := true
+		for _, l := range obj.Spec.Labels {
+			found := false
+			for _, l2 := range mr.Labels {
+				if l == l2 {
+					found = true
+					break
+				}
+			}
+			if !found {
+				allLabelsFound = false
+				break
+			}
+		}
+		if !allLabelsFound {
+			continue
+		}
 		j, err := json.Marshal(mr)
 		if err != nil {
 			return err
