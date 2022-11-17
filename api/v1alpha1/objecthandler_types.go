@@ -77,7 +77,7 @@ type PullRequestRefHolder struct {
 }
 
 type PullRequestCommentReporter struct {
-	PullRequestRefHolder `json:"-,inline"`
+	PullRequestRefHolder `json:",inline"`
 }
 
 type PullRequestCommentReporterStatus struct {
@@ -89,7 +89,7 @@ type PullRequestCommentReporterStatus struct {
 }
 
 type PullRequestApproveReporter struct {
-	PullRequestRefHolder `json:"-,inline"`
+	PullRequestRefHolder `json:",inline"`
 
 	// +optional
 	// +kubebuilder:default:=false
@@ -102,7 +102,7 @@ type PullRequestApproveReporterStatus struct {
 }
 
 type PullRequestCommandHandler struct {
-	PullRequestRefHolder `json:"-,inline"`
+	PullRequestRefHolder `json:",inline"`
 
 	// +optional
 	PostHelpComment bool `json:"postHelpComment"`
