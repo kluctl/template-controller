@@ -32,6 +32,32 @@ rules:
 - apiGroups:
   - templates.kluctl.io
   resources:
+  - gitprojectors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - gitprojectors/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - gitprojectors/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
   - listgithubpullrequests
   verbs:
   - create

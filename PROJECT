@@ -2,7 +2,7 @@ domain: kluctl.io
 layout:
 - go.kubebuilder.io/v3
 projectName: template-controller
-repo: kluctl/template-controller
+repo: github.com/kluctl/template-controller
 resources:
 - api:
     crdVersion: v1
@@ -39,5 +39,14 @@ resources:
   group: templates
   kind: ListGithubPullRequests
   path: kluctl/template-controller/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kluctl.io
+  group: templates
+  kind: GitProjector
+  path: github.com/kluctl/template-controller/api/v1alpha1
   version: v1alpha1
 version: "3"
