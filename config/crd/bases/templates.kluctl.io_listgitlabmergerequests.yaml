@@ -53,8 +53,8 @@ spec:
                 type: array
               limit:
                 default: 100
-                description: Limit limits the maximum number of pull requests to fetch.
-                  Defaults to 100
+                description: Limit limits the maximum number of merge requests to
+                  fetch. Defaults to 100
                 type: integer
               project:
                 description: GitLab project to scan. Required.
@@ -63,8 +63,8 @@ spec:
                 type: string
               state:
                 default: all
-                description: 'PullRequestState is an additional MRs filter to get
-                  only those with a certain state. Default: "all"'
+                description: 'State is an additional MRs filter to get only those
+                  with a certain state. Default: "all"'
                 enum:
                 - all
                 - opened
