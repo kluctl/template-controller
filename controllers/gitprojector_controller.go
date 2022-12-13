@@ -29,7 +29,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/fluxcd/go-git/v5/plumbing/object"
 	"github.com/gobwas/glob"
 	"github.com/kluctl/kluctl/v2/pkg/git"
 	"github.com/kluctl/kluctl/v2/pkg/git/auth"

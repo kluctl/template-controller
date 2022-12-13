@@ -4,12 +4,12 @@ go 1.19
 
 require (
 	github.com/evanphx/json-patch v5.6.0+incompatible
-	github.com/go-git/go-git/v5 v5.5.1
+	github.com/fluxcd/go-git/v5 v5.0.0-20221206140629-ec778c2c37df
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v47 v47.0.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/kluctl/go-jinja2 v0.0.0-20221017153334-80addb432305
-	github.com/kluctl/kluctl/v2 v2.17.2-0.20221212225820-4a5d2de0635a
+	github.com/kluctl/kluctl/v2 v2.17.2-0.20221213122751-fffa0eae09f2
 	github.com/ohler55/ojg v1.14.5
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.24.1
@@ -47,6 +47,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
+	github.com/go-git/go-git/v5 v5.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/zapr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
