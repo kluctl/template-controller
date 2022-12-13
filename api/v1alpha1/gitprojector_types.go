@@ -18,24 +18,75 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
-
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // GitProjectorSpec defines the desired state of GitProjector
 type GitProjectorSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Interval is the interval at which to query the Gitlab API.
+	// Defaults to 5m.
+	// +optional
+	// +kubebuilder:default:="5m"
+	// +kubebuilder:validation:Type=string
+	// +kubebuilder:validation:Pattern="^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$"
+	Interval metav1.Duration `json:"interval"`
 
-	// Foo is an example field of GitProjector. Edit gitprojector_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// +optional
+	// +kubebuilder:default:=false
+	Suspend bool `json:"suspend"`
+
+	// +required
+	RepoUrl string `json:"repoUrl"`
+
+	// +optional
+	Reference *GitRef `json:"ref,omitempty"`
+
+	// +optional
+	Files []GitFile `json:"files,omitempty"`
+
+	// +optional
+	SecretRef *LocalObjectReference `json:"secretRef,omitempty"`
+}
+
+type GitFile struct {
+	// +required
+	Glob string `json:"glob"`
+
+	// +optional
+	// +kubebuilder:default:=false
+	ParseYaml bool `json:"parseYaml,omitempty"`
 }
 
 // GitProjectorStatus defines the observed state of GitProjector
 type GitProjectorStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// +optional
+	AllRefsHash string `json:"allRefsHash,omitempty"`
+
+	// +optional
+	Result []GitProjectorResult `json:"result"`
+}
+
+type GitProjectorResult struct {
+	// +required
+	Reference GitRef `json:"ref"`
+
+	// +required
+	Files []GitProjectorResultFile `json:"files"`
+}
+
+type GitProjectorResultFile struct {
+	// +required
+	Path string `json:"path"`
+
+	// +optional
+	Raw *string `json:"raw,omitempty"`
+
+	// +optional
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Parsed []*runtime.RawExtension `json:"parsed,omitempty"`
 }
 
 //+kubebuilder:object:root=true

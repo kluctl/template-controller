@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"path/filepath"
 
 	"github.com/kluctl/template-controller/controllers"
 
@@ -139,8 +140,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.GitProjectorReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		FieldManager: fieldManager,
+		TmpBaseDir:   filepath.Join(os.TempDir(), "template-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "GitProjector")
 		os.Exit(1)

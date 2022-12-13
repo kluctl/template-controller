@@ -62,6 +62,488 @@ string
 </table>
 </div>
 </div>
+<h3 id="templates.kluctl.io/v1alpha1.GitFile">GitFile
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorSpec">GitProjectorSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>glob</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>parseYaml</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GitProjector">GitProjector
+</h3>
+<p>GitProjector is the Schema for the gitprojectors API</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>metadata</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorSpec">
+GitProjectorSpec
+</a>
+</em>
+</td>
+<td>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>interval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Interval is the interval at which to query the Gitlab API.
+Defaults to 5m.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>suspend</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>repoUrl</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>ref</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitRef">
+GitRef
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>files</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitFile">
+[]GitFile
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>secretRef</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.LocalObjectReference">
+LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<code>status</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorStatus">
+GitProjectorStatus
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GitProjectorResult">GitProjectorResult
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorStatus">GitProjectorStatus</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>ref</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitRef">
+GitRef
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>files</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorResultFile">
+[]GitProjectorResultFile
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GitProjectorResultFile">GitProjectorResultFile
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorResult">GitProjectorResult</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>path</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>raw</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>parsed</code><br>
+<em>
+[]*k8s.io/apimachinery/pkg/runtime.RawExtension
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GitProjectorSpec">GitProjectorSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjector">GitProjector</a>)
+</p>
+<p>GitProjectorSpec defines the desired state of GitProjector</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>interval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Interval is the interval at which to query the Gitlab API.
+Defaults to 5m.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>suspend</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>repoUrl</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>ref</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitRef">
+GitRef
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>files</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitFile">
+[]GitFile
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>secretRef</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.LocalObjectReference">
+LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GitProjectorStatus">GitProjectorStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjector">GitProjector</a>)
+</p>
+<p>GitProjectorStatus defines the observed state of GitProjector</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>conditions</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#condition-v1-meta">
+[]Kubernetes meta/v1.Condition
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>allRefsHash</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>result</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorResult">
+[]GitProjectorResult
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GitRef">GitRef
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorResult">GitProjectorResult</a>, 
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorSpec">GitProjectorSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>branch</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Branch to filter for. Can also be a regex.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tag</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Branch to filter for. Can also be a regex.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>commit</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Commit SHA to check out, takes precedence over all reference fields.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="templates.kluctl.io/v1alpha1.GithubProject">GithubProject
 </h3>
 <p>
@@ -999,6 +1481,37 @@ int
 </table>
 </div>
 </div>
+<h3 id="templates.kluctl.io/v1alpha1.LocalObjectReference">LocalObjectReference
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitProjectorSpec">GitProjectorSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name of the referent.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="templates.kluctl.io/v1alpha1.MatrixEntry">MatrixEntry
 </h3>
 <div class="md-typeset__scrollwrap">
@@ -1652,7 +2165,7 @@ bool
 <tbody>
 <tr>
 <td>
-<code>-</code><br>
+<code>PullRequestRefHolder</code><br>
 <em>
 <a href="#templates.kluctl.io/v1alpha1.PullRequestRefHolder">
 PullRequestRefHolder
@@ -1661,7 +2174,7 @@ PullRequestRefHolder
 </td>
 <td>
 <p>
-(Members of <code>-</code> are embedded into this type.)
+(Members of <code>PullRequestRefHolder</code> are embedded into this type.)
 </p>
 </td>
 </tr>
@@ -1729,7 +2242,7 @@ bool
 <tbody>
 <tr>
 <td>
-<code>-</code><br>
+<code>PullRequestRefHolder</code><br>
 <em>
 <a href="#templates.kluctl.io/v1alpha1.PullRequestRefHolder">
 PullRequestRefHolder
@@ -1738,7 +2251,7 @@ PullRequestRefHolder
 </td>
 <td>
 <p>
-(Members of <code>-</code> are embedded into this type.)
+(Members of <code>PullRequestRefHolder</code> are embedded into this type.)
 </p>
 </td>
 </tr>
@@ -1977,7 +2490,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>-</code><br>
+<code>PullRequestRefHolder</code><br>
 <em>
 <a href="#templates.kluctl.io/v1alpha1.PullRequestRefHolder">
 PullRequestRefHolder
@@ -1986,7 +2499,7 @@ PullRequestRefHolder
 </td>
 <td>
 <p>
-(Members of <code>-</code> are embedded into this type.)
+(Members of <code>PullRequestRefHolder</code> are embedded into this type.)
 </p>
 </td>
 </tr>

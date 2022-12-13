@@ -6,6 +6,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type LocalObjectReference struct {
+	// Name of the referent.
+	// +required
+	Name string `json:"name"`
+}
+
 // Utility struct for a reference to a secret key.
 type SecretRef struct {
 	SecretName string `json:"secretName"`
@@ -67,4 +73,24 @@ func (r *ObjectRef) String() string {
 			return r.Kind
 		}
 	}
+}
+
+type GitRef struct {
+	// Branch to filter for. Can also be a regex.
+	// +optional
+	Branch string `json:"branch,omitempty"`
+
+	// Branch to filter for. Can also be a regex.
+	// +optional
+	Tag string `json:"tag,omitempty"`
+
+	// Commit SHA to check out, takes precedence over all reference fields.
+	// +optional
+	Commit string `json:"commit,omitempty"`
+}
+
+func (gr *GitRef) Less(o GitRef) bool {
+	s1 := fmt.Sprintf("%s+%s+%s", gr.Commit, gr.Tag, gr.Branch)
+	s2 := fmt.Sprintf("%s+%s+%s", o.Commit, o.Tag, o.Branch)
+	return s1 < s2
 }

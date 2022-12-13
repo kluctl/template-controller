@@ -99,7 +99,7 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return r.finalize(ctx, &rt)
 	}
 
-	// Return early if the KluctlDeployment is suspended.
+	// Return early if the object is suspended.
 	if rt.Spec.Suspend {
 		logger.Info("Reconciliation is suspended for this object")
 		return ctrl.Result{}, nil
