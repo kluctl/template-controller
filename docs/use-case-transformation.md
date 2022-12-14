@@ -1,8 +1,8 @@
 <!-- This comment is uncommented when auto-synced to www-kluctl.io
 
 ---
-title: Use Case: Transformation of Secrets/Objects
-description: Use Case: Transformation of Secrets/Objects
+title: "Use Case: Transformation of Secrets/Objects"
+description: "Use Case: Transformation of Secrets/Objects"
 weight: 50
 ---
 -->

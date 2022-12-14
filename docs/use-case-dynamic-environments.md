@@ -1,8 +1,8 @@
 <!-- This comment is uncommented when auto-synced to www-kluctl.io
 
 ---
-title: Use Case: Dynamic environments for Pull Requests
-description: Use Case: Dynamic environments for Pull Requests
+title: "Use Case: Dynamic environments for Pull Requests"
+description: "Use Case: Dynamic environments for Pull Requests"
 weight: 40
 ---
 -->
