@@ -2,6 +2,7 @@
 
 ---
 title: ObjectTemplate
+linkTitle: ObjectTemplate
 description: ObjectTemplate documentation
 weight: 10
 ---

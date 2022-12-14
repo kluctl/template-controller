@@ -2,6 +2,7 @@
 
 ---
 title: ListGithubPullRequests
+linkTitle: ListGithubPullRequests
 description: ListGithubPullRequests documentation
 weight: 30
 ---

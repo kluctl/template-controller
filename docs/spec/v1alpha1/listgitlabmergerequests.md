@@ -2,6 +2,7 @@
 
 ---
 title: ListGitlabMergeRequests
+linkTitle: ListGitlabMergeRequests
 description: ListGitlabMergeRequests documentation
 weight: 40
 ---

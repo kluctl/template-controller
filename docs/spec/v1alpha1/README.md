@@ -1,7 +1,8 @@
 <!-- This comment is uncommented when auto-synced to www-kluctl.io
 
 ---
-title: templates.kluctl.io/v1alpha1
+title: v1alpha1 specs
+linkTitle: v1alpha1 specs
 description: templates.kluctl.io/v1alpha1 documentation
 weight: 10
 ---

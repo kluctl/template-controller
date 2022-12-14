@@ -2,6 +2,7 @@
 
 ---
 title: GitProjector
+linkTitle: GitProjector
 description: GitProjector documentation
 weight: 20
 ---
