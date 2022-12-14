@@ -232,6 +232,7 @@ func (r *GitProjectorReconciler) doReconcile(ctx context.Context, obj *templates
 
 		result := templatesv1alpha1.GitProjectorResult{
 			Reference: ref,
+			Files:     make([]templatesv1alpha1.GitProjectorResultFile, 0, len(matchedFiles)),
 		}
 
 		for _, mf := range matchedFiles {
