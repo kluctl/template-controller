@@ -2,9 +2,9 @@
 
 ---
 title: "Template Controller"
-linkTitle: "Docs"
+linkTitle: "Template Controller"
 description: "Template Controller documentation."
-weight: 120
+weight: 200
 ---
 -->
 
