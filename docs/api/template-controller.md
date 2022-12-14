@@ -171,7 +171,7 @@ bool
 </tr>
 <tr>
 <td>
-<code>repoUrl</code><br>
+<code>url</code><br>
 <em>
 string
 </em>
@@ -378,7 +378,7 @@ bool
 </tr>
 <tr>
 <td>
-<code>repoUrl</code><br>
+<code>url</code><br>
 <em>
 string
 </em>
