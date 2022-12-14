@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: Use Case: Dynamic environments for Pull Requests
+description: Use Case: Dynamic environments for Pull Requests
+weight: 40
+---
+-->
+
 # Use Case: Dynamic environments for Pull Requests
 
 This use case was the initial and first use case why the Template Controller was created. You can use `ListGithubPullRequests`

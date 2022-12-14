@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: GitProjector
+description: GitProjector documentation
+weight: 20
+---
+-->
+
 # GitProjector
 
 The `GitProjector` API defines projections of Git repositories.

@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: Use Case: Transformation of Secrets/Objects
+description: Use Case: Transformation of Secrets/Objects
+weight: 50
+---
+-->
+
 # Use Case: Transformation of Secrets/Objects
 
 There are cases where an object can not be created before another object is created by some other component inside the

@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: ListGithubPullRequests
+description: ListGithubPullRequests documentation
+weight: 30
+---
+-->
+
 # ListGithubPullRequests
 
 The `ListGithubPullRequests` API defines allows to query the GitHub API for a list of pull requests (PRs). These PRs

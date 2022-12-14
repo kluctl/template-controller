@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: Security
+description: Security documentation.
+weight: 20
+---
+-->
+
 # Security
 
 The Template Controller is a powerful controller that is able to create/apply arbitrary objects from templates and an

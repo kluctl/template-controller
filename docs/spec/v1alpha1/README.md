@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: templates.kluctl.io/v1alpha1
+description: templates.kluctl.io/v1alpha1 documentation
+weight: 10
+---
+-->
+
 # templates.kluctl.io/v1alpha1
 
 This is the v1alpha1 API specification for defining templating related resources.

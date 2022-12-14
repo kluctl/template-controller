@@ -1,3 +1,13 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: "Template Controller"
+linkTitle: "Docs"
+description: "Template Controller documentation."
+weight: 120
+---
+-->
+
 # Template Controller
 
 The Template Controller is a controller originating from the [Kluctl](https://kluctl.io) project, but not limited to

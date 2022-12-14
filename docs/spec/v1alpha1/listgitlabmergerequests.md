@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: ListGitlabMergeRequests
+description: ListGitlabMergeRequests documentation
+weight: 40
+---
+-->
+
 # ListGitlabMergeRequests
 
 The `ListGitlabMergeRequests` API defines allows to query the Gitlab API for a list of merge requests (MRs). These MRs

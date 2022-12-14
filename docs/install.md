@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: Installation
+description: Installation documentation
+weight: 10
+---
+-->
+
 # Installation
 
 The Template Controller can currently only be installed via kustomize:

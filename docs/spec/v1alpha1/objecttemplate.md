@@ -1,3 +1,12 @@
+<!-- This comment is uncommented when auto-synced to www-kluctl.io
+
+---
+title: ObjectTemplate
+description: ObjectTemplate documentation
+weight: 10
+---
+-->
+
 # ObjectTemplate
 
 The `ObjectTemplate` API defines templates that are rendered based on a matrix of input values.
