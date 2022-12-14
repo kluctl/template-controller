@@ -36,7 +36,7 @@ type GitProjectorSpec struct {
 	Suspend bool `json:"suspend"`
 
 	// +required
-	RepoUrl string `json:"repoUrl"`
+	URL string `json:"url"`
 
 	// +optional
 	Reference *GitRef `json:"ref,omitempty"`

@@ -136,7 +136,7 @@ func (r *GitProjectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GitProjectorReconciler) doReconcile(ctx context.Context, obj *templatesv1alpha1.GitProjector) error {
-	url, err := git_url.Parse(obj.Spec.RepoUrl)
+	url, err := git_url.Parse(obj.Spec.URL)
 	if err != nil {
 		return err
 	}
