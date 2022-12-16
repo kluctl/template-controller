@@ -76,3 +76,13 @@ func GetSecretToken(ctx context.Context, client client.Client, namespace string,
 	token := string(tokenBytes)
 	return token, nil
 }
+
+type SubResourceFieldOwner string
+
+func (f SubResourceFieldOwner) ApplyToSubResourceUpdate(opts *client.SubResourceUpdateOptions) {
+	opts.FieldManager = string(f)
+}
+
+func (f SubResourceFieldOwner) ApplyToSubResourcePatch(opts *client.SubResourcePatchOptions) {
+	opts.FieldManager = string(f)
+}

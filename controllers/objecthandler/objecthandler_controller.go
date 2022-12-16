@@ -85,7 +85,7 @@ func (r *ObjectHandlerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 		apimeta.SetStatusCondition(&sr.Status.Conditions, c)
 	}
-	err = r.Status().Patch(ctx, &sr, patch, client.FieldOwner(r.FieldManager))
+	err = r.Status().Patch(ctx, &sr, patch, controllers.SubResourceFieldOwner(r.FieldManager))
 	if err != nil {
 		return ctrl.Result{}, err
 	}

@@ -119,7 +119,7 @@ func (r *GitProjectorReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 		apimeta.SetStatusCondition(&obj.Status.Conditions, c)
 	}
-	err = r.Status().Patch(ctx, &obj, patch, client.FieldOwner(r.FieldManager))
+	err = r.Status().Patch(ctx, &obj, patch, SubResourceFieldOwner(r.FieldManager))
 	if err != nil {
 		return
 	}

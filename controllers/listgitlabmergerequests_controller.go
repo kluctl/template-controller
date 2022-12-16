@@ -76,7 +76,7 @@ func (r *ListGitlabMergeRequestsReconciler) Reconcile(ctx context.Context, req c
 
 	// TODO optimize the update as it currently causes to update all merge requests on every call
 	// patching is not working very well as causes nulls to be pruned and full array replacement for every single change
-	err = r.Status().Update(ctx, &obj, client.FieldOwner(r.FieldManager))
+	err = r.Status().Update(ctx, &obj, SubResourceFieldOwner(r.FieldManager))
 	if err != nil {
 		return ctrl.Result{}, err
 	}
