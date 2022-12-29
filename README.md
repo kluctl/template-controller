@@ -29,6 +29,9 @@ Template Controller has many use case. Some are for example:
 
 Reference documentation is available [here](./docs/spec/v1alpha1).
 
+The [announcement blog post](https://kluctl.io/blog/2022/12/28/template-controller/) also contains valuable explanations
+and examples.
+
 ## Installation
 
 Installation instructions can be found [here](./docs/install.md)
