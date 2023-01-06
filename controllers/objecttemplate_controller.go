@@ -303,13 +303,13 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 			})
 
 			resources, err := r.renderTemplates(j2, rt, vars)
+			mutex.Lock()
+			defer mutex.Unlock()
 			if err != nil {
 				errs = multierror.Append(errs, err)
 				return
 			}
 
-			mutex.Lock()
-			defer mutex.Unlock()
 			allResources = append(allResources, resources...)
 		}()
 	}
