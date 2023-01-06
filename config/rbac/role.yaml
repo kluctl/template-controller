@@ -168,3 +168,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - texttemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - texttemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - texttemplates/status
+  verbs:
+  - get
+  - patch
+  - update
