@@ -29,21 +29,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
-	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 	"sort"
 	"strings"
 	"sync"
@@ -53,13 +47,7 @@ const forMatrixObjectKey = "spec.matrix.object.ref"
 
 // ObjectTemplateReconciler reconciles a ObjectTemplate object
 type ObjectTemplateReconciler struct {
-	client.Client
-	Scheme       *runtime.Scheme
-	FieldManager string
-
-	controller   controller.Controller
-	watchedKinds map[schema.GroupVersionKind]bool
-	mutex        sync.Mutex
+	BaseTemplateReconciler
 }
 
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecttemplates,verbs=get;list;watch;create;update;patch;delete
@@ -148,29 +136,6 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	result.RequeueAfter = rt.Spec.Interval.Duration
 	return
-}
-
-func (r *ObjectTemplateReconciler) getClientForObjects(obj *templatesv1alpha1.ObjectTemplate) (client.Client, error) {
-	restConfig, err := config.GetConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	name := "default"
-	if obj.Spec.ServiceAccountName != "" {
-		name = obj.Spec.ServiceAccountName
-	}
-	if name == "" {
-		return nil, fmt.Errorf("empty serviceAccountName not allowed")
-	}
-	username := fmt.Sprintf("system:serviceaccount:%s:%s", obj.Namespace, name)
-	restConfig.Impersonate = rest.ImpersonationConfig{UserName: username}
-
-	c, err := client.New(restConfig, client.Options{Mapper: r.RESTMapper()})
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
 }
 
 func (r *ObjectTemplateReconciler) multiplyMatrix(matrix []map[string]any, key string, newElems []any) []map[string]any {
@@ -266,7 +231,7 @@ func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *t
 }
 
 func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate) error {
-	baseVars, err := r.buildBaseVars(rt)
+	baseVars, err := r.buildBaseVars(rt, "objectTemplate")
 	if err != nil {
 		return err
 	}
@@ -282,7 +247,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
-	objClient, err := r.getClientForObjects(rt)
+	objClient, err := r.getClientForObjects(rt.Spec.ServiceAccountName, rt.GetNamespace())
 	if err != nil {
 		return err
 	}
@@ -504,22 +469,8 @@ func (r *ObjectTemplateReconciler) renderTemplates(j2 *jinja2.Jinja2, rt *templa
 	return ret, nil
 }
 
-func (r *ObjectTemplateReconciler) buildBaseVars(rt *templatesv1alpha1.ObjectTemplate) (map[string]any, error) {
-	vars := map[string]any{}
-
-	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(rt)
-	if err != nil {
-		return nil, err
-	}
-
-	vars["objectTemplate"] = u
-	return vars, nil
-}
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
-	r.watchedKinds = map[schema.GroupVersionKind]bool{}
-
 	// Index the ObjectHandler by the objects they are for.
 	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.ObjectTemplate{}, forMatrixObjectKey,
 		func(object client.Object) []string {
@@ -551,48 +502,6 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 	return nil
 }
 
-func (r *ObjectTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema.GroupVersionKind) error {
-	logger := log.FromContext(ctx)
-
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-
-	if x, ok := r.watchedKinds[gvk]; ok && x {
-		return nil
-	}
-
-	logger.V(1).Info("Starting watch for new kind", "gvk", gvk)
-
-	var dummy unstructured.Unstructured
-	dummy.SetGroupVersionKind(gvk)
-
-	err := r.controller.Watch(&source.Kind{Type: &dummy}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
-		var list templatesv1alpha1.ObjectTemplateList
-		err := r.List(context.Background(), &list, client.MatchingFields{
-			forMatrixObjectKey: BuildObjectIndexValue(object),
-		})
-		if err != nil {
-			return nil
-		}
-		var reqs []reconcile.Request
-		for _, x := range list.Items {
-			reqs = append(reqs, reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Namespace: x.Namespace,
-					Name:      x.Name,
-				},
-			})
-		}
-		return reqs
-	}))
-	if err != nil {
-		return err
-	}
-
-	r.watchedKinds[gvk] = true
-	return nil
-}
-
 func (r *ObjectTemplateReconciler) finalize(ctx context.Context, obj *templatesv1alpha1.ObjectTemplate) (ctrl.Result, error) {
 	r.doFinalize(ctx, obj)
 
@@ -613,7 +522,7 @@ func (r *ObjectTemplateReconciler) doFinalize(ctx context.Context, obj *template
 		return
 	}
 
-	objClient, err := r.getClientForObjects(obj)
+	objClient, err := r.getClientForObjects(obj.Spec.ServiceAccountName, obj.GetNamespace())
 	if err != nil {
 		log.Error(err, "Failed to create objClient for deletion")
 		return
