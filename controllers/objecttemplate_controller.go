@@ -22,14 +22,12 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/kluctl/go-jinja2"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
-	"github.com/ohler55/ojg/jp"
 	"io"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -155,51 +153,6 @@ func (r *ObjectTemplateReconciler) multiplyMatrix(matrix []map[string]any, key s
 	return newMatrix
 }
 
-func (r *ObjectTemplateReconciler) buildMatrixObjectElements(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, client client.Client, me *templatesv1alpha1.MatrixEntryObject) ([]any, error) {
-	gvk, err := me.Ref.GroupVersionKind()
-	if err != nil {
-		return nil, err
-	}
-	namespace := rt.Namespace
-	if me.Ref.Namespace != "" {
-		namespace = me.Ref.Namespace
-	}
-
-	var o unstructured.Unstructured
-	o.SetGroupVersionKind(gvk)
-
-	err = client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: me.Ref.Name}, &o)
-	if err != nil {
-		return nil, err
-	}
-
-	var results []any
-
-	if me.JsonPath != nil {
-		jp, err := jp.ParseString(*me.JsonPath)
-		if err != nil {
-			return nil, err
-		}
-		results = jp.Get(o.Object)
-	} else {
-		results = []any{o.Object}
-	}
-
-	var elems []any
-	for _, x := range results {
-		if me.ExpandLists {
-			if l, ok := x.([]any); ok {
-				elems = append(elems, l...)
-			} else {
-				elems = append(elems, x)
-			}
-		} else {
-			elems = append(elems, x)
-		}
-	}
-	return elems, nil
-}
-
 func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *templatesv1alpha1.ObjectTemplate, client client.Client) ([]map[string]any, error) {
 	var err error
 	var matrixEntries []map[string]any
@@ -208,7 +161,7 @@ func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *t
 	for _, me := range rt.Spec.Matrix {
 		var elems []any
 		if me.Object != nil {
-			elems, err = r.buildMatrixObjectElements(ctx, rt, client, me.Object)
+			elems, err = r.buildObjectInput(ctx, client, rt.GetNamespace(), me.Object.Ref, me.Object.JsonPath, me.Object.ExpandLists)
 			if err != nil {
 				return nil, err
 			}
