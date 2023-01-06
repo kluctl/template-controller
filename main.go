@@ -108,9 +108,11 @@ func main() {
 	fieldManager := "template-controller"
 
 	if err = (&controllers.ObjectTemplateReconciler{
-		Client:       mgr.GetClient(),
-		Scheme:       mgr.GetScheme(),
-		FieldManager: fieldManager,
+		BaseTemplateReconciler: controllers.BaseTemplateReconciler{
+			Client:       mgr.GetClient(),
+			Scheme:       mgr.GetScheme(),
+			FieldManager: fieldManager,
+		},
 	}).SetupWithManager(mgr, concurrent); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ObjectTemplate")
 		os.Exit(1)
