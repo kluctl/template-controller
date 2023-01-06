@@ -20,22 +20,57 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // TextTemplateSpec defines the desired state of TextTemplate
 type TextTemplateSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +optional
+	// +kubebuilder:default:=false
+	Suspend bool `json:"suspend"`
 
-	// Foo is an example field of TextTemplate. Edit texttemplate_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// The name of the Kubernetes service account to impersonate
+	// when reconciling this TextTemplate. If omitted, the "default" service account is used.
+	// +optional
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+
+	// +optional
+	Inputs []*TextTemplateInput `json:"inputs,omitempty"`
+
+	// +optional
+	Template *string `json:"template,omitempty"`
+}
+
+type TextTemplateInput struct {
+	// +required
+	Name string `json:"name"`
+
+	// +optional
+	Object *TextTemplateInputObject `json:"object,omitempty"`
+}
+
+type TextTemplateInputObject struct {
+	// +required
+	Ref ObjectRef `json:"ref"`
+
+	// +optional
+	JsonPath *string `json:"jsonPath,omitempty"`
 }
 
 // TextTemplateStatus defines the observed state of TextTemplate
 type TextTemplateStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// +optional
+	Result string `json:"result,omitempty"`
+}
+
+// GetConditions returns the status conditions of the object.
+func (in *TextTemplate) GetConditions() []metav1.Condition {
+	return in.Status.Conditions
+}
+
+// SetConditions sets the status conditions on the object.
+func (in *TextTemplate) SetConditions(conditions []metav1.Condition) {
+	in.Status.Conditions = conditions
 }
 
 //+kubebuilder:object:root=true
