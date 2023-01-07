@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: kluctl-system
 
 resources:
+- namespace.yaml
 - ../crd
 - ../rbac
 - ../manager
