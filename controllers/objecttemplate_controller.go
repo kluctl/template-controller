@@ -164,7 +164,7 @@ func (r *ObjectTemplateReconciler) buildMatrixEntries(ctx context.Context, rt *t
 	for _, me := range rt.Spec.Matrix {
 		var elems []any
 		if me.Object != nil {
-			elems, err = r.buildObjectInput(ctx, client, rt.GetNamespace(), me.Object.Ref, me.Object.JsonPath, me.Object.ExpandLists)
+			elems, err = r.buildObjectInput(ctx, client, rt.GetNamespace(), me.Object.Ref, me.Object.JsonPath, me.Object.ExpandLists, false)
 			if err != nil {
 				return nil, err
 			}
