@@ -15,7 +15,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"sync"
 )
@@ -53,7 +52,7 @@ func (r *BaseTemplateReconciler) getClientForObjects(serviceAccountName string, 
 	return c, nil
 }
 
-func (r *BaseTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema.GroupVersionKind) error {
+func (r *BaseTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema.GroupVersionKind, key string, eventHandler handler.EventHandler) error {
 	logger := log.FromContext(ctx)
 
 	r.mutex.Lock()
@@ -63,39 +62,23 @@ func (r *BaseTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema
 		r.watchedKinds = map[schema.GroupVersionKind]bool{}
 	}
 
-	if x, ok := r.watchedKinds[gvk]; ok && x {
+	keyGvk := gvk
+	keyGvk.Kind += "+" + key
+	if x, ok := r.watchedKinds[keyGvk]; ok && x {
 		return nil
 	}
 
-	logger.V(1).Info("Starting watch for new kind", "gvk", gvk)
+	logger.V(1).Info("Starting watch for new kind and key", "gvk", gvk, "key", key)
 
 	var dummy unstructured.Unstructured
 	dummy.SetGroupVersionKind(gvk)
 
-	err := r.controller.Watch(&source.Kind{Type: &dummy}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
-		var list templatesv1alpha1.ObjectTemplateList
-		err := r.List(context.Background(), &list, client.MatchingFields{
-			forMatrixObjectKey: BuildObjectIndexValue(object),
-		})
-		if err != nil {
-			return nil
-		}
-		var reqs []reconcile.Request
-		for _, x := range list.Items {
-			reqs = append(reqs, reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Namespace: x.Namespace,
-					Name:      x.Name,
-				},
-			})
-		}
-		return reqs
-	}))
+	err := r.controller.Watch(&source.Kind{Type: &dummy}, eventHandler)
 	if err != nil {
 		return err
 	}
 
-	r.watchedKinds[gvk] = true
+	r.watchedKinds[keyGvk] = true
 	return nil
 }
 
