@@ -28,14 +28,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sort"
 	"strings"
 	"sync"
@@ -99,7 +102,7 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				err = err2
 				return
 			}
-			err = r.addWatchForKind(ctx, gvk)
+			err = r.addWatchForKind(ctx, gvk, forMatrixObjectKey, r.buildWatchEventHandler(forMatrixObjectKey))
 			if err != nil {
 				return
 			}
@@ -453,6 +456,29 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 	r.controller = c
 
 	return nil
+}
+
+func (r *ObjectTemplateReconciler) buildWatchEventHandler(indexField string) handler.EventHandler {
+	return handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+		var list templatesv1alpha1.ObjectTemplateList
+
+		err := r.List(context.Background(), &list, client.MatchingFields{
+			indexField: BuildObjectIndexValue(object),
+		})
+		if err != nil {
+			return nil
+		}
+		var reqs []reconcile.Request
+		for _, x := range list.Items {
+			reqs = append(reqs, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: x.GetNamespace(),
+					Name:      x.GetName(),
+				},
+			})
+		}
+		return reqs
+	})
 }
 
 func (r *ObjectTemplateReconciler) finalize(ctx context.Context, obj *templatesv1alpha1.ObjectTemplate) (ctrl.Result, error) {

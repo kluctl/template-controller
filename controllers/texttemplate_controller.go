@@ -72,7 +72,7 @@ func (r *TextTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				err = err2
 				return
 			}
-			err = r.addWatchForKind(ctx, gvk)
+			err = r.addWatchForKind(ctx, gvk, forInputsObjectKey, r.buildWatchEventHandler(forInputsObjectKey))
 			if err != nil {
 				return
 			}
@@ -193,4 +193,27 @@ func (r *TextTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent i
 	r.controller = c
 
 	return nil
+}
+
+func (r *TextTemplateReconciler) buildWatchEventHandler(indexField string) handler.EventHandler {
+	return handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+		var list templatesv1alpha1.TextTemplateList
+
+		err := r.List(context.Background(), &list, client.MatchingFields{
+			indexField: BuildObjectIndexValue(object),
+		})
+		if err != nil {
+			return nil
+		}
+		var reqs []reconcile.Request
+		for _, x := range list.Items {
+			reqs = append(reqs, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: x.GetNamespace(),
+					Name:      x.GetName(),
+				},
+			})
+		}
+		return reqs
+	})
 }
