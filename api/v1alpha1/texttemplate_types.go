@@ -36,6 +36,9 @@ type TextTemplateSpec struct {
 
 	// +optional
 	Template *string `json:"template,omitempty"`
+
+	// +optional
+	TemplateRef *TemplateRef `json:"templateRef,omitempty"`
 }
 
 type TextTemplateInput struct {
@@ -52,6 +55,22 @@ type TextTemplateInputObject struct {
 
 	// +optional
 	JsonPath *string `json:"jsonPath,omitempty"`
+}
+
+type TemplateRef struct {
+	// +optional
+	ConfigMap *TemplateRefConfigMap `json:"configMap,omitempty"`
+}
+
+type TemplateRefConfigMap struct {
+	// +required
+	Name string `json:"name"`
+
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
+
+	// +required
+	Key string `json:"key"`
 }
 
 // TextTemplateStatus defines the observed state of TextTemplate

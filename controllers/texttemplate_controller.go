@@ -23,16 +23,20 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 )
 
+const forTemplateRefKey = "spec.templateRef"
 const forInputsObjectKey = "spec.inputs.object.ref"
 
 // TextTemplateReconciler reconciles a TextTemplate object
@@ -65,6 +69,13 @@ func (r *TextTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, nil
 	}
 
+	err = r.addWatchForKind(ctx, schema.GroupVersionKind{
+		Version: "v1",
+		Kind:    "ConfigMap",
+	}, forTemplateRefKey, r.buildWatchEventHandler(forTemplateRefKey))
+	if err != nil {
+		return ctrl.Result{}, nil
+	}
 	for _, me := range tt.Spec.Inputs {
 		if me.Object != nil {
 			gvk, err2 := me.Object.Ref.GroupVersionKind()
@@ -119,26 +130,43 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 	var templateStr string
 	if tt.Spec.Template != nil {
 		templateStr = *tt.Spec.Template
+	} else if tt.Spec.TemplateRef != nil {
+		ref := r.buildTemplateRef(tt)
+		if ref == nil {
+			return fmt.Errorf("no template ref specified")
+		}
+		if tt.Spec.TemplateRef.ConfigMap != nil {
+			jp := fmt.Sprintf("data[\"%s\"]", tt.Spec.TemplateRef.ConfigMap.Key)
+			elems, err := r.buildObjectInput(ctx, r.Client, tt.GetNamespace(), *ref, &jp, false, true)
+			if err != nil {
+				return fmt.Errorf("failed to template from %s: %w", ref, err)
+			}
+			x, ok := elems[0].(string)
+			if !ok {
+				return fmt.Errorf("unexpected error. Element is not a string")
+			}
+			templateStr = x
+		} else {
+			return fmt.Errorf("no template ref specified")
+		}
 	} else {
 		return fmt.Errorf("no template specified")
 	}
 
+	statusBackup := tt.Status
+	tt.Status = templatesv1alpha1.TextTemplateStatus{}
+
 	vars, err := r.buildBaseVars(tt, "textTemplate")
+	tt.Status = statusBackup
 	if err != nil {
 		return err
 	}
 
 	for _, input := range tt.Spec.Inputs {
 		if input.Object != nil {
-			elems, err := r.buildObjectInput(ctx, objClient, tt.GetNamespace(), input.Object.Ref, input.Object.JsonPath, false)
+			elems, err := r.buildObjectInput(ctx, objClient, tt.GetNamespace(), input.Object.Ref, input.Object.JsonPath, false, true)
 			if err != nil {
 				return fmt.Errorf("failed to get object %s: %w", input.Object.Ref.String(), err)
-			}
-			if len(elems) == 0 {
-				return fmt.Errorf("failed to get object/subElement %s: %w", input.Object.Ref.String(), err)
-			}
-			if len(elems) > 1 {
-				return fmt.Errorf("more than one element returned for object %s and json path %s: %w", input.Object.Ref.String(), *input.Object.JsonPath, err)
 			}
 			MergeMap(vars, map[string]interface{}{
 				"inputs": map[string]any{
@@ -165,6 +193,18 @@ func (r *TextTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent i
 	r.watchedKinds = map[schema.GroupVersionKind]bool{}
 
 	// Index the TextTemplate by the objects they are for.
+	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.TextTemplate{}, forTemplateRefKey,
+		func(object client.Object) []string {
+			o := object.(*templatesv1alpha1.TextTemplate)
+			ref := r.buildTemplateRef(o)
+			if ref == nil {
+				return nil
+			}
+
+			return []string{BuildRefIndexValue(*ref, "")}
+		}); err != nil {
+		return fmt.Errorf("failed setting index fields: %w", err)
+	}
 	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.TextTemplate{}, forInputsObjectKey,
 		func(object client.Object) []string {
 			o := object.(*templatesv1alpha1.TextTemplate)
@@ -216,4 +256,24 @@ func (r *TextTemplateReconciler) buildWatchEventHandler(indexField string) handl
 		}
 		return reqs
 	})
+}
+
+func (r *TextTemplateReconciler) buildTemplateRef(tt *templatesv1alpha1.TextTemplate) *templatesv1alpha1.ObjectRef {
+	if tt.Spec.TemplateRef == nil {
+		return nil
+	}
+	if tt.Spec.TemplateRef.ConfigMap != nil {
+		ns := tt.Spec.TemplateRef.ConfigMap.Namespace
+		if ns == "" {
+			ns = tt.GetNamespace()
+		}
+		return &templatesv1alpha1.ObjectRef{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+			Namespace:  ns,
+			Name:       tt.Spec.TemplateRef.ConfigMap.Name,
+		}
+	} else {
+		return nil
+	}
 }

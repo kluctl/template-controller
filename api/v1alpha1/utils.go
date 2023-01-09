@@ -18,6 +18,11 @@ type SecretRef struct {
 	Key        string `json:"key"`
 }
 
+type ConfigMapRef struct {
+	ConfigMapName string `json:"configMapName"`
+	Key           string `json:"key"`
+}
+
 type ObjectRef struct {
 	APIVersion string `json:"apiVersion"`
 	Kind       string `json:"kind"`

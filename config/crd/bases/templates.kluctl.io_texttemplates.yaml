@@ -76,6 +76,21 @@ spec:
                 type: boolean
               template:
                 type: string
+              templateRef:
+                properties:
+                  configMap:
+                    properties:
+                      key:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - key
+                    - name
+                    type: object
+                type: object
             type: object
           status:
             description: TextTemplateStatus defines the observed state of TextTemplate

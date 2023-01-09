@@ -94,7 +94,7 @@ func (r *BaseTemplateReconciler) buildBaseVars(templateObj runtime.Object, objVa
 	return vars, nil
 }
 
-func (r *BaseTemplateReconciler) buildObjectInput(ctx context.Context, client client.Client, objNamespace string, ref templatesv1alpha1.ObjectRef, jsonPath *string, expandLists bool) ([]any, error) {
+func (r *BaseTemplateReconciler) buildObjectInput(ctx context.Context, client client.Client, objNamespace string, ref templatesv1alpha1.ObjectRef, jsonPath *string, expandLists bool, expectOne bool) ([]any, error) {
 	gvk, err := ref.GroupVersionKind()
 	if err != nil {
 		return nil, err
@@ -136,5 +136,15 @@ func (r *BaseTemplateReconciler) buildObjectInput(ctx context.Context, client cl
 			elems = append(elems, x)
 		}
 	}
+
+	if expectOne {
+		if len(elems) == 0 {
+			return nil, fmt.Errorf("failed to get object/subElement %s: %w", ref.String(), err)
+		}
+		if len(elems) > 1 {
+			return nil, fmt.Errorf("more than one element returned for object %s and json path %s: %w", ref.String(), *jsonPath, err)
+		}
+	}
+
 	return elems, nil
 }
