@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/kluctl/template-controller/controllers/comments"
 	"os"
 	"path/filepath"
 
@@ -160,7 +161,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "GitProjector")
 		os.Exit(1)
 	}
-	if err = (&controllers.GitlabCommentReconciler{
+	if err = (&comments.GitlabCommentReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
