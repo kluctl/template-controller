@@ -19,5 +19,5 @@ type GitlabMergeRequestRef struct {
 
 	// The merge request id
 	// +required
-	MergeRequestId int `json:"mergeRequestId,omitempty"`
+	MergeRequestId int `json:"mergeRequestId"`
 }

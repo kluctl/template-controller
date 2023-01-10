@@ -76,6 +76,7 @@ spec:
                               type: object
                           required:
                           - owner
+                          - pullRequestId
                           - repo
                           type: object
                         gitlab:
@@ -102,6 +103,7 @@ spec:
                               - secretName
                               type: object
                           required:
+                          - mergeRequestId
                           - project
                           type: object
                         missingReadyConditionIsError:
@@ -163,6 +165,7 @@ spec:
                               type: object
                           required:
                           - owner
+                          - pullRequestId
                           - repo
                           type: object
                         gitlab:
@@ -189,6 +192,7 @@ spec:
                               - secretName
                               type: object
                           required:
+                          - mergeRequestId
                           - project
                           type: object
                         postHelpComment:
@@ -219,6 +223,7 @@ spec:
                               type: object
                           required:
                           - owner
+                          - pullRequestId
                           - repo
                           type: object
                         gitlab:
@@ -245,6 +250,7 @@ spec:
                               - secretName
                               type: object
                           required:
+                          - mergeRequestId
                           - project
                           type: object
                       type: object
