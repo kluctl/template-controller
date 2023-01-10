@@ -162,8 +162,11 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&comments.GitlabCommentReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		BaseCommentReconciler: comments.BaseCommentReconciler{
+			Client:       mgr.GetClient(),
+			Scheme:       mgr.GetScheme(),
+			FieldManager: fieldManager,
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "GitlabComment")
 		os.Exit(1)

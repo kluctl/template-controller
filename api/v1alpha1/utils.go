@@ -19,8 +19,8 @@ type SecretRef struct {
 }
 
 type ConfigMapRef struct {
-	ConfigMapName string `json:"configMapName"`
-	Key           string `json:"key"`
+	Name string `json:"name"`
+	Key  string `json:"key"`
 }
 
 type ObjectRef struct {
