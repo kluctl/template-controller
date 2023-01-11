@@ -6,13 +6,11 @@ import (
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers"
 	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
-	"github.com/xanzy/go-gitlab"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -94,6 +92,17 @@ func (r *BaseCommentReconciler) reconcileComment(ctx context.Context, mr webgit.
 	body := r.generateMarkerComment(clusterId, tag, commentId, obj.GetNamespace(), obj.GetName()) + "\n" + comment
 
 	var existingNote webgit.Note
+	if *noteId != "" {
+		existingNote, err = mr.GetMergeRequestNote(*noteId)
+		if err == nil && existingNote == nil {
+			// not found, need to create a new one (probably got manually deleted)
+			*noteId = ""
+			*lastPostedBodyHash = ""
+		} else if err != nil {
+			return err
+		}
+	}
+
 	if *noteId == "" {
 		existingNote, err = r.findNote(mr, clusterId, commentId, tag, obj)
 		if err != nil {
@@ -109,16 +118,6 @@ func (r *BaseCommentReconciler) reconcileComment(ctx context.Context, mr webgit.
 			}
 			*noteId = existingNote.GetId()
 			*lastPostedBodyHash = controllers.Sha256String(body)
-		}
-	} else {
-		var resp *gitlab.Response
-		existingNote, err = mr.GetMergeRequestNote(*noteId)
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				*noteId = ""
-				*lastPostedBodyHash = ""
-			}
-			return err
 		}
 	}
 
