@@ -40,7 +40,7 @@ type GithubCommentStatus struct {
 	CommentId string `json:"commentId,omitempty"`
 
 	// +optional
-	LastPostedBodyHash string `json:"LastPostedBodyHash,omitempty"`
+	LastPostedBodyHash string `json:"lastPostedBodyHash,omitempty"`
 }
 
 //+kubebuilder:object:root=true

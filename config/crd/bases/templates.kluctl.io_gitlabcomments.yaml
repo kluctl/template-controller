@@ -91,8 +91,6 @@ spec:
           status:
             description: GitlabCommentStatus defines the observed state of GitlabComment
             properties:
-              LastPostedBodyHash:
-                type: string
               conditions:
                 items:
                   description: "Condition contains details for one aspect of the current
@@ -161,6 +159,8 @@ spec:
                   - type
                   type: object
                 type: array
+              lastPostedBodyHash:
+                type: string
               noteId:
                 type: string
             type: object

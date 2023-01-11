@@ -89,8 +89,6 @@ spec:
           status:
             description: GithubCommentStatus defines the observed state of GithubComment
             properties:
-              LastPostedBodyHash:
-                type: string
               commentId:
                 type: string
               conditions:
@@ -161,6 +159,8 @@ spec:
                   - type
                   type: object
                 type: array
+              lastPostedBodyHash:
+                type: string
             type: object
         type: object
     served: true
