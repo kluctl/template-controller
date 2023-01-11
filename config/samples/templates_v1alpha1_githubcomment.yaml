@@ -1,0 +1,12 @@
+apiVersion: templates.kluctl.io/v1alpha1
+kind: GithubComment
+metadata:
+  labels:
+    app.kubernetes.io/name: githubcomment
+    app.kubernetes.io/instance: githubcomment-sample
+    app.kubernetes.io/part-of: template-controller
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: template-controller
+  name: githubcomment-sample
+spec:
+  # TODO(user): Add fields here

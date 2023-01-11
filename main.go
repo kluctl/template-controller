@@ -18,9 +18,10 @@ package main
 
 import (
 	"flag"
-	"github.com/kluctl/template-controller/controllers/comments"
 	"os"
 	"path/filepath"
+
+	"github.com/kluctl/template-controller/controllers/comments"
 
 	"github.com/kluctl/template-controller/controllers"
 
@@ -169,6 +170,13 @@ func main() {
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "GitlabComment")
+		os.Exit(1)
+	}
+	if err = (&controllers.GithubCommentReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "GithubComment")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
