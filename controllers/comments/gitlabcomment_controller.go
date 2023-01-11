@@ -90,7 +90,7 @@ func (r *GitlabCommentReconciler) doReconcile(ctx context.Context, obj *template
 		return err
 	}
 
-	return r.reconcileComment(ctx, mr, "gitlab-comment", obj, &obj.Status.NoteId, &obj.Status.LastPostedBodyHash)
+	return r.reconcileComment(ctx, mr, "gitlab-comment", obj.Spec.CommentId, obj, &obj.Status.NoteId, &obj.Status.LastPostedBodyHash)
 }
 
 // SetupWithManager sets up the controller with the Manager.
