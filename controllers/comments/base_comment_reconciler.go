@@ -1,6 +1,7 @@
 package comments
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
@@ -168,7 +169,9 @@ func (r *BaseCommentReconciler) generateMarkerComment(clusterId string, tag stri
 
 func (r *BaseCommentReconciler) hasMarkerComment(body string, clusterId string, tag string, commentId *string, objNamespace string, objName string) bool {
 	expected := r.generateMarkerComment(clusterId, tag, commentId, objNamespace, objName)
-	for _, line := range strings.Split(body, "\n") {
+	sc := bufio.NewScanner(strings.NewReader(body))
+	for sc.Scan() {
+		line := sc.Text()
 		if line == expected {
 			return true
 		}
