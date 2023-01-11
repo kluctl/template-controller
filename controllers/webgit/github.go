@@ -286,7 +286,7 @@ func BuildWebgitMergeRequestGithub(ctx context.Context, client client.Client, na
 
 	tokenBytes, ok := secret.Data[info.TokenRef.Key]
 	if !ok {
-		return nil, fmt.Errorf("gitlab token is missing in secret")
+		return nil, fmt.Errorf("github token is missing in secret")
 	}
 	token := string(tokenBytes)
 
