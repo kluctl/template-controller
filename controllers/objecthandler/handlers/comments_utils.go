@@ -3,8 +3,6 @@ package handlers
 import (
 	"github.com/kluctl/template-controller/controllers"
 	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
-	"github.com/xanzy/go-gitlab"
-	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -13,6 +11,17 @@ func reconcileComment(clusterId string, mr webgit.MergeRequestInterface, tag str
 	body := generateMarkerComment(tag, clusterId, obj.GetNamespace(), obj.GetName()) + "\n" + comment
 
 	var existingNote webgit.Note
+	if *noteId != "" {
+		existingNote, err = mr.GetMergeRequestNote(*noteId)
+		if err == nil && existingNote == nil {
+			// not found, need to create a new one (probably got manually deleted)
+			*noteId = ""
+			*lastPostedBodyHash = ""
+		} else if err != nil {
+			return err
+		}
+	}
+
 	if *noteId == "" {
 		existingNote, err = findNote(clusterId, mr, tag, obj)
 		if err != nil {
@@ -28,16 +37,6 @@ func reconcileComment(clusterId string, mr webgit.MergeRequestInterface, tag str
 			}
 			*noteId = existingNote.GetId()
 			*lastPostedBodyHash = controllers.Sha256String(body)
-		}
-	} else {
-		var resp *gitlab.Response
-		existingNote, err = mr.GetMergeRequestNote(*noteId)
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				*noteId = ""
-				*lastPostedBodyHash = ""
-			}
-			return err
 		}
 	}
 

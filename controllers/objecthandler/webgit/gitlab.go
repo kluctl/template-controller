@@ -7,6 +7,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 	"sync"
@@ -92,8 +93,11 @@ func (g *GitlabMergeRequest) GetMergeRequestNote(noteId string) (Note, error) {
 	if err != nil {
 		return nil, err
 	}
-	n, _, err := g.client.Notes.GetMergeRequestNote(g.projectId, g.mrId, int(noteId2))
+	n, resp, err := g.client.Notes.GetMergeRequestNote(g.projectId, g.mrId, int(noteId2))
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return g.convertNote(n), nil

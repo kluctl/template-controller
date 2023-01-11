@@ -8,6 +8,7 @@ import (
 	"golang.org/x/oauth2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 	"sync"
@@ -164,8 +165,11 @@ func (g *GithubMergeRequest) GetMergeRequestNote(noteId string) (Note, error) {
 	if err != nil {
 		return nil, err
 	}
-	n, _, err := g.client.Issues.GetComment(g.ctx, g.owner, g.repo, noteId2)
+	n, resp, err := g.client.Issues.GetComment(g.ctx, g.owner, g.repo, noteId2)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return g.convertComment(n), nil
