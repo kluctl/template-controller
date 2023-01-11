@@ -41,6 +41,32 @@ rules:
 - apiGroups:
   - templates.kluctl.io
   resources:
+  - githubcomments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - githubcomments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
+  - githubcomments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - templates.kluctl.io
+  resources:
   - gitlabcomments
   verbs:
   - create
