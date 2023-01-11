@@ -18,24 +18,29 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // GithubCommentSpec defines the desired state of GithubComment
 type GithubCommentSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	GithubPullRequestRef `json:",inline"`
+	CommentSpec          `json:",inline"`
 
-	// Foo is an example field of GithubComment. Edit githubcomment_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// +optional
+	// +kubebuilder:default:=false
+	Suspend bool `json:"suspend"`
 }
 
 // GithubCommentStatus defines the observed state of GithubComment
 type GithubCommentStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// +optional
+	CommentId string `json:"commentId,omitempty"`
+
+	// +optional
+	LastPostedBodyHash string `json:"LastPostedBodyHash,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -50,6 +55,10 @@ type GithubComment struct {
 	Status GithubCommentStatus `json:"status,omitempty"`
 }
 
+func (gc *GithubComment) GetCommentSourceSpec() *CommentSourceSpec {
+	return &gc.Spec.Source
+}
+
 //+kubebuilder:object:root=true
 
 // GithubCommentList contains a list of GithubComment
@@ -57,6 +66,14 @@ type GithubCommentList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []GithubComment `json:"items"`
+}
+
+func (l *GithubCommentList) GetItems() []client.Object {
+	ret := make([]client.Object, len(l.Items))
+	for i, _ := range l.Items {
+		ret[i] = &l.Items[i]
+	}
+	return ret
 }
 
 func init() {
