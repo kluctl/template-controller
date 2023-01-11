@@ -78,7 +78,7 @@ func (r *BaseCommentReconciler) getText(ctx context.Context, spec templatesv1alp
 	}
 }
 
-func (r *BaseCommentReconciler) reconcileComment(ctx context.Context, mr webgit.MergeRequestInterface, tag string, obj client.Object, noteId *string, lastPostedBodyHash *string) error {
+func (r *BaseCommentReconciler) reconcileComment(ctx context.Context, mr webgit.MergeRequestInterface, tag string, commentId *string, obj client.Object, noteId *string, lastPostedBodyHash *string) error {
 	clusterId, err := r.getClusterId(ctx)
 	if err != nil {
 		return err
@@ -91,11 +91,11 @@ func (r *BaseCommentReconciler) reconcileComment(ctx context.Context, mr webgit.
 		return err
 	}
 
-	body := r.generateMarkerComment(clusterId, tag, obj.GetNamespace(), obj.GetName()) + "\n" + comment
+	body := r.generateMarkerComment(clusterId, tag, commentId, obj.GetNamespace(), obj.GetName()) + "\n" + comment
 
 	var existingNote webgit.Note
 	if *noteId == "" {
-		existingNote, err = r.findNote(mr, clusterId, tag, obj)
+		existingNote, err = r.findNote(mr, clusterId, commentId, tag, obj)
 		if err != nil {
 			return err
 		}
@@ -136,13 +136,13 @@ func (r *BaseCommentReconciler) reconcileComment(ctx context.Context, mr webgit.
 	return nil
 }
 
-func (r *BaseCommentReconciler) findNote(mr webgit.MergeRequestInterface, clusterId string, tag string, obj client.Object) (webgit.Note, error) {
+func (r *BaseCommentReconciler) findNote(mr webgit.MergeRequestInterface, clusterId string, commentId *string, tag string, obj client.Object) (webgit.Note, error) {
 	notes, err := mr.ListMergeRequestNotes()
 	if err != nil {
 		return nil, err
 	}
 	for _, n := range notes {
-		if !r.hasMarkerComment(n.GetBody(), clusterId, tag, obj.GetNamespace(), obj.GetName()) {
+		if !r.hasMarkerComment(n.GetBody(), clusterId, tag, commentId, obj.GetNamespace(), obj.GetName()) {
 			continue
 		}
 		return n, nil
@@ -159,12 +159,16 @@ func (r *BaseCommentReconciler) getClusterId(ctx context.Context) (string, error
 	return string(ns.UID), nil
 }
 
-func (r *BaseCommentReconciler) generateMarkerComment(clusterId string, tag string, objNamespace string, objName string) string {
-	return fmt.Sprintf("<!-- template-controller-%s \"%s\" \"%s/%s\" -->", tag, clusterId, objNamespace, objName)
+func (r *BaseCommentReconciler) generateMarkerComment(clusterId string, tag string, commentId *string, objNamespace string, objName string) string {
+	if commentId == nil {
+		x := fmt.Sprintf("%s/%s", objNamespace, objName)
+		commentId = &x
+	}
+	return fmt.Sprintf("<!-- template-controller-%s \"%s\" \"%s\" -->", tag, clusterId, *commentId)
 }
 
-func (r *BaseCommentReconciler) hasMarkerComment(body string, clusterId string, tag string, objNamespace string, objName string) bool {
-	expected := r.generateMarkerComment(clusterId, tag, objNamespace, objName)
+func (r *BaseCommentReconciler) hasMarkerComment(body string, clusterId string, tag string, commentId *string, objNamespace string, objName string) bool {
+	expected := r.generateMarkerComment(clusterId, tag, commentId, objNamespace, objName)
 	for _, line := range strings.Split(body, "\n") {
 		if line == expected {
 			return true
