@@ -201,36 +201,36 @@ func (r *BaseCommentReconciler) baseSetupWithManager(mgr ctrl.Manager, r2 reconc
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
+	watchHandler := handler.EnqueueRequestsFromMapFunc(func(obj client.Object) []reconcile.Request {
+		list := buildList()
+
+		var ref templatesv1alpha1.ObjectRef
+		ref.Name = obj.GetName()
+		switch obj.(type) {
+		case *corev1.ConfigMap:
+			ref.Kind = "ConfigMap"
+		case *templatesv1alpha1.TextTemplate:
+			ref.Kind = "TextTemplate"
+		default:
+			return nil
+		}
+		if err := r.List(context.Background(), list, client.MatchingFields{
+			indexKey: ref.String(),
+		}); err != nil {
+			return nil
+		}
+		var ret []reconcile.Request
+		for _, o := range list.GetItems() {
+			ret = append(ret, reconcile.Request{NamespacedName: client.ObjectKeyFromObject(o)})
+		}
+		return ret
+	})
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(obj, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
 		)).
-		Watches(
-			&source.Kind{Type: &corev1.ConfigMap{}},
-			handler.EnqueueRequestsFromMapFunc(func(obj client.Object) []reconcile.Request {
-				list := buildList()
-
-				var ref templatesv1alpha1.ObjectRef
-				ref.Name = obj.GetName()
-				switch obj.(type) {
-				case *corev1.ConfigMap:
-					ref.Kind = "ConfigMap"
-				case *templatesv1alpha1.TextTemplate:
-					ref.Kind = "TextTemplate"
-				default:
-					return nil
-				}
-				if err := r.List(context.Background(), list, client.MatchingFields{
-					indexKey: ref.String(),
-				}); err != nil {
-					return nil
-				}
-				var ret []reconcile.Request
-				for _, o := range list.GetItems() {
-					ret = append(ret, reconcile.Request{NamespacedName: client.ObjectKeyFromObject(o)})
-				}
-				return ret
-			}),
-		).
+		Watches(&source.Kind{Type: &corev1.ConfigMap{}}, watchHandler).
+		Watches(&source.Kind{Type: &templatesv1alpha1.TextTemplate{}}, watchHandler).
 		Complete(r2)
 }
