@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"github.com/kluctl/template-controller/api/v1alpha1"
-	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"github.com/kluctl/template-controller/controllers/webgit"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

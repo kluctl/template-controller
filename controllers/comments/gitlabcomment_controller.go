@@ -19,7 +19,7 @@ package comments
 import (
 	"context"
 	"github.com/kluctl/template-controller/controllers"
-	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"github.com/kluctl/template-controller/controllers/webgit"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers"
-	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"github.com/kluctl/template-controller/controllers/webgit"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

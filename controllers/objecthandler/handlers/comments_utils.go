@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/kluctl/template-controller/controllers"
-	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"github.com/kluctl/template-controller/controllers/webgit"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

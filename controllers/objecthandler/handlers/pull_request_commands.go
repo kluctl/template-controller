@@ -9,7 +9,7 @@ import (
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/kluctl/template-controller/controllers"
 	"github.com/kluctl/template-controller/controllers/objecthandler/comments/templates"
-	"github.com/kluctl/template-controller/controllers/objecthandler/webgit"
+	"github.com/kluctl/template-controller/controllers/webgit"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"regexp"
