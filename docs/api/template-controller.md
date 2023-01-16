@@ -62,6 +62,147 @@ string
 </table>
 </div>
 </div>
+<h3 id="templates.kluctl.io/v1alpha1.CommentSourceSpec">CommentSourceSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.CommentSpec">CommentSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>text</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>configMap</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.ConfigMapRef">
+ConfigMapRef
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>textTemplate</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.LocalObjectReference">
+LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.CommentSpec">CommentSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GithubCommentSpec">GithubCommentSpec</a>, 
+<a href="#templates.kluctl.io/v1alpha1.GitlabCommentSpec">GitlabCommentSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>id</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>source</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.CommentSourceSpec">
+CommentSourceSpec
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.ConfigMapRef">ConfigMapRef
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.CommentSourceSpec">CommentSourceSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>key</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="templates.kluctl.io/v1alpha1.GitFile">GitFile
 </h3>
 <p>
@@ -544,6 +685,212 @@ string
 </table>
 </div>
 </div>
+<h3 id="templates.kluctl.io/v1alpha1.GithubComment">GithubComment
+</h3>
+<p>GithubComment is the Schema for the githubcomments API</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>metadata</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GithubCommentSpec">
+GithubCommentSpec
+</a>
+</em>
+</td>
+<td>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>github</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GithubPullRequestRef">
+GithubPullRequestRef
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>comment</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.CommentSpec">
+CommentSpec
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>suspend</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<code>status</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GithubCommentStatus">
+GithubCommentStatus
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GithubCommentSpec">GithubCommentSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GithubComment">GithubComment</a>)
+</p>
+<p>GithubCommentSpec defines the desired state of GithubComment</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>github</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GithubPullRequestRef">
+GithubPullRequestRef
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>comment</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.CommentSpec">
+CommentSpec
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>suspend</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GithubCommentStatus">GithubCommentStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GithubComment">GithubComment</a>)
+</p>
+<p>GithubCommentStatus defines the observed state of GithubComment</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>conditions</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#condition-v1-meta">
+[]Kubernetes meta/v1.Condition
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>commentId</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastPostedBodyHash</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="templates.kluctl.io/v1alpha1.GithubProject">GithubProject
 </h3>
 <p>
@@ -603,6 +950,7 @@ SecretRef
 </h3>
 <p>
 (<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GithubCommentSpec">GithubCommentSpec</a>, 
 <a href="#templates.kluctl.io/v1alpha1.PullRequestRefHolder">PullRequestRefHolder</a>)
 </p>
 <div class="md-typeset__scrollwrap">
@@ -644,10 +992,217 @@ int
 </table>
 </div>
 </div>
+<h3 id="templates.kluctl.io/v1alpha1.GitlabComment">GitlabComment
+</h3>
+<p>GitlabComment is the Schema for the gitlabcomments API</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>metadata</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitlabCommentSpec">
+GitlabCommentSpec
+</a>
+</em>
+</td>
+<td>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>gitlab</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitlabMergeRequestRef">
+GitlabMergeRequestRef
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>comment</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.CommentSpec">
+CommentSpec
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>suspend</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<code>status</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitlabCommentStatus">
+GitlabCommentStatus
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GitlabCommentSpec">GitlabCommentSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitlabComment">GitlabComment</a>)
+</p>
+<p>GitlabCommentSpec defines the desired state of GitlabComment</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>gitlab</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.GitlabMergeRequestRef">
+GitlabMergeRequestRef
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>comment</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.CommentSpec">
+CommentSpec
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>suspend</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.GitlabCommentStatus">GitlabCommentStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitlabComment">GitlabComment</a>)
+</p>
+<p>GitlabCommentStatus defines the observed state of GitlabComment</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>conditions</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#condition-v1-meta">
+[]Kubernetes meta/v1.Condition
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>noteId</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastPostedBodyHash</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="templates.kluctl.io/v1alpha1.GitlabMergeRequestRef">GitlabMergeRequestRef
 </h3>
 <p>
 (<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.GitlabCommentSpec">GitlabCommentSpec</a>, 
 <a href="#templates.kluctl.io/v1alpha1.PullRequestRefHolder">PullRequestRefHolder</a>)
 </p>
 <div class="md-typeset__scrollwrap">
@@ -1485,6 +2040,7 @@ int
 </h3>
 <p>
 (<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.CommentSourceSpec">CommentSourceSpec</a>, 
 <a href="#templates.kluctl.io/v1alpha1.GitProjectorSpec">GitProjectorSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
@@ -1821,7 +2377,8 @@ ObjectRef
 (<em>Appears on:</em>
 <a href="#templates.kluctl.io/v1alpha1.AppliedResourceInfo">AppliedResourceInfo</a>, 
 <a href="#templates.kluctl.io/v1alpha1.MatrixEntryObject">MatrixEntryObject</a>, 
-<a href="#templates.kluctl.io/v1alpha1.ObjectHandlerSpec">ObjectHandlerSpec</a>)
+<a href="#templates.kluctl.io/v1alpha1.ObjectHandlerSpec">ObjectHandlerSpec</a>, 
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateInputObject">TextTemplateInputObject</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -2671,6 +3228,419 @@ Kubernetes meta/v1/unstructured.Unstructured
 <tr>
 <td>
 <code>raw</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.TemplateRef">TemplateRef
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateSpec">TextTemplateSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>configMap</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.TemplateRefConfigMap">
+TemplateRefConfigMap
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.TemplateRefConfigMap">TemplateRefConfigMap
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.TemplateRef">TemplateRef</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>namespace</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>key</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.TextTemplate">TextTemplate
+</h3>
+<p>TextTemplate is the Schema for the texttemplates API</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>metadata</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateSpec">
+TextTemplateSpec
+</a>
+</em>
+</td>
+<td>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>suspend</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>serviceAccountName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The name of the Kubernetes service account to impersonate
+when reconciling this TextTemplate. If omitted, the &ldquo;default&rdquo; service account is used.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>inputs</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.*github.com/kluctl/template-controller/api/v1alpha1.TextTemplateInput">
+[]*github.com/kluctl/template-controller/api/v1alpha1.TextTemplateInput
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>template</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>templateRef</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.TemplateRef">
+TemplateRef
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<code>status</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateStatus">
+TextTemplateStatus
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.TextTemplateInput">TextTemplateInput
+</h3>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>object</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateInputObject">
+TextTemplateInputObject
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.TextTemplateInputObject">TextTemplateInputObject
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateInput">TextTemplateInput</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>ref</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.ObjectRef">
+ObjectRef
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>jsonPath</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.TextTemplateSpec">TextTemplateSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.TextTemplate">TextTemplate</a>)
+</p>
+<p>TextTemplateSpec defines the desired state of TextTemplate</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>suspend</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>serviceAccountName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The name of the Kubernetes service account to impersonate
+when reconciling this TextTemplate. If omitted, the &ldquo;default&rdquo; service account is used.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>inputs</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.*github.com/kluctl/template-controller/api/v1alpha1.TextTemplateInput">
+[]*github.com/kluctl/template-controller/api/v1alpha1.TextTemplateInput
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>template</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>templateRef</code><br>
+<em>
+<a href="#templates.kluctl.io/v1alpha1.TemplateRef">
+TemplateRef
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.kluctl.io/v1alpha1.TextTemplateStatus">TextTemplateStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.TextTemplate">TextTemplate</a>)
+</p>
+<p>TextTemplateStatus defines the observed state of TextTemplate</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>conditions</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#condition-v1-meta">
+[]Kubernetes meta/v1.Condition
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>result</code><br>
 <em>
 string
 </em>

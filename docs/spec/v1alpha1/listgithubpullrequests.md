@@ -10,7 +10,7 @@ weight: 30
 
 # ListGithubPullRequests
 
-The `ListGithubPullRequests` API defines allows to query the GitHub API for a list of pull requests (PRs). These PRs
+The `ListGithubPullRequests` API allows to query the GitHub API for a list of pull requests (PRs). These PRs
 can be filtered when needed. The resulting list of PRs is written into the status of the
 `ListGithubPullRequests` object.
 
