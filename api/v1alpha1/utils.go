@@ -85,7 +85,7 @@ type GitRef struct {
 	// +optional
 	Branch string `json:"branch,omitempty"`
 
-	// Branch to filter for. Can also be a regex.
+	// Tag to filter for. Can also be a regex.
 	// +optional
 	Tag string `json:"tag,omitempty"`
 

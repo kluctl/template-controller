@@ -40,22 +40,44 @@ spec:
                 pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
                 type: string
               matrix:
+                description: Matrix specifies the input matrix
                 items:
                   properties:
                     list:
+                      description: List specifies a list of plain YAML values which
+                        are made available while rendering templates. The list can
+                        be accessed through the name specified above
                       items:
                         type: object
                       type: array
                       x-kubernetes-preserve-unknown-fields: true
                     name:
+                      description: Name specifies the name this matrix input is available
+                        while rendering templates
                       type: string
                     object:
+                      description: Object specifies an object to load and make available
+                        while rendering templates. The object can be accessed through
+                        the name specified above. The service account used by the
+                        ObjectTemplate must have proper permissions to get this object
                       properties:
                         expandLists:
+                          description: ExpandLists enables optional expanding of list.
+                            Expanding means, that each list entry is interpreted as
+                            individual matrix input instead of interpreting the whole
+                            list as one matrix input. This feature is only useful
+                            when used in combination with `jsonPath`
                           type: boolean
                         jsonPath:
+                          description: JsonPath optionally specifies a sub-field to
+                            load. When specified, the sub-field (and not the whole
+                            object) is made available while rendering templates
                           type: string
                         ref:
+                          description: Ref specifies the apiVersion, kind, namespace
+                            and name of the object to load. The service account used
+                            by the ObjectTemplate must have proper permissions to
+                            get this object
                           properties:
                             apiVersion:
                               type: string
@@ -79,22 +101,35 @@ spec:
                 type: array
               prune:
                 default: false
+                description: Prune enables pruning of previously created objects when
+                  these disappear from the list of rendered objects
                 type: boolean
               serviceAccountName:
-                description: The name of the Kubernetes service account to impersonate
-                  when reconciling this ObjectTemplate. If omitted, the "default"
-                  service account is used.
+                description: ServiceAccountName specifies the name of the Kubernetes
+                  service account to impersonate when reconciling this ObjectTemplate.
+                  If omitted, the "default" service account is used
                 type: string
               suspend:
                 default: false
+                description: Suspend can be used to suspend the reconciliation of
+                  this object
                 type: boolean
               templates:
+                description: Templates specifies a list of templates to render and
+                  deploy
                 items:
                   properties:
                     object:
+                      description: Object specifies a structured object in YAML form.
+                        Each field value is rendered independently.
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     raw:
+                      description: Raw specifies a raw string to be interpreted/parsed
+                        as YAML. The whole string is rendered in one go, allowing
+                        to use advanced Jinja2 control structures. Raw object might
+                        also be required when a templated value must not be interpreted
+                        as a string (which would be done in Object).
                       type: string
                   type: object
                 type: array

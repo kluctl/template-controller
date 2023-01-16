@@ -87,6 +87,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>Text specifies a raw text comment.</p>
 </td>
 </tr>
 <tr>
@@ -100,6 +101,7 @@ ConfigMapRef
 </td>
 <td>
 <em>(Optional)</em>
+<p>ConfigMap specifies a ConfigMap and a key to load the source content from</p>
 </td>
 </tr>
 <tr>
@@ -113,6 +115,7 @@ LocalObjectReference
 </td>
 <td>
 <em>(Optional)</em>
+<p>TextTemplate specifies a TextTemplate to load the source content from</p>
 </td>
 </tr>
 </tbody>
@@ -145,6 +148,9 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>Id specifies the identifier to be used by the controller when it needs to find the actual comment when it does
+not know the internal id. This Id is written into the comment inside a comment, so that a simple text search
+can reveal the comment</p>
 </td>
 </tr>
 <tr>
@@ -157,6 +163,8 @@ CommentSourceSpec
 </em>
 </td>
 <td>
+<p>Source specifies the source content for the comment. Different source types are supported:
+Text, ConfigMap and TextTemplate</p>
 </td>
 </tr>
 </tbody>
@@ -227,6 +235,7 @@ string
 </em>
 </td>
 <td>
+<p>Glob specifies a glob to use for filename matching.</p>
 </td>
 </tr>
 <tr>
@@ -238,6 +247,8 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>ParseYaml enables YAML parsing of matching files. The result is then available as <code>parsed</code> in the result for
+the corresponding result file</p>
 </td>
 </tr>
 </tbody>
@@ -295,7 +306,7 @@ Kubernetes meta/v1.Duration
 </td>
 <td>
 <em>(Optional)</em>
-<p>Interval is the interval at which to query the Gitlab API.
+<p>Interval is the interval at which to scan the Git repository
 Defaults to 5m.</p>
 </td>
 </tr>
@@ -308,6 +319,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object</p>
 </td>
 </tr>
 <tr>
@@ -318,6 +330,7 @@ string
 </em>
 </td>
 <td>
+<p>URL specifies the Git url to scan and project</p>
 </td>
 </tr>
 <tr>
@@ -331,6 +344,7 @@ GitRef
 </td>
 <td>
 <em>(Optional)</em>
+<p>Reference specifies the Git branch, tag or commit to scan. Branches and tags can contain regular expressions</p>
 </td>
 </tr>
 <tr>
@@ -344,6 +358,7 @@ GitRef
 </td>
 <td>
 <em>(Optional)</em>
+<p>Files specifies the list of files to include in the projection</p>
 </td>
 </tr>
 <tr>
@@ -357,6 +372,8 @@ LocalObjectReference
 </td>
 <td>
 <em>(Optional)</em>
+<p>SecretRefs specifies a Secret use for Git authentication. The contents of the secret must conform to:
+<a href="https://kluctl.io/docs/flux/spec/v1alpha1/kluctldeployment/#git-authentication">https://kluctl.io/docs/flux/spec/v1alpha1/kluctldeployment/#git-authentication</a></p>
 </td>
 </tr>
 </table>
@@ -502,7 +519,7 @@ Kubernetes meta/v1.Duration
 </td>
 <td>
 <em>(Optional)</em>
-<p>Interval is the interval at which to query the Gitlab API.
+<p>Interval is the interval at which to scan the Git repository
 Defaults to 5m.</p>
 </td>
 </tr>
@@ -515,6 +532,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object</p>
 </td>
 </tr>
 <tr>
@@ -525,6 +543,7 @@ string
 </em>
 </td>
 <td>
+<p>URL specifies the Git url to scan and project</p>
 </td>
 </tr>
 <tr>
@@ -538,6 +557,7 @@ GitRef
 </td>
 <td>
 <em>(Optional)</em>
+<p>Reference specifies the Git branch, tag or commit to scan. Branches and tags can contain regular expressions</p>
 </td>
 </tr>
 <tr>
@@ -551,6 +571,7 @@ GitRef
 </td>
 <td>
 <em>(Optional)</em>
+<p>Files specifies the list of files to include in the projection</p>
 </td>
 </tr>
 <tr>
@@ -564,6 +585,8 @@ LocalObjectReference
 </td>
 <td>
 <em>(Optional)</em>
+<p>SecretRefs specifies a Secret use for Git authentication. The contents of the secret must conform to:
+<a href="https://kluctl.io/docs/flux/spec/v1alpha1/kluctldeployment/#git-authentication">https://kluctl.io/docs/flux/spec/v1alpha1/kluctldeployment/#git-authentication</a></p>
 </td>
 </tr>
 </tbody>
@@ -666,7 +689,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>Branch to filter for. Can also be a regex.</p>
+<p>Tag to filter for. Can also be a regex.</p>
 </td>
 </tr>
 <tr>
@@ -758,6 +781,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object</p>
 </td>
 </tr>
 </table>
@@ -829,6 +853,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object</p>
 </td>
 </tr>
 </tbody>
@@ -916,6 +941,7 @@ string
 </em>
 </td>
 <td>
+<p>Owner specifies the GitHub user or organisation that owns the repository</p>
 </td>
 </tr>
 <tr>
@@ -926,6 +952,7 @@ string
 </em>
 </td>
 <td>
+<p>Repo specifies the repository name.</p>
 </td>
 </tr>
 <tr>
@@ -939,7 +966,7 @@ SecretRef
 </td>
 <td>
 <em>(Optional)</em>
-<p>Authentication token reference.</p>
+<p>TokenRef specifies a secret and key to load the GitHub API token from</p>
 </td>
 </tr>
 </tbody>
@@ -986,6 +1013,7 @@ int
 </em>
 </td>
 <td>
+<p>PullRequestId specifies the pull request ID.</p>
 </td>
 </tr>
 </tbody>
@@ -1065,6 +1093,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object</p>
 </td>
 </tr>
 </table>
@@ -1136,6 +1165,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object</p>
 </td>
 </tr>
 </tbody>
@@ -1238,7 +1268,7 @@ int
 </em>
 </td>
 <td>
-<p>The merge request id</p>
+<p>MergeRequestId specifies the Gitlab merge request internal ID</p>
 </td>
 </tr>
 </tbody>
@@ -1270,7 +1300,7 @@ string
 </em>
 </td>
 <td>
-<p>GitLab project to scan. Required.</p>
+<p>Project specifies the Gitlab group and project (separated by slash) to use</p>
 </td>
 </tr>
 <tr>
@@ -1282,7 +1312,8 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>The GitLab API URL to talk to. If blank, uses <a href="https://gitlab.com/">https://gitlab.com/</a>.</p>
+<p>API specifies the GitLab API URL to talk to.
+If blank, uses <a href="https://gitlab.com/">https://gitlab.com/</a>.</p>
 </td>
 </tr>
 <tr>
@@ -1296,7 +1327,7 @@ SecretRef
 </td>
 <td>
 <em>(Optional)</em>
-<p>Authentication token reference.</p>
+<p>TokenRef specifies a secret and key to load the Gitlab API token from</p>
 </td>
 </tr>
 </tbody>
@@ -1517,6 +1548,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>Head specifies the head to filter for</p>
 </td>
 </tr>
 <tr>
@@ -1528,6 +1560,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>Base specifies the base to filter for</p>
 </td>
 </tr>
 <tr>
@@ -1640,6 +1673,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>Head specifies the head to filter for</p>
 </td>
 </tr>
 <tr>
@@ -1651,6 +1685,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>Base specifies the base to filter for</p>
 </td>
 </tr>
 <tr>
@@ -1816,6 +1851,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>TargetBranch specifies the target branch to filter for</p>
 </td>
 </tr>
 <tr>
@@ -1939,6 +1975,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>TargetBranch specifies the target branch to filter for</p>
 </td>
 </tr>
 <tr>
@@ -2088,6 +2125,7 @@ string
 </em>
 </td>
 <td>
+<p>Name specifies the name this matrix input is available while rendering templates</p>
 </td>
 </tr>
 <tr>
@@ -2101,6 +2139,9 @@ MatrixEntryObject
 </td>
 <td>
 <em>(Optional)</em>
+<p>Object specifies an object to load and make available while rendering templates. The object can be accessed
+through the name specified above. The service account used by the ObjectTemplate must have proper permissions
+to get this object</p>
 </td>
 </tr>
 <tr>
@@ -2112,6 +2153,8 @@ MatrixEntryObject
 </td>
 <td>
 <em>(Optional)</em>
+<p>List specifies a list of plain YAML values which are made available while rendering templates. The list can be
+accessed through the name specified above</p>
 </td>
 </tr>
 </tbody>
@@ -2144,6 +2187,8 @@ ObjectRef
 </em>
 </td>
 <td>
+<p>Ref specifies the apiVersion, kind, namespace and name of the object to load. The service account used by the
+ObjectTemplate must have proper permissions to get this object</p>
 </td>
 </tr>
 <tr>
@@ -2155,6 +2200,8 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>JsonPath optionally specifies a sub-field to load. When specified, the sub-field (and not the whole object)
+is made available while rendering templates</p>
 </td>
 </tr>
 <tr>
@@ -2166,6 +2213,9 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>ExpandLists enables optional expanding of list. Expanding means, that each list entry is interpreted as
+individual matrix input instead of interpreting the whole list as one matrix input. This feature is only useful
+when used in combination with <code>jsonPath</code></p>
 </td>
 </tr>
 </tbody>
@@ -2496,6 +2546,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object</p>
 </td>
 </tr>
 <tr>
@@ -2507,8 +2558,8 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>The name of the Kubernetes service account to impersonate
-when reconciling this ObjectTemplate. If omitted, the &ldquo;default&rdquo; service account is used.</p>
+<p>ServiceAccountName specifies the name of the Kubernetes service account to impersonate
+when reconciling this ObjectTemplate. If omitted, the &ldquo;default&rdquo; service account is used</p>
 </td>
 </tr>
 <tr>
@@ -2520,6 +2571,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Prune enables pruning of previously created objects when these disappear from the list of rendered objects</p>
 </td>
 </tr>
 <tr>
@@ -2532,6 +2584,7 @@ bool
 </em>
 </td>
 <td>
+<p>Matrix specifies the input matrix</p>
 </td>
 </tr>
 <tr>
@@ -2544,6 +2597,7 @@ bool
 </em>
 </td>
 <td>
+<p>Templates specifies a list of templates to render and deploy</p>
 </td>
 </tr>
 </table>
@@ -2603,6 +2657,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object</p>
 </td>
 </tr>
 <tr>
@@ -2614,8 +2669,8 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>The name of the Kubernetes service account to impersonate
-when reconciling this ObjectTemplate. If omitted, the &ldquo;default&rdquo; service account is used.</p>
+<p>ServiceAccountName specifies the name of the Kubernetes service account to impersonate
+when reconciling this ObjectTemplate. If omitted, the &ldquo;default&rdquo; service account is used</p>
 </td>
 </tr>
 <tr>
@@ -2627,6 +2682,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Prune enables pruning of previously created objects when these disappear from the list of rendered objects</p>
 </td>
 </tr>
 <tr>
@@ -2639,6 +2695,7 @@ bool
 </em>
 </td>
 <td>
+<p>Matrix specifies the input matrix</p>
 </td>
 </tr>
 <tr>
@@ -2651,6 +2708,7 @@ bool
 </em>
 </td>
 <td>
+<p>Templates specifies a list of templates to render and deploy</p>
 </td>
 </tr>
 </tbody>
@@ -3223,6 +3281,7 @@ Kubernetes meta/v1/unstructured.Unstructured
 </td>
 <td>
 <em>(Optional)</em>
+<p>Object specifies a structured object in YAML form. Each field value is rendered independently.</p>
 </td>
 </tr>
 <tr>
@@ -3234,6 +3293,9 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+<p>Raw specifies a raw string to be interpreted/parsed as YAML. The whole string is rendered in one go, allowing to
+use advanced Jinja2 control structures. Raw object might also be required when a templated value must not be
+interpreted as a string (which would be done in Object).</p>
 </td>
 </tr>
 </tbody>
@@ -3373,6 +3435,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object.</p>
 </td>
 </tr>
 <tr>
@@ -3552,6 +3615,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+<p>Suspend can be used to suspend the reconciliation of this object.</p>
 </td>
 </tr>
 <tr>

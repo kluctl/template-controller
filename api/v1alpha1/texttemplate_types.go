@@ -22,6 +22,7 @@ import (
 
 // TextTemplateSpec defines the desired state of TextTemplate
 type TextTemplateSpec struct {
+	// Suspend can be used to suspend the reconciliation of this object.
 	// +optional
 	// +kubebuilder:default:=false
 	Suspend bool `json:"suspend"`

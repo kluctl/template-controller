@@ -33,9 +33,11 @@ type ListGithubPullRequestsSpec struct {
 
 	GithubProject `json:",inline"`
 
+	// Head specifies the head to filter for
 	// +optional
 	Head *string `json:"head,omitempty"`
 
+	// Base specifies the base to filter for
 	// +optional
 	Base *string `json:"base,omitempty"`
 
