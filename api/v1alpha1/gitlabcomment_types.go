@@ -23,8 +23,8 @@ import (
 
 // GitlabCommentSpec defines the desired state of GitlabComment
 type GitlabCommentSpec struct {
-	GitlabMergeRequestRef `json:",inline"`
-	CommentSpec           `json:",inline"`
+	GitlabMergeRequestRef `json:"gitlab"`
+	CommentSpec           `json:"comment"`
 
 	// +optional
 	// +kubebuilder:default:=false

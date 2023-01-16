@@ -90,7 +90,7 @@ func (r *GithubCommentReconciler) doReconcile(ctx context.Context, obj *template
 		return err
 	}
 
-	return r.reconcileComment(ctx, mr, "github-comment", obj.Spec.CommentId, obj, &obj.Status.CommentId, &obj.Status.LastPostedBodyHash)
+	return r.reconcileComment(ctx, mr, "github-comment", obj.Spec.Id, obj, &obj.Status.CommentId, &obj.Status.LastPostedBodyHash)
 }
 
 // SetupWithManager sets up the controller with the Manager.

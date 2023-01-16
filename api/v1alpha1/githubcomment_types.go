@@ -23,8 +23,8 @@ import (
 
 // GithubCommentSpec defines the desired state of GithubComment
 type GithubCommentSpec struct {
-	GithubPullRequestRef `json:",inline"`
-	CommentSpec          `json:",inline"`
+	GithubPullRequestRef `json:"github"`
+	CommentSpec          `json:"comment"`
 
 	// +optional
 	// +kubebuilder:default:=false

@@ -2,7 +2,7 @@ package v1alpha1
 
 type CommentSpec struct {
 	// +optional
-	CommentId *string `json:"commentId,omitempty"`
+	Id *string `json:"id,omitempty"`
 
 	// +required
 	Source CommentSourceSpec `json:"source"`
