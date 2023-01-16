@@ -10,7 +10,7 @@ weight: 40
 
 # ListGitlabMergeRequests
 
-The `ListGitlabMergeRequests` API defines allows to query the Gitlab API for a list of merge requests (MRs). These MRs
+The `ListGitlabMergeRequests` API allows to query the Gitlab API for a list of merge requests (MRs). These MRs
 can be filtered when needed. The resulting list of MRs is written into the status of the
 `ListGitlabMergeRequests` object.
 
