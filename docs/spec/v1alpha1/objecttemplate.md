@@ -85,7 +85,6 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["configmaps"]
-    resourceNames: ["templated-configmap-from", "templated-configmap-from-raw"]
     verbs: ["*"]
 ---
 kind: RoleBinding
