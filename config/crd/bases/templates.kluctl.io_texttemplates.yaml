@@ -73,6 +73,8 @@ spec:
                 type: string
               suspend:
                 default: false
+                description: Suspend can be used to suspend the reconciliation of
+                  this object.
                 type: boolean
               template:
                 type: string

@@ -37,8 +37,10 @@ spec:
             description: ListGithubPullRequestsSpec defines the desired state of ListGithubPullRequests
             properties:
               base:
+                description: Base specifies the base to filter for
                 type: string
               head:
+                description: Head specifies the head to filter for
                 type: string
               interval:
                 default: 5m
@@ -57,8 +59,11 @@ spec:
                   Defaults to 100
                 type: integer
               owner:
+                description: Owner specifies the GitHub user or organisation that
+                  owns the repository
                 type: string
               repo:
+                description: Repo specifies the repository name.
                 type: string
               state:
                 default: all
@@ -70,7 +75,8 @@ spec:
                 - closed
                 type: string
               tokenRef:
-                description: Authentication token reference.
+                description: TokenRef specifies a secret and key to load the GitHub
+                  API token from
                 properties:
                   key:
                     type: string

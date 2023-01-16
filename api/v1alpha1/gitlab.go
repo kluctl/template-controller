@@ -1,15 +1,16 @@
 package v1alpha1
 
 type GitlabProject struct {
-	// GitLab project to scan. Required.
+	// Project specifies the Gitlab group and project (separated by slash) to use
 	// +required
 	Project string `json:"project"`
 
-	// The GitLab API URL to talk to. If blank, uses https://gitlab.com/.
+	// API specifies the GitLab API URL to talk to.
+	// If blank, uses https://gitlab.com/.
 	// +optional
 	API *string `json:"api,omitempty"`
 
-	// Authentication token reference.
+	// TokenRef specifies a secret and key to load the Gitlab API token from
 	// +optional
 	TokenRef *SecretRef `json:"tokenRef"`
 }
@@ -17,7 +18,7 @@ type GitlabProject struct {
 type GitlabMergeRequestRef struct {
 	GitlabProject `json:",inline"`
 
-	// The merge request id
+	// MergeRequestId specifies the Gitlab merge request internal ID
 	// +required
 	MergeRequestId int `json:"mergeRequestId"`
 }

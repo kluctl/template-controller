@@ -33,6 +33,7 @@ type ListGitlabMergeRequestsSpec struct {
 
 	GitlabProject `json:",inline"`
 
+	// TargetBranch specifies the target branch to filter for
 	// +optional
 	TargetBranch *string `json:"targetBranch,omitempty"`
 

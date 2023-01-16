@@ -36,12 +36,17 @@ spec:
             description: GitProjectorSpec defines the desired state of GitProjector
             properties:
               files:
+                description: Files specifies the list of files to include in the projection
                 items:
                   properties:
                     glob:
+                      description: Glob specifies a glob to use for filename matching.
                       type: string
                     parseYaml:
                       default: false
+                      description: ParseYaml enables YAML parsing of matching files.
+                        The result is then available as `parsed` in the result for
+                        the corresponding result file
                       type: boolean
                   required:
                   - glob
@@ -49,11 +54,13 @@ spec:
                 type: array
               interval:
                 default: 5m
-                description: Interval is the interval at which to query the Gitlab
-                  API. Defaults to 5m.
+                description: Interval is the interval at which to scan the Git repository
+                  Defaults to 5m.
                 pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
                 type: string
               ref:
+                description: Reference specifies the Git branch, tag or commit to
+                  scan. Branches and tags can contain regular expressions
                 properties:
                   branch:
                     description: Branch to filter for. Can also be a regex.
@@ -63,10 +70,12 @@ spec:
                       reference fields.
                     type: string
                   tag:
-                    description: Branch to filter for. Can also be a regex.
+                    description: Tag to filter for. Can also be a regex.
                     type: string
                 type: object
               secretRef:
+                description: 'SecretRefs specifies a Secret use for Git authentication.
+                  The contents of the secret must conform to: https://kluctl.io/docs/flux/spec/v1alpha1/kluctldeployment/#git-authentication'
                 properties:
                   name:
                     description: Name of the referent.
@@ -76,8 +85,11 @@ spec:
                 type: object
               suspend:
                 default: false
+                description: Suspend can be used to suspend the reconciliation of
+                  this object
                 type: boolean
               url:
+                description: URL specifies the Git url to scan and project
                 type: string
             required:
             - url
@@ -184,7 +196,7 @@ spec:
                             all reference fields.
                           type: string
                         tag:
-                          description: Branch to filter for. Can also be a regex.
+                          description: Tag to filter for. Can also be a regex.
                           type: string
                       type: object
                   required:

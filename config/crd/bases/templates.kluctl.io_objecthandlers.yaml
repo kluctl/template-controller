@@ -58,13 +58,19 @@ spec:
                         github:
                           properties:
                             owner:
+                              description: Owner specifies the GitHub user or organisation
+                                that owns the repository
                               type: string
                             pullRequestId:
+                              description: PullRequestId specifies the pull request
+                                ID.
                               type: integer
                             repo:
+                              description: Repo specifies the repository name.
                               type: string
                             tokenRef:
-                              description: Authentication token reference.
+                              description: TokenRef specifies a secret and key to
+                                load the GitHub API token from
                               properties:
                                 key:
                                   type: string
@@ -82,17 +88,20 @@ spec:
                         gitlab:
                           properties:
                             api:
-                              description: The GitLab API URL to talk to. If blank,
-                                uses https://gitlab.com/.
+                              description: API specifies the GitLab API URL to talk
+                                to. If blank, uses https://gitlab.com/.
                               type: string
                             mergeRequestId:
-                              description: The merge request id
+                              description: MergeRequestId specifies the Gitlab merge
+                                request internal ID
                               type: integer
                             project:
-                              description: GitLab project to scan. Required.
+                              description: Project specifies the Gitlab group and
+                                project (separated by slash) to use
                               type: string
                             tokenRef:
-                              description: Authentication token reference.
+                              description: TokenRef specifies a secret and key to
+                                load the Gitlab API token from
                               properties:
                                 key:
                                   type: string
@@ -147,13 +156,19 @@ spec:
                         github:
                           properties:
                             owner:
+                              description: Owner specifies the GitHub user or organisation
+                                that owns the repository
                               type: string
                             pullRequestId:
+                              description: PullRequestId specifies the pull request
+                                ID.
                               type: integer
                             repo:
+                              description: Repo specifies the repository name.
                               type: string
                             tokenRef:
-                              description: Authentication token reference.
+                              description: TokenRef specifies a secret and key to
+                                load the GitHub API token from
                               properties:
                                 key:
                                   type: string
@@ -171,17 +186,20 @@ spec:
                         gitlab:
                           properties:
                             api:
-                              description: The GitLab API URL to talk to. If blank,
-                                uses https://gitlab.com/.
+                              description: API specifies the GitLab API URL to talk
+                                to. If blank, uses https://gitlab.com/.
                               type: string
                             mergeRequestId:
-                              description: The merge request id
+                              description: MergeRequestId specifies the Gitlab merge
+                                request internal ID
                               type: integer
                             project:
-                              description: GitLab project to scan. Required.
+                              description: Project specifies the Gitlab group and
+                                project (separated by slash) to use
                               type: string
                             tokenRef:
-                              description: Authentication token reference.
+                              description: TokenRef specifies a secret and key to
+                                load the Gitlab API token from
                               properties:
                                 key:
                                   type: string
@@ -205,13 +223,19 @@ spec:
                         github:
                           properties:
                             owner:
+                              description: Owner specifies the GitHub user or organisation
+                                that owns the repository
                               type: string
                             pullRequestId:
+                              description: PullRequestId specifies the pull request
+                                ID.
                               type: integer
                             repo:
+                              description: Repo specifies the repository name.
                               type: string
                             tokenRef:
-                              description: Authentication token reference.
+                              description: TokenRef specifies a secret and key to
+                                load the GitHub API token from
                               properties:
                                 key:
                                   type: string
@@ -229,17 +253,20 @@ spec:
                         gitlab:
                           properties:
                             api:
-                              description: The GitLab API URL to talk to. If blank,
-                                uses https://gitlab.com/.
+                              description: API specifies the GitLab API URL to talk
+                                to. If blank, uses https://gitlab.com/.
                               type: string
                             mergeRequestId:
-                              description: The merge request id
+                              description: MergeRequestId specifies the Gitlab merge
+                                request internal ID
                               type: integer
                             project:
-                              description: GitLab project to scan. Required.
+                              description: Project specifies the Gitlab group and
+                                project (separated by slash) to use
                               type: string
                             tokenRef:
-                              description: Authentication token reference.
+                              description: TokenRef specifies a secret and key to
+                                load the Gitlab API token from
                               properties:
                                 key:
                                   type: string

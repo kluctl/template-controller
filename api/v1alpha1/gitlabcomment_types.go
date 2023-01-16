@@ -26,6 +26,7 @@ type GitlabCommentSpec struct {
 	GitlabMergeRequestRef `json:"gitlab"`
 	CommentSpec           `json:"comment"`
 
+	// Suspend can be used to suspend the reconciliation of this object
 	// +optional
 	// +kubebuilder:default:=false
 	Suspend bool `json:"suspend"`

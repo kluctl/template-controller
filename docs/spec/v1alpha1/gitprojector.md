@@ -98,7 +98,7 @@ refs in the `status.result` field.
 
 ### secretRef
 
-Same as in the Kluctl Controllers [KluctlDeployment](https://kluctl.io/docs/flux/kluctldeployment/#git-authentication)
+Same as in the Kluctl Controllers [KluctlDeployment](https://kluctl.io/docs/flux/spec/v1alpha1/kluctldeployment/#git-authentication)
 
 ### files
 

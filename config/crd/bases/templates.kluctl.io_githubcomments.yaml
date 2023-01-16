@@ -38,10 +38,18 @@ spec:
               comment:
                 properties:
                   id:
+                    description: Id specifies the identifier to be used by the controller
+                      when it needs to find the actual comment when it does not know
+                      the internal id. This Id is written into the comment inside
+                      a comment, so that a simple text search can reveal the comment
                     type: string
                   source:
+                    description: 'Source specifies the source content for the comment.
+                      Different source types are supported: Text, ConfigMap and TextTemplate'
                     properties:
                       configMap:
+                        description: ConfigMap specifies a ConfigMap and a key to
+                          load the source content from
                         properties:
                           key:
                             type: string
@@ -52,8 +60,11 @@ spec:
                         - name
                         type: object
                       text:
+                        description: Text specifies a raw text comment.
                         type: string
                       textTemplate:
+                        description: TextTemplate specifies a TextTemplate to load
+                          the source content from
                         properties:
                           name:
                             description: Name of the referent.
@@ -68,13 +79,18 @@ spec:
               github:
                 properties:
                   owner:
+                    description: Owner specifies the GitHub user or organisation that
+                      owns the repository
                     type: string
                   pullRequestId:
+                    description: PullRequestId specifies the pull request ID.
                     type: integer
                   repo:
+                    description: Repo specifies the repository name.
                     type: string
                   tokenRef:
-                    description: Authentication token reference.
+                    description: TokenRef specifies a secret and key to load the GitHub
+                      API token from
                     properties:
                       key:
                         type: string
@@ -91,6 +107,8 @@ spec:
                 type: object
               suspend:
                 default: false
+                description: Suspend can be used to suspend the reconciliation of
+                  this object
                 type: boolean
             required:
             - comment
