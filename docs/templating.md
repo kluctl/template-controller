@@ -11,4 +11,4 @@ weight: 30
 
 The Template Controller reuses the Jinja2 templating engine of [Kluctl](https://kluctl.io).
 
-Documentation is available [here](https://kluctl.io/docs/reference/templating/).
+Documentation is available [here](https://kluctl.io/docs/kluctl/reference/templating/).
