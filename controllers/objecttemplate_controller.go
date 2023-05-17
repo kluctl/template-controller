@@ -33,6 +33,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -427,6 +428,8 @@ func (r *ObjectTemplateReconciler) renderTemplates(j2 *jinja2.Jinja2, rt *templa
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
+	r.Manager = mgr
+
 	// Index the ObjectHandler by the objects they are for.
 	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.ObjectTemplate{}, forMatrixObjectKey,
 		func(object client.Object) []string {
@@ -447,7 +450,9 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 			predicate.Or(predicate.GenerationChangedPredicate{}),
 		)).
 		WithOptions(controller.Options{
-			MaxConcurrentReconciles: concurrent,
+			Controller: config.Controller{
+				MaxConcurrentReconciles: concurrent,
+			},
 		}).
 		Build(r)
 	if err != nil {
@@ -459,7 +464,7 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 }
 
 func (r *ObjectTemplateReconciler) buildWatchEventHandler(indexField string) handler.EventHandler {
-	return handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, object client.Object) []reconcile.Request {
 		var list templatesv1alpha1.ObjectTemplateList
 
 		err := r.List(context.Background(), &list, client.MatchingFields{

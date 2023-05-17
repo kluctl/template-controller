@@ -27,8 +27,10 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"sync"
@@ -44,6 +46,8 @@ const forObjectIndexKey = "spec.forObject"
 // ObjectHandlerReconciler reconciles a ObjectHandler object
 type ObjectHandlerReconciler struct {
 	client.Client
+	Manager manager.Manager
+
 	Scheme       *runtime.Scheme
 	FieldManager string
 
@@ -97,6 +101,7 @@ func (r *ObjectHandlerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
+	r.Manager = mgr
 	r.watchedKinds = map[schema.GroupVersionKind]bool{}
 
 	// Index the ObjectHandler by the objects they are for.
@@ -113,7 +118,9 @@ func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager, concurrent 
 	c, err := ctrl.NewControllerManagedBy(mgr).
 		For(&templatesv1alpha1.ObjectHandler{}).
 		WithOptions(controller.Options{
-			MaxConcurrentReconciles: concurrent,
+			Controller: config.Controller{
+				MaxConcurrentReconciles: concurrent,
+			},
 		}).
 		Build(r)
 	if err != nil {
@@ -256,9 +263,9 @@ func (r *ObjectHandlerReconciler) addWatchForKind(ctx context.Context, sr *templ
 	var dummy unstructured.Unstructured
 	dummy.SetGroupVersionKind(gvk)
 
-	err = r.controller.Watch(&source.Kind{Type: &dummy}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+	err = r.controller.Watch(source.Kind(r.Manager.GetCache(), &dummy), handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, object client.Object) []reconcile.Request {
 		var list templatesv1alpha1.ObjectHandlerList
-		err := r.List(context.Background(), &list, client.MatchingFields{
+		err := r.List(ctx, &list, client.MatchingFields{
 			forObjectIndexKey: controllers.BuildObjectIndexValue(object),
 		})
 		if err != nil {

@@ -18,7 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
 )
 
@@ -201,7 +200,7 @@ func (r *BaseCommentReconciler) baseSetupWithManager(mgr ctrl.Manager, r2 reconc
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
-	watchHandler := handler.EnqueueRequestsFromMapFunc(func(obj client.Object) []reconcile.Request {
+	watchHandler := handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
 		list := buildList()
 
 		var ref templatesv1alpha1.ObjectRef
@@ -214,7 +213,7 @@ func (r *BaseCommentReconciler) baseSetupWithManager(mgr ctrl.Manager, r2 reconc
 		default:
 			return nil
 		}
-		if err := r.List(context.Background(), list, client.MatchingFields{
+		if err := r.List(ctx, list, client.MatchingFields{
 			indexKey: ref.String(),
 		}); err != nil {
 			return nil
@@ -230,7 +229,7 @@ func (r *BaseCommentReconciler) baseSetupWithManager(mgr ctrl.Manager, r2 reconc
 		For(obj, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
 		)).
-		Watches(&source.Kind{Type: &corev1.ConfigMap{}}, watchHandler).
-		Watches(&source.Kind{Type: &templatesv1alpha1.TextTemplate{}}, watchHandler).
+		Watches(&corev1.ConfigMap{}, watchHandler).
+		Watches(&templatesv1alpha1.TextTemplate{}, watchHandler).
 		Complete(r2)
 }

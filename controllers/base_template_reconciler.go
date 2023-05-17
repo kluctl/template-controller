@@ -15,12 +15,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"sync"
 )
 
 type BaseTemplateReconciler struct {
 	client.Client
+
+	Manager      manager.Manager
 	Scheme       *runtime.Scheme
 	FieldManager string
 
@@ -73,7 +76,7 @@ func (r *BaseTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema
 	var dummy unstructured.Unstructured
 	dummy.SetGroupVersionKind(gvk)
 
-	err := r.controller.Watch(&source.Kind{Type: &dummy}, eventHandler)
+	err := r.controller.Watch(source.Kind(r.Manager.GetCache(), &dummy), eventHandler)
 	if err != nil {
 		return err
 	}

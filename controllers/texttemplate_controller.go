@@ -27,6 +27,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -191,6 +192,7 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *TextTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
+	r.Manager = mgr
 	r.watchedKinds = map[schema.GroupVersionKind]bool{}
 
 	// Index the TextTemplate by the objects they are for.
@@ -225,7 +227,9 @@ func (r *TextTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent i
 			predicate.Or(predicate.GenerationChangedPredicate{}),
 		)).
 		WithOptions(controller.Options{
-			MaxConcurrentReconciles: concurrent,
+			Controller: config.Controller{
+				MaxConcurrentReconciles: concurrent,
+			},
 		}).
 		Build(r)
 	if err != nil {
@@ -237,10 +241,10 @@ func (r *TextTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent i
 }
 
 func (r *TextTemplateReconciler) buildWatchEventHandler(indexField string) handler.EventHandler {
-	return handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, object client.Object) []reconcile.Request {
 		var list templatesv1alpha1.TextTemplateList
 
-		err := r.List(context.Background(), &list, client.MatchingFields{
+		err := r.List(ctx, &list, client.MatchingFields{
 			indexField: BuildObjectIndexValue(object),
 		})
 		if err != nil {
