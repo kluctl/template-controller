@@ -12,7 +12,7 @@ require (
 	github.com/kluctl/kluctl/v2 v2.19.4
 	github.com/ohler55/ojg v1.18.5
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.27.4
+	github.com/onsi/gomega v1.27.6
 	github.com/xanzy/go-gitlab v0.83.0
 	golang.org/x/oauth2 v0.8.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -23,6 +23,9 @@ require (
 	sigs.k8s.io/cli-utils v0.34.0
 	sigs.k8s.io/controller-runtime v0.14.6
 )
+
+// TODO: when controller-runtime past v0.14.6 is released, remove this line
+replace sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.13.1-0.20230426175615-dca0be70fd22
 
 //replace github.com/kluctl/kluctl/v2 => /Users/ablock/go/src/github.com/kluctl/kluctl
 
