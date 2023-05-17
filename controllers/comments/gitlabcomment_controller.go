@@ -38,6 +38,7 @@ type GitlabCommentReconciler struct {
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=gitlabcomments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=gitlabcomments/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=gitlabcomments/finalizers,verbs=update
+//+kubebuilder:rbac:groups=,resources=configmaps,verbs=get;list;watch
 
 func (r *GitlabCommentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
 	logger := log.FromContext(ctx)

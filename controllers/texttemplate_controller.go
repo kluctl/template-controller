@@ -47,6 +47,7 @@ type TextTemplateReconciler struct {
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=texttemplates,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=texttemplates/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=texttemplates/finalizers,verbs=update
+//+kubebuilder:rbac:groups=,resources=configmaps,verbs=get;list;watch
 
 // Reconcile a resource
 func (r *TextTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
