@@ -12,7 +12,7 @@ require (
 	github.com/kluctl/kluctl/v2 v2.19.4
 	github.com/ohler55/ojg v1.18.5
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.27.6
+	github.com/onsi/gomega v1.27.7
 	github.com/xanzy/go-gitlab v0.83.0
 	golang.org/x/oauth2 v0.8.0
 	gopkg.in/yaml.v3 v3.0.1
