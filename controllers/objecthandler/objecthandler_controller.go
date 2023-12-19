@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -118,9 +117,7 @@ func (r *ObjectHandlerReconciler) SetupWithManager(mgr ctrl.Manager, concurrent 
 	c, err := ctrl.NewControllerManagedBy(mgr).
 		For(&templatesv1alpha1.ObjectHandler{}).
 		WithOptions(controller.Options{
-			Controller: config.Controller{
-				MaxConcurrentReconciles: concurrent,
-			},
+			MaxConcurrentReconciles: concurrent,
 		}).
 		Build(r)
 	if err != nil {
