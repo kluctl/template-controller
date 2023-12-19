@@ -3,15 +3,17 @@ package webgit
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"github.com/xanzy/go-gitlab"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"net/http"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
-	"sync"
-	"time"
 )
 
 type GitlabMergeRequest struct {
@@ -237,9 +239,24 @@ func BuildWebgitMergeRequestGitlab(ctx context.Context, client client.Client, na
 		return nil, err
 	}
 
+	var mrId int
+	switch info.MergeRequestId.Type {
+	case intstr.Int:
+		mrId = info.MergeRequestId.IntValue()
+	case intstr.String:
+		mrIdString := info.MergeRequestId.String()
+		mrIdInt, err := strconv.Atoi(mrIdString)
+		if err != nil {
+			return nil, fmt.Errorf("invalid MergeRequestId value %q: %v", info.MergeRequestId.StrVal, err)
+		}
+		mrId = int(mrIdInt)
+	default:
+		return nil, fmt.Errorf("invalid MergeRequestId value: neither int nor string")
+	}
+
 	return &GitlabMergeRequest{
 		client:    glClient,
 		projectId: info.Project,
-		mrId:      info.MergeRequestId,
+		mrId:      mrId,
 	}, nil
 }

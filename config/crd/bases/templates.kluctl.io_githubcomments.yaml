@@ -83,8 +83,11 @@ spec:
                       owns the repository
                     type: string
                   pullRequestId:
+                    anyOf:
+                    - type: integer
+                    - type: string
                     description: PullRequestId specifies the pull request ID.
-                    type: integer
+                    x-kubernetes-int-or-string: true
                   repo:
                     description: Repo specifies the repository name.
                     type: string

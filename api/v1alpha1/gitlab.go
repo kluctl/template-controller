@@ -1,5 +1,7 @@
 package v1alpha1
 
+import "k8s.io/apimachinery/pkg/util/intstr"
+
 type GitlabProject struct {
 	// Project specifies the Gitlab group and project (separated by slash) to use
 	// +required
@@ -20,5 +22,5 @@ type GitlabMergeRequestRef struct {
 
 	// MergeRequestId specifies the Gitlab merge request internal ID
 	// +required
-	MergeRequestId int `json:"mergeRequestId"`
+	MergeRequestId *intstr.IntOrString `json:"mergeRequestId"`
 }

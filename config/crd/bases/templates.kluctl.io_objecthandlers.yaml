@@ -62,9 +62,12 @@ spec:
                                 that owns the repository
                               type: string
                             pullRequestId:
+                              anyOf:
+                              - type: integer
+                              - type: string
                               description: PullRequestId specifies the pull request
                                 ID.
-                              type: integer
+                              x-kubernetes-int-or-string: true
                             repo:
                               description: Repo specifies the repository name.
                               type: string
@@ -92,9 +95,12 @@ spec:
                                 to. If blank, uses https://gitlab.com/.
                               type: string
                             mergeRequestId:
+                              anyOf:
+                              - type: integer
+                              - type: string
                               description: MergeRequestId specifies the Gitlab merge
                                 request internal ID
-                              type: integer
+                              x-kubernetes-int-or-string: true
                             project:
                               description: Project specifies the Gitlab group and
                                 project (separated by slash) to use
@@ -160,9 +166,12 @@ spec:
                                 that owns the repository
                               type: string
                             pullRequestId:
+                              anyOf:
+                              - type: integer
+                              - type: string
                               description: PullRequestId specifies the pull request
                                 ID.
-                              type: integer
+                              x-kubernetes-int-or-string: true
                             repo:
                               description: Repo specifies the repository name.
                               type: string
@@ -190,9 +199,12 @@ spec:
                                 to. If blank, uses https://gitlab.com/.
                               type: string
                             mergeRequestId:
+                              anyOf:
+                              - type: integer
+                              - type: string
                               description: MergeRequestId specifies the Gitlab merge
                                 request internal ID
-                              type: integer
+                              x-kubernetes-int-or-string: true
                             project:
                               description: Project specifies the Gitlab group and
                                 project (separated by slash) to use
@@ -227,9 +239,12 @@ spec:
                                 that owns the repository
                               type: string
                             pullRequestId:
+                              anyOf:
+                              - type: integer
+                              - type: string
                               description: PullRequestId specifies the pull request
                                 ID.
-                              type: integer
+                              x-kubernetes-int-or-string: true
                             repo:
                               description: Repo specifies the repository name.
                               type: string
@@ -257,9 +272,12 @@ spec:
                                 to. If blank, uses https://gitlab.com/.
                               type: string
                             mergeRequestId:
+                              anyOf:
+                              - type: integer
+                              - type: string
                               description: MergeRequestId specifies the Gitlab merge
                                 request internal ID
-                              type: integer
+                              x-kubernetes-int-or-string: true
                             project:
                               description: Project specifies the Gitlab group and
                                 project (separated by slash) to use
