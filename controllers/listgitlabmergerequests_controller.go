@@ -122,7 +122,7 @@ func (r *ListGitlabMergeRequestsReconciler) doReconcile(ctx context.Context, obj
 		return err
 	}
 
-	labels := gitlab.Labels(obj.Spec.Labels)
+	labels := gitlab.LabelOptions(obj.Spec.Labels)
 	if len(labels) == 0 {
 		labels = nil
 	}

@@ -18,12 +18,12 @@ package main
 
 import (
 	"flag"
+	"github.com/kluctl/template-controller/controllers"
+	"github.com/kluctl/template-controller/controllers/comments"
 	"os"
 	"path/filepath"
-
-	"github.com/kluctl/template-controller/controllers/comments"
-
-	"github.com/kluctl/template-controller/controllers"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	"github.com/kluctl/template-controller/controllers/objecthandler"
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -82,10 +82,18 @@ func main() {
 		watchNamespace = os.Getenv("RUNTIME_NAMESPACE")
 	}
 
+	var cacheNamespaces map[string]cache.Config
+	if watchNamespace != "" {
+		cacheNamespaces = map[string]cache.Config{
+			watchNamespace: {},
+		}
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
+		},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "3ab68de8.kluctl.io",
@@ -100,7 +108,9 @@ func main() {
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
-		Namespace: watchNamespace,
+		Cache: cache.Options{
+			DefaultNamespaces: cacheNamespaces,
+		},
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

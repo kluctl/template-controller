@@ -33,7 +33,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -450,9 +449,7 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 			predicate.Or(predicate.GenerationChangedPredicate{}),
 		)).
 		WithOptions(controller.Options{
-			Controller: config.Controller{
-				MaxConcurrentReconciles: concurrent,
-			},
+			MaxConcurrentReconciles: concurrent,
 		}).
 		Build(r)
 	if err != nil {
