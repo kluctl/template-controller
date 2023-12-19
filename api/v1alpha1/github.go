@@ -1,5 +1,7 @@
 package v1alpha1
 
+import "k8s.io/apimachinery/pkg/util/intstr"
+
 type GithubProject struct {
 	// Owner specifies the GitHub user or organisation that owns the repository
 	// +required
@@ -19,5 +21,5 @@ type GithubPullRequestRef struct {
 
 	// PullRequestId specifies the pull request ID.
 	// +required
-	PullRequestId int `json:"pullRequestId"`
+	PullRequestId *intstr.IntOrString `json:"pullRequestId"`
 }

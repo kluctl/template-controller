@@ -3,16 +3,18 @@ package webgit
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/google/go-github/v47/github"
 	"github.com/kluctl/template-controller/api/v1alpha1"
 	"golang.org/x/oauth2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"net/http"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
-	"sync"
-	"time"
 )
 
 type GithubMergeRequest struct {
@@ -295,11 +297,26 @@ func BuildWebgitMergeRequestGithub(ctx context.Context, client client.Client, na
 	)
 	tc := oauth2.NewClient(ctx, ts)
 
+	var prId int
+	switch info.PullRequestId.Type {
+	case intstr.Int:
+		prId = info.PullRequestId.IntValue()
+	case intstr.String:
+		prIdString := info.PullRequestId.String()
+		prIdInt, err := strconv.Atoi(prIdString)
+		if err != nil {
+			return nil, fmt.Errorf("invalid PullRequestId value %q: %v", info.PullRequestId.StrVal, err)
+		}
+		prId = int(prIdInt)
+	default:
+		return nil, fmt.Errorf("invalid PullRequestId value: neither int nor string")
+	}
+
 	return &GithubMergeRequest{
 		ctx:    ctx,
 		client: github.NewClient(tc),
 		owner:  info.Owner,
 		repo:   info.Repo,
-		prId:   info.PullRequestId,
+		prId:   prId,
 	}, nil
 }
