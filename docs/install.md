@@ -13,7 +13,7 @@ The Template Controller can currently only be installed via kustomize:
 
 ```sh
 kubectl create ns kluctl-system
-kustomize build "https://github.com/kluctl/template-controller/config/install?ref=v0.7.1" | kubectl apply -f-
+kustomize build "https://github.com/kluctl/template-controller/config/install?ref=v0.8.0" | kubectl apply -f-
 ```
 
 ## Helm
