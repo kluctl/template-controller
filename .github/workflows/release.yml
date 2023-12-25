@@ -58,7 +58,7 @@ jobs:
           echo '[CHANGELOG](https://github.com/kluctl/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
       - name: Run GoReleaser
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v5
         with:
           distribution: goreleaser
           version: latest
