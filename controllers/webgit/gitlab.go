@@ -19,7 +19,7 @@ import (
 type GitlabMergeRequest struct {
 	client *gitlab.Client
 
-	projectId string
+	projectId interface{}
 	mrId      int
 
 	currentUserCache *gitlab.User
@@ -206,7 +206,7 @@ func (n *GitlabNote) UpdateBody(body string) error {
 }
 
 func BuildWebgitMergeRequestGitlab(ctx context.Context, client client.Client, namespace string, info v1alpha1.GitlabMergeRequestRef) (*GitlabMergeRequest, error) {
-	if info.Project == "" {
+	if info.Project == nil {
 		return nil, fmt.Errorf("missing gitlab project")
 	}
 	if info.TokenRef == nil {
@@ -254,9 +254,19 @@ func BuildWebgitMergeRequestGitlab(ctx context.Context, client client.Client, na
 		return nil, fmt.Errorf("invalid MergeRequestId value: neither int nor string")
 	}
 
-	return &GitlabMergeRequest{
-		client:    glClient,
-		projectId: info.Project,
-		mrId:      mrId,
-	}, nil
+	glmr := &GitlabMergeRequest{
+		client: glClient,
+		mrId:   mrId,
+	}
+
+	switch info.Project.Type {
+	case intstr.Int:
+		glmr.projectId = info.Project.IntValue()
+	case intstr.String:
+		glmr.projectId = info.Project.String()
+	default:
+		return nil, fmt.Errorf("invalid Project value: neither int nor string")
+	}
+
+	return glmr, nil
 }

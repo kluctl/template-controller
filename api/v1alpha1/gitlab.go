@@ -3,9 +3,10 @@ package v1alpha1
 import "k8s.io/apimachinery/pkg/util/intstr"
 
 type GitlabProject struct {
-	// Project specifies the Gitlab group and project (separated by slash) to use
+	// Project specifies the Gitlab group and project (separated by slash) to
+	// use, or the numeric project id
 	// +required
-	Project string `json:"project"`
+	Project *intstr.IntOrString `json:"project"`
 
 	// API specifies the GitLab API URL to talk to.
 	// If blank, uses https://gitlab.com/.
