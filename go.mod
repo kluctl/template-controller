@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.2
 
 require (
-	github.com/evanphx/json-patch v5.7.0+incompatible
+	github.com/evanphx/json-patch v5.8.0+incompatible
 	github.com/go-git/go-git/v5 v5.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v47 v47.1.0
