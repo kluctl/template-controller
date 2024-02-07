@@ -224,7 +224,7 @@ func (r *GitProjectorReconciler) doReconcile(ctx context.Context, obj *templates
 		var ref templatesv1alpha1.GitRef
 		if strings.HasPrefix(name, "refs/heads/") {
 			ref.Branch = strings.TrimPrefix(name, "refs/heads/")
-		} else if strings.HasSuffix(name, "refs/tags/") {
+		} else if strings.HasPrefix(name, "refs/tags/") {
 			ref.Tag = strings.TrimPrefix(name, "refs/tags/")
 		} else {
 			return fmt.Errorf("could not determine ref type for %s", name)
