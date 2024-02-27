@@ -24,6 +24,7 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/json"
 	"regexp"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -134,13 +135,23 @@ func (r *ListGitlabMergeRequestsReconciler) doReconcile(ctx context.Context, obj
 	listOpts.Page = 1
 	listOpts.PerPage = 100
 
+	var projectId any
+	switch obj.Spec.Project.Type {
+	case intstr.Int:
+		projectId = obj.Spec.Project.IntValue()
+	case intstr.String:
+		projectId = obj.Spec.Project.String()
+	default:
+		return fmt.Errorf("invalid Project value: neither int nor string")
+	}
+
 	var result []*gitlab.MergeRequest
 	for true {
 		if len(result)+listOpts.PerPage > obj.Spec.Limit {
 			listOpts.PerPage = obj.Spec.Limit - len(result)
 		}
 
-		page, _, err := gl.MergeRequests.ListProjectMergeRequests(obj.Spec.Project, listOpts, gitlab.WithContext(ctx))
+		page, _, err := gl.MergeRequests.ListProjectMergeRequests(projectId, listOpts, gitlab.WithContext(ctx))
 		if err != nil {
 			return err
 		}
