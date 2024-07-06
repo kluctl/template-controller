@@ -55,7 +55,7 @@ func (r *BaseTemplateReconciler) getClientForObjects(serviceAccountName string, 
 	return c, nil
 }
 
-func (r *BaseTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema.GroupVersionKind, key string, eventHandler handler.EventHandler) error {
+func (r *BaseTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema.GroupVersionKind, key string, eventHandler handler.TypedEventHandler[client.Object]) error {
 	logger := log.FromContext(ctx)
 
 	r.mutex.Lock()
@@ -76,7 +76,7 @@ func (r *BaseTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema
 	var dummy unstructured.Unstructured
 	dummy.SetGroupVersionKind(gvk)
 
-	err := r.controller.Watch(source.Kind(r.Manager.GetCache(), &dummy), eventHandler)
+	err := r.controller.Watch(source.Kind[client.Object](r.Manager.GetCache(), &dummy, eventHandler))
 	if err != nil {
 		return err
 	}

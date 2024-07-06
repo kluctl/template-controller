@@ -260,7 +260,7 @@ func (r *ObjectHandlerReconciler) addWatchForKind(ctx context.Context, sr *templ
 	var dummy unstructured.Unstructured
 	dummy.SetGroupVersionKind(gvk)
 
-	err = r.controller.Watch(source.Kind(r.Manager.GetCache(), &dummy), handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, object client.Object) []reconcile.Request {
+	err = r.controller.Watch(source.Kind[client.Object](r.Manager.GetCache(), &dummy, handler.TypedEnqueueRequestsFromMapFunc[client.Object](func(ctx context.Context, object client.Object) []reconcile.Request {
 		var list templatesv1alpha1.ObjectHandlerList
 		err := r.List(ctx, &list, client.MatchingFields{
 			forObjectIndexKey: controllers.BuildObjectIndexValue(object),
@@ -278,7 +278,7 @@ func (r *ObjectHandlerReconciler) addWatchForKind(ctx context.Context, sr *templ
 			})
 		}
 		return reqs
-	}))
+	})))
 	if err != nil {
 		return err
 	}
