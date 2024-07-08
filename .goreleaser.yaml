@@ -1,7 +1,9 @@
+version: 2
+
 project_name: template-controller
 
 builds:
-  - binary: manager
+  - binary: bin/manager
     env:
       - CGO_ENABLED=0
     id: linux
