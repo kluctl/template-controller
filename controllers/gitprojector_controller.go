@@ -22,19 +22,19 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/kluctl/kluctl/v2/pkg/git/messages"
-	types2 "github.com/kluctl/kluctl/v2/pkg/types"
+	"github.com/kluctl/kluctl/lib/git/messages"
+	gittypes "github.com/kluctl/kluctl/lib/git/types"
 	"io"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
 
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/gobwas/glob"
-	"github.com/kluctl/kluctl/v2/pkg/git"
-	"github.com/kluctl/kluctl/v2/pkg/git/auth"
-	ssh_pool "github.com/kluctl/kluctl/v2/pkg/git/ssh-pool"
+	"github.com/kluctl/kluctl/lib/git"
+	"github.com/kluctl/kluctl/lib/git/auth"
+	ssh_pool "github.com/kluctl/kluctl/lib/git/ssh-pool"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	yaml3 "gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -136,7 +136,7 @@ func (r *GitProjectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GitProjectorReconciler) doReconcile(ctx context.Context, obj *templatesv1alpha1.GitProjector) error {
-	url, err := types2.ParseGitUrl(obj.Spec.URL)
+	url, err := gittypes.ParseGitUrl(obj.Spec.URL)
 	if err != nil {
 		return err
 	}
