@@ -67,7 +67,7 @@ func buildTestSecret(name string, namespace string, data map[string]string) *uns
 	}
 }
 
-func buildObjectTemplate(name string, namespace string, matrixEntries []*templatesv1alpha1.MatrixEntry, templates []templatesv1alpha1.Template) *templatesv1alpha1.ObjectTemplate {
+func buildObjectTemplate(name string, namespace string, matrixEntries []templatesv1alpha1.MatrixEntry, templates []templatesv1alpha1.Template) *templatesv1alpha1.ObjectTemplate {
 	t := &templatesv1alpha1.ObjectTemplate{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: templatesv1alpha1.GroupVersion.String(),
@@ -86,8 +86,8 @@ func buildObjectTemplate(name string, namespace string, matrixEntries []*templat
 	return t
 }
 
-func buildMatrixListEntry(name string) *templatesv1alpha1.MatrixEntry {
-	return &templatesv1alpha1.MatrixEntry{
+func buildMatrixListEntry(name string) templatesv1alpha1.MatrixEntry {
+	return templatesv1alpha1.MatrixEntry{
 		Name: name,
 		List: []runtime.RawExtension{
 			{
@@ -97,12 +97,12 @@ func buildMatrixListEntry(name string) *templatesv1alpha1.MatrixEntry {
 	}
 }
 
-func buildMatrixObjectEntry(name string, objName string, objNamespace string, objKind string, jsonPath string, expandLists bool) *templatesv1alpha1.MatrixEntry {
+func buildMatrixObjectEntry(name string, objName string, objNamespace string, objKind string, jsonPath string, expandLists bool) templatesv1alpha1.MatrixEntry {
 	var jsonPathPtr *string
 	if jsonPath != "" {
 		jsonPathPtr = &jsonPath
 	}
-	return &templatesv1alpha1.MatrixEntry{
+	return templatesv1alpha1.MatrixEntry{
 		Name: name,
 		Object: &templatesv1alpha1.MatrixEntryObject{
 			Ref: templatesv1alpha1.ObjectRef{
@@ -207,7 +207,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 		cmKey := client2.ObjectKey{Name: "cm1", Namespace: ns}
 
 		t := buildObjectTemplate(key.Name, key.Namespace,
-			[]*templatesv1alpha1.MatrixEntry{buildMatrixListEntry("m1")},
+			[]templatesv1alpha1.MatrixEntry{buildMatrixListEntry("m1")},
 			[]templatesv1alpha1.Template{
 				{Object: buildTestConfigMap(cmKey.Name, cmKey.Namespace, map[string]string{
 					"k1": `{{ matrix.m1.k1 + matrix.m1.k2 }}`,
@@ -271,7 +271,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 			createRoleWithBinding("default", ns, []string{"configmaps"})
 
 			t := buildObjectTemplate(key.Name, key.Namespace,
-				[]*templatesv1alpha1.MatrixEntry{
+				[]templatesv1alpha1.MatrixEntry{
 					buildMatrixObjectEntry("m1", "m1", ns, "Secret", "", false),
 				},
 				[]templatesv1alpha1.Template{

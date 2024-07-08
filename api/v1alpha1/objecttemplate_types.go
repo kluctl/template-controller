@@ -50,7 +50,7 @@ type ObjectTemplateSpec struct {
 
 	// Matrix specifies the input matrix
 	// +required
-	Matrix []*MatrixEntry `json:"matrix"`
+	Matrix []MatrixEntry `json:"matrix"`
 
 	// Templates specifies a list of templates to render and deploy
 	// +required

@@ -33,7 +33,7 @@ type TextTemplateSpec struct {
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 
 	// +optional
-	Inputs []*TextTemplateInput `json:"inputs,omitempty"`
+	Inputs []TextTemplateInput `json:"inputs,omitempty"`
 
 	// +optional
 	Template *string `json:"template,omitempty"`

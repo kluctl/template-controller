@@ -987,13 +987,9 @@ func (in *ObjectTemplateSpec) DeepCopyInto(out *ObjectTemplateSpec) {
 	out.Interval = in.Interval
 	if in.Matrix != nil {
 		in, out := &in.Matrix, &out.Matrix
-		*out = make([]*MatrixEntry, len(*in))
+		*out = make([]MatrixEntry, len(*in))
 		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(MatrixEntry)
-				(*in).DeepCopyInto(*out)
-			}
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.Templates != nil {
@@ -1221,13 +1217,9 @@ func (in *TextTemplateSpec) DeepCopyInto(out *TextTemplateSpec) {
 	*out = *in
 	if in.Inputs != nil {
 		in, out := &in.Inputs, &out.Inputs
-		*out = make([]*TextTemplateInput, len(*in))
+		*out = make([]TextTemplateInput, len(*in))
 		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(TextTemplateInput)
-				(*in).DeepCopyInto(*out)
-			}
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.Template != nil {
