@@ -105,9 +105,9 @@ jobs:
           docker build -t test-image --platform=${{ matrix.docker_platform }} --build-arg=ARCH_ORG=${{ matrix.arch_org }} .
       - name: Test if git works inside container
         run: |
-          # test if the git binary is still working, which keep breaking due to wolfi-base updates being missed
-          # If you see this failing, it's time to upgrade the base image in Dockerfile...
-          docker run --platform=${{ matrix.docker_platform }} --rm -i --entrypoint=/bin/sh test-image -c "cd && git clone https://github.com/kluctl/kluctl.git"
+          # test if Jinja2 rendering is still working. It might break if the glic version from wolfi-base is not
+          # recent enough to support the embedded Python distribution.
+          docker run --platform=${{ matrix.docker_platform }} --rm -i --entrypoint=/bin/sh test-image -c "/usr/bin/template-controller -test-jinja2"
 
   tests:
     runs-on: ubuntu-22.04

@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/kluctl/template-controller/controllers"
 	"github.com/kluctl/template-controller/controllers/comments"
 	"os"
@@ -55,11 +56,13 @@ func init() {
 }
 
 func main() {
+	var testJinja2 bool
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
 	var watchAllNamespaces bool
 	var concurrent int
+	flag.BoolVar(&testJinja2, "test-jinja2", false, "Perform a simple Jinja2 rendering test and exit.")
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -73,6 +76,21 @@ func main() {
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+
+	if testJinja2 {
+		j2, err := controllers.NewJinja2()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "failed to create jinja2 renderer: %s", err.Error())
+			os.Exit(1)
+		}
+		defer j2.Close()
+		_, err = j2.RenderString(`{{ "ok" }}`)
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "failed render test string: %s", err.Error())
+			os.Exit(1)
+		}
+		return
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
