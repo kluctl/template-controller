@@ -6,7 +6,7 @@ FROM $ARCH_ORG/debian:bullseye-slim
 # We meed git for kustomize to support overlays from git
 RUN apt update && apt install git -y && rm -rf /var/lib/apt/lists/*
 
-COPY bin/manager /manager
+COPY bin/template-controller /usr/bin/
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]

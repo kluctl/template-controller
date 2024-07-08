@@ -65,7 +65,7 @@ build: generate fmt vet build-bin ## Build manager binary.
 
 .PHONY: build-bin
 build-bin: ## Build manager binary.
-	go build -o bin/manager main.go
+	go build -o bin/template-controller main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
