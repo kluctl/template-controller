@@ -429,7 +429,7 @@ func (r *ObjectTemplateReconciler) renderTemplates(j2 *jinja2.Jinja2, rt *templa
 func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
 	r.Manager = mgr
 
-	// Index the ObjectHandler by the objects they are for.
+	// Index the ObjectTemplate by the objects they are for.
 	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.ObjectTemplate{}, forMatrixObjectKey,
 		func(object client.Object) []string {
 			o := object.(*templatesv1alpha1.ObjectTemplate)

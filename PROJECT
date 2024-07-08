@@ -19,15 +19,6 @@ resources:
   controller: true
   domain: kluctl.io
   group: templates
-  kind: ObjectHandler
-  path: kluctl/template-controller/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: kluctl.io
-  group: templates
   kind: ListGitlabMergeRequests
   path: kluctl/template-controller/api/v1alpha1
   version: v1alpha1

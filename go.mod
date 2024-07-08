@@ -3,7 +3,6 @@ module github.com/kluctl/template-controller
 go 1.22.4
 
 require (
-	github.com/evanphx/json-patch v5.9.0+incompatible
 	github.com/go-git/go-git/v5 v5.12.1-0.20240409060936-cd6633c3c665
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v47 v47.1.0
@@ -20,7 +19,6 @@ require (
 	k8s.io/apiextensions-apiserver v0.30.2
 	k8s.io/apimachinery v0.30.2
 	k8s.io/client-go v0.30.2
-	sigs.k8s.io/cli-utils v0.37.1
 	sigs.k8s.io/controller-runtime v0.18.4
 )
 
@@ -97,6 +95,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
+	github.com/onsi/ginkgo/v2 v2.19.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/otiai10/copy v1.14.0 // indirect

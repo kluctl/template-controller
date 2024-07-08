@@ -3,7 +3,6 @@
 # It should be run by config/default
 resources:
 - bases/templates.kluctl.io_objecttemplates.yaml
-- bases/templates.kluctl.io_objecthandlers.yaml
 - bases/templates.kluctl.io_listgitlabmergerequests.yaml
 - bases/templates.kluctl.io_listgithubpullrequests.yaml
 - bases/templates.kluctl.io_gitprojectors.yaml
@@ -16,7 +15,6 @@ patchesStrategicMerge:
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD
 #- patches/webhook_in_objecttemplates.yaml
-#- patches/webhook_in_objecthandlers.yaml
 #- patches/webhook_in_listgitlabmergerequests.yaml
 #- patches/webhook_in_listgithubpullrequests.yaml
 #- patches/webhook_in_gitprojectors.yaml
@@ -28,7 +26,6 @@ patchesStrategicMerge:
 # [CERTMANAGER] To enable cert-manager, uncomment all the sections with [CERTMANAGER] prefix.
 # patches here are for enabling the CA injection for each CRD
 #- patches/cainjection_in_objecttemplates.yaml
-#- patches/cainjection_in_objecthandlers.yaml
 #- patches/cainjection_in_listgitlabmergerequests.yaml
 #- patches/cainjection_in_listgithubpullrequests.yaml
 #- patches/cainjection_in_gitprojectors.yaml
