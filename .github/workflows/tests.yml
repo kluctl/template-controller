@@ -1,0 +1,91 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+      - release-v*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  generate-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: generate-check-go-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            generate-check-go-${{ runner.os }}-
+      - name: Verify generated source is up-to-date
+        run: |
+          make generate
+          if [ ! -z "$(git status --porcelain)" ]; then
+            echo "make generate must be invoked and the result committed"
+            git status
+            git diff
+            exit 1
+          fi
+      - name: Verify generated manifests are up-to-date
+        run: |
+          make manifests
+          if [ ! -z "$(git status --porcelain)" ]; then
+            echo "make manifests must be invoked and the result committed"
+            git status
+            git diff
+            exit 1
+          fi
+      - name: Verify generated api-docs are up-to-date
+        run: |
+          make api-docs
+          if [ ! -z "$(git status --porcelain)" ]; then
+            echo "make api-docs must be invoked and the result committed"
+            git status
+            git diff
+            exit 1
+          fi
+      - name: Verify go.mod and go.sum are clean
+        run: |
+          go mod tidy
+          if [ ! -z "$(git status --porcelain)" ]; then
+            echo "go mod tidy must be invoked and the result committed"
+            git status
+            git diff
+            exit 1
+          fi
+
+  tests:
+    runs-on: ubuntu-22.04
+    name: tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: tests-go-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            tests-go-${{ runner.os }}-
+      - name: Run tests
+        shell: bash
+        run: |
+          make test
