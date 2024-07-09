@@ -23,8 +23,6 @@ import (
 	v12 "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand/v2"
-	"os"
-	"path"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
@@ -52,9 +50,6 @@ var (
 	testEnv   *envtest.Environment
 	ctx       context.Context
 	cancel    context.CancelFunc
-
-	kubeconfigName = "template-controller-tests.kubeconfig"
-	kubeconfigPath string
 )
 
 func TestControllers(t *testing.T) {
@@ -84,18 +79,6 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
-
-	user, err := testEnv.AddUser(envtest.User{Name: "default", Groups: []string{"system:masters"}}, &rest.Config{})
-	Expect(err).NotTo(HaveOccurred())
-
-	kcfg, err := user.KubeConfig()
-	Expect(err).NotTo(HaveOccurred())
-
-	kubeconfigPath = path.Join(os.TempDir(), kubeconfigName)
-	err = os.WriteFile(kubeconfigPath, kcfg, 0600)
-	Expect(err).To(Succeed())
-
-	_, _ = fmt.Fprintf(GinkgoWriter, "kubeconfig: %s\n", kubeconfigPath)
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
@@ -128,10 +111,6 @@ var _ = AfterSuite(func() {
 	By("tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
-
-	if kubeconfigPath != "" {
-		_ = os.Remove(kubeconfigPath)
-	}
 })
 
 func createNamespace(name string) {
