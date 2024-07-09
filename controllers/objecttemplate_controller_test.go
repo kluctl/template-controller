@@ -31,40 +31,40 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func buildTestConfigMap(name string, namespace string, data map[string]string) *unstructured.Unstructured {
-	m := map[string]any{}
-	for k, v := range data {
-		m[k] = v
-	}
+func toUnstructured(o client.Object) *unstructured.Unstructured {
+	m, err := runtime.DefaultUnstructuredConverter.ToUnstructured(o)
+	Expect(err).To(Succeed())
 	return &unstructured.Unstructured{
-		Object: map[string]any{
-			"apiVersion": "v1",
-			"kind":       "ConfigMap",
-			"metadata": map[string]any{
-				"name":      name,
-				"namespace": namespace,
-			},
-			"data": m,
-		},
+		Object: m,
 	}
 }
 
-func buildTestSecret(name string, namespace string, data map[string]string) *unstructured.Unstructured {
-	m := map[string]any{}
-	for k, v := range data {
-		m[k] = v
-	}
-	return &unstructured.Unstructured{
-		Object: map[string]any{
-			"apiVersion": "v1",
-			"kind":       "Secret",
-			"metadata": map[string]any{
-				"name":      name,
-				"namespace": namespace,
-			},
-			"stringData": m,
+func buildTestConfigMap(name string, namespace string, data map[string]string) *unstructured.Unstructured {
+	return toUnstructured(&v1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
 		},
-	}
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Data: data,
+	})
+}
+
+func buildTestSecret(name string, namespace string, data map[string]string) *unstructured.Unstructured {
+	return toUnstructured(&v1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		StringData: data,
+	})
 }
 
 func buildObjectTemplate(name string, namespace string, matrixEntries []templatesv1alpha1.MatrixEntry, templates []templatesv1alpha1.Template) *templatesv1alpha1.ObjectTemplate {
