@@ -105,7 +105,7 @@ jobs:
           docker build -t test-image --platform=${{ matrix.docker_platform }} --build-arg=ARCH_ORG=${{ matrix.arch_org }} .
       - name: Test if Jinja2 works inside container
         run: |
-          # test if Jinja2 rendering is still working. It might break if the glic version from wolfi-base is not
+          # test if Jinja2 rendering is still working. It might break if the glibc version from wolfi-base is not
           # recent enough to support the embedded Python distribution.
           docker run --platform=${{ matrix.docker_platform }} --rm -i --entrypoint=/bin/sh test-image -c "/usr/bin/template-controller -test-jinja2"
 
