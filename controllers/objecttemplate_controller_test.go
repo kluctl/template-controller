@@ -22,7 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"math/rand/v2"
-	client2 "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
@@ -117,20 +117,20 @@ func buildMatrixObjectEntry(name string, objName string, objNamespace string, ob
 	}
 }
 
-func updateObjectTemplate(key client2.ObjectKey, fn func(t *templatesv1alpha1.ObjectTemplate)) {
+func updateObjectTemplate(key client.ObjectKey, fn func(t *templatesv1alpha1.ObjectTemplate)) {
 	t := getObjectTemplate(key)
 	fn(t)
-	err := k8sClient.Update(ctx, t, client2.FieldOwner("tests"))
+	err := k8sClient.Update(ctx, t, client.FieldOwner("tests"))
 	Expect(err).To(Succeed())
 }
 
-func triggerReconcile(key client2.ObjectKey) {
+func triggerReconcile(key client.ObjectKey) {
 	updateObjectTemplate(key, func(t *templatesv1alpha1.ObjectTemplate) {
 		t.Spec.Interval.Duration += time.Millisecond
 	})
 }
 
-func waitUntiReconciled(key client2.ObjectKey, timeout time.Duration) {
+func waitUntiReconciled(key client.ObjectKey, timeout time.Duration) {
 	Eventually(func() bool {
 		t := getObjectTemplate(key)
 		if t == nil {
@@ -144,7 +144,7 @@ func waitUntiReconciled(key client2.ObjectKey, timeout time.Duration) {
 	}, timeout, time.Millisecond*250).Should(BeTrue())
 }
 
-func getObjectTemplate(key client2.ObjectKey) *templatesv1alpha1.ObjectTemplate {
+func getObjectTemplate(key client.ObjectKey) *templatesv1alpha1.ObjectTemplate {
 	var t templatesv1alpha1.ObjectTemplate
 	err := k8sClient.Get(ctx, key, &t)
 	if err != nil {
@@ -153,35 +153,35 @@ func getObjectTemplate(key client2.ObjectKey) *templatesv1alpha1.ObjectTemplate 
 	return &t
 }
 
-func assertAppliedConfigMaps(key client2.ObjectKey, keys ...client2.ObjectKey) {
+func assertAppliedConfigMaps(key client.ObjectKey, keys ...client.ObjectKey) {
 	t := getObjectTemplate(key)
 	Expect(t).ToNot(BeNil())
 
-	var found []client2.ObjectKey
+	var found []client.ObjectKey
 	for _, as := range t.Status.AppliedResources {
 		if as.Success {
-			found = append(found, client2.ObjectKey{Name: as.Ref.Name, Namespace: as.Ref.Namespace})
+			found = append(found, client.ObjectKey{Name: as.Ref.Name, Namespace: as.Ref.Namespace})
 		}
 	}
 
 	Expect(found).To(ConsistOf(keys))
 }
 
-func assertFailedConfigMaps(key client2.ObjectKey, keys ...client2.ObjectKey) {
+func assertFailedConfigMaps(key client.ObjectKey, keys ...client.ObjectKey) {
 	t := getObjectTemplate(key)
 	Expect(t).ToNot(BeNil())
 
-	var found []client2.ObjectKey
+	var found []client.ObjectKey
 	for _, as := range t.Status.AppliedResources {
 		if !as.Success {
-			found = append(found, client2.ObjectKey{Name: as.Ref.Name, Namespace: as.Ref.Namespace})
+			found = append(found, client.ObjectKey{Name: as.Ref.Name, Namespace: as.Ref.Namespace})
 		}
 	}
 
 	Expect(found).To(ConsistOf(keys))
 }
 
-func assertFailedConfigMap(key client2.ObjectKey, cmKey client2.ObjectKey, errStr string) {
+func assertFailedConfigMap(key client.ObjectKey, cmKey client.ObjectKey, errStr string) {
 	t := getObjectTemplate(key)
 	Expect(t).ToNot(BeNil())
 	for _, as := range t.Status.AppliedResources {
@@ -203,8 +203,8 @@ var _ = Describe("ObjectTemplate controller", func() {
 	Context("Template without permissions to write object", func() {
 		ns := fmt.Sprintf("test-%d", rand.Int64())
 
-		key := client2.ObjectKey{Name: "t1", Namespace: ns}
-		cmKey := client2.ObjectKey{Name: "cm1", Namespace: ns}
+		key := client.ObjectKey{Name: "t1", Namespace: ns}
+		cmKey := client.ObjectKey{Name: "cm1", Namespace: ns}
 
 		t := buildObjectTemplate(key.Name, key.Namespace,
 			[]templatesv1alpha1.MatrixEntry{buildMatrixListEntry("m1")},
@@ -262,8 +262,8 @@ var _ = Describe("ObjectTemplate controller", func() {
 	Context("Template without permissions to read matrix object", func() {
 		ns := fmt.Sprintf("test-%d", rand.Int64())
 
-		key := client2.ObjectKey{Name: "t1", Namespace: ns}
-		cmKey := client2.ObjectKey{Name: "cm1", Namespace: ns}
+		key := client.ObjectKey{Name: "t1", Namespace: ns}
+		cmKey := client.ObjectKey{Name: "cm1", Namespace: ns}
 
 		It("Should fail initially", func() {
 			createNamespace(ns)
