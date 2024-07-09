@@ -1971,6 +1971,10 @@ string
 </div>
 <h3 id="templates.kluctl.io/v1alpha1.MatrixEntry">MatrixEntry
 </h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.ObjectTemplateSpec">ObjectTemplateSpec</a>)
+</p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
 <table>
@@ -2242,8 +2246,8 @@ bool
 <td>
 <code>matrix</code><br>
 <em>
-<a href="#templates.kluctl.io/v1alpha1.*github.com/kluctl/template-controller/api/v1alpha1.MatrixEntry">
-[]*github.com/kluctl/template-controller/api/v1alpha1.MatrixEntry
+<a href="#templates.kluctl.io/v1alpha1.MatrixEntry">
+[]MatrixEntry
 </a>
 </em>
 </td>
@@ -2353,8 +2357,8 @@ bool
 <td>
 <code>matrix</code><br>
 <em>
-<a href="#templates.kluctl.io/v1alpha1.*github.com/kluctl/template-controller/api/v1alpha1.MatrixEntry">
-[]*github.com/kluctl/template-controller/api/v1alpha1.MatrixEntry
+<a href="#templates.kluctl.io/v1alpha1.MatrixEntry">
+[]MatrixEntry
 </a>
 </em>
 </td>
@@ -2669,8 +2673,8 @@ when reconciling this TextTemplate. If omitted, the &ldquo;default&rdquo; servic
 <td>
 <code>inputs</code><br>
 <em>
-<a href="#templates.kluctl.io/v1alpha1.*github.com/kluctl/template-controller/api/v1alpha1.TextTemplateInput">
-[]*github.com/kluctl/template-controller/api/v1alpha1.TextTemplateInput
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateInput">
+[]TextTemplateInput
 </a>
 </em>
 </td>
@@ -2723,6 +2727,10 @@ TextTemplateStatus
 </div>
 <h3 id="templates.kluctl.io/v1alpha1.TextTemplateInput">TextTemplateInput
 </h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateSpec">TextTemplateSpec</a>)
+</p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
 <table>
@@ -2849,8 +2857,8 @@ when reconciling this TextTemplate. If omitted, the &ldquo;default&rdquo; servic
 <td>
 <code>inputs</code><br>
 <em>
-<a href="#templates.kluctl.io/v1alpha1.*github.com/kluctl/template-controller/api/v1alpha1.TextTemplateInput">
-[]*github.com/kluctl/template-controller/api/v1alpha1.TextTemplateInput
+<a href="#templates.kluctl.io/v1alpha1.TextTemplateInput">
+[]TextTemplateInput
 </a>
 </em>
 </td>

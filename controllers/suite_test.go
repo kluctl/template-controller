@@ -17,10 +17,17 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
+	"fmt"
+	corev1 "k8s.io/api/core/v1"
+	v12 "k8s.io/api/rbac/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"math/rand/v2"
 	"path/filepath"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"k8s.io/client-go/kubernetes/scheme"
@@ -37,20 +44,24 @@ import (
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var cfg *rest.Config
-var k8sClient client.Client
-var testEnv *envtest.Environment
+var (
+	cfg       *rest.Config
+	k8sClient client.Client // You'll be using this client in your tests.
+	testEnv   *envtest.Environment
+	ctx       context.Context
+	cancel    context.CancelFunc
+)
 
-func TestAPIs(t *testing.T) {
+func TestControllers(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecsWithDefaultAndCustomReporters(t,
-		"Controller Suite",
-		[]Reporter{})
+	RunSpecs(t, "Controller Suite")
 }
 
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
+
+	ctx, cancel = context.WithCancel(context.TODO())
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
@@ -73,10 +84,101 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-}, 60)
+	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme: scheme.Scheme,
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&ObjectTemplateReconciler{
+		BaseTemplateReconciler: BaseTemplateReconciler{
+			Client:       k8sManager.GetClient(),
+			Scheme:       k8sManager.GetScheme(),
+			FieldManager: "template-controller",
+		},
+	}).SetupWithManager(k8sManager, 1)
+	Expect(err).ToNot(HaveOccurred())
+
+	go func() {
+		defer GinkgoRecover()
+		err = k8sManager.Start(ctx)
+		Expect(err).ToNot(HaveOccurred(), "failed to run manager")
+	}()
+
+})
 
 var _ = AfterSuite(func() {
+	cancel()
 	By("tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+func createNamespace(name string) {
+	ns := corev1.Namespace{
+		ObjectMeta: v1.ObjectMeta{
+			Name: name,
+		},
+	}
+	err := k8sClient.Create(ctx, &ns)
+	Expect(err).To(Succeed())
+}
+
+func createServiceAccount(saName string, saNamespace string) {
+	sa := corev1.ServiceAccount{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      saName,
+			Namespace: saNamespace,
+		},
+	}
+	err := k8sClient.Create(ctx, &sa)
+	Expect(err).To(Succeed())
+}
+
+func createRoleWithBinding(saName string, saNamespace string, resources []string) {
+	roleName := fmt.Sprintf("role-%s-%d", saName, rand.Int64())
+
+	role := v12.Role{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      roleName,
+			Namespace: saNamespace,
+		},
+		Rules: []v12.PolicyRule{
+			{
+				Verbs:     []string{"*"},
+				APIGroups: []string{"", "*"},
+				Resources: resources,
+			},
+		},
+	}
+	roleBinding := v12.RoleBinding{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      roleName,
+			Namespace: saNamespace,
+		},
+		Subjects: []v12.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      saName,
+				Namespace: saNamespace,
+			},
+		},
+		RoleRef: v12.RoleRef{
+			Kind: "Role",
+			Name: roleName,
+		},
+	}
+
+	err := k8sClient.Create(ctx, &role)
+	Expect(err).To(Succeed())
+	err = k8sClient.Create(ctx, &roleBinding)
+	Expect(err).To(Succeed())
+}
+
+func getReadyCondition(conditions []v1.Condition) *v1.Condition {
+	for _, c := range conditions {
+		if c.Type == "Ready" {
+			return &c
+		}
+	}
+	return nil
+}

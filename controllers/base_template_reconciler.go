@@ -11,7 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -33,10 +32,7 @@ type BaseTemplateReconciler struct {
 }
 
 func (r *BaseTemplateReconciler) getClientForObjects(serviceAccountName string, objNamespace string) (client.Client, error) {
-	restConfig, err := config.GetConfig()
-	if err != nil {
-		return nil, err
-	}
+	restConfig := rest.CopyConfig(r.Manager.GetConfig())
 
 	name := "default"
 	if serviceAccountName != "" {
