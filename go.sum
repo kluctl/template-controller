@@ -127,10 +127,10 @@ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kluctl/go-embed-python v0.0.0-3.12.3-20240415-1 h1:IX2O3LJUL0AjYsROGZ4aNENTEb3c/Ll/0b9Yb/8P61Q=
 github.com/kluctl/go-embed-python v0.0.0-3.12.3-20240415-1/go.mod h1:9kqX8IjRCNh4ppXxlKGtLN+QFuvsdSsNGKsTLgdSNRw=
-github.com/kluctl/go-jinja2 v0.0.0-20240619083358-c137395943eb h1:ibPMOncAbKZqREllxULOLtC+7i4vfCK7hZvZbuER0iM=
-github.com/kluctl/go-jinja2 v0.0.0-20240619083358-c137395943eb/go.mod h1:O6CJS5+wwnQE4OorQi/fV3eGFye5ian11tjHIYLJzIY=
-github.com/kluctl/kluctl/lib v0.0.0-20240708111940-7d9465ba9662 h1:JygTDCOld/sCf819F6n6h+9OcO3xeqAV7qd2g6O+Rz0=
-github.com/kluctl/kluctl/lib v0.0.0-20240708111940-7d9465ba9662/go.mod h1:ClZJ+/4RWjK+4tcs4KGKW66P82PW7eitWf604c++z8I=
+github.com/kluctl/go-jinja2 v0.0.0-20240708212116-03ee7eefba4f h1:DXcOryOSs9LG2xd7LlllWOL8fPA8i4OTXJzHOPtz6hA=
+github.com/kluctl/go-jinja2 v0.0.0-20240708212116-03ee7eefba4f/go.mod h1:O6CJS5+wwnQE4OorQi/fV3eGFye5ian11tjHIYLJzIY=
+github.com/kluctl/kluctl/lib v0.0.0-20240708210331-4b60c060bd56 h1:7/0N0ubA5I+JOWBKB+qGUe4tU6e9wSJ8RHK1Apir3uI=
+github.com/kluctl/kluctl/lib v0.0.0-20240708210331-4b60c060bd56/go.mod h1:ClZJ+/4RWjK+4tcs4KGKW66P82PW7eitWf604c++z8I=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
