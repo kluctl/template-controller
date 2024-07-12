@@ -6,6 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 
@@ -172,4 +173,16 @@ func assertFailedConfigMap(key client.ObjectKey, cmKey client.ObjectKey, errStr 
 		}
 	}
 	Expect(false).To(BeTrue())
+}
+
+func checkConfigMapData(cmKey client.ObjectKey, data map[string]string) bool {
+	var cm v1.ConfigMap
+	err := k8sClient.Get(ctx, cmKey, &cm)
+	Expect(err).To(Succeed())
+
+	return reflect.DeepEqual(cm.Data, data)
+}
+
+func assertConfigMapData(cmKey client.ObjectKey, data map[string]string) {
+	Expect(checkConfigMapData(cmKey, data)).To(BeTrue())
 }
