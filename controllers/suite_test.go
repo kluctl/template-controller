@@ -93,9 +93,10 @@ var _ = BeforeSuite(func() {
 
 	err = (&ObjectTemplateReconciler{
 		BaseTemplateReconciler: BaseTemplateReconciler{
-			Client:       k8sManager.GetClient(),
-			Scheme:       k8sManager.GetScheme(),
-			FieldManager: "template-controller",
+			Client:          k8sManager.GetClient(),
+			RawWatchContext: ctx,
+			Scheme:          k8sManager.GetScheme(),
+			FieldManager:    "template-controller",
 		},
 	}).SetupWithManager(k8sManager, 1)
 	Expect(err).ToNot(HaveOccurred())

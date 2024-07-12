@@ -129,7 +129,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 			t2 := getObjectTemplate(key)
 			c := getReadyCondition(t2.GetConditions())
 			Expect(c.Status).To(Equal(metav1.ConditionFalse))
-			Expect(c.Message).To(ContainSubstring("secrets \"m1\" is forbidden"))
+			Expect(c.Message).To(ContainSubstring("Secret \"m1\" is forbidden"))
 		})
 		It("Should succeed when RBAC is created", func() {
 			createRoleWithBinding("default", ns, []string{"secrets"})
@@ -149,7 +149,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 			t2 := getObjectTemplate(key)
 			c := getReadyCondition(t2.GetConditions())
 			Expect(c.Status).To(Equal(metav1.ConditionFalse))
-			Expect(c.Message).To(ContainSubstring("secrets \"m1\" is forbidden"))
+			Expect(c.Message).To(ContainSubstring("Secret \"m1\" is forbidden"))
 		})
 		It("Should succeed after the SA is being created", func() {
 			createServiceAccount("non-existent", ns)

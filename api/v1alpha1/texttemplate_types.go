@@ -20,6 +20,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	TextTemplateFinalizer = "finalizers.templates.kluctl.io"
+)
+
 // TextTemplateSpec defines the desired state of TextTemplate
 type TextTemplateSpec struct {
 	// Suspend can be used to suspend the reconciliation of this object.
