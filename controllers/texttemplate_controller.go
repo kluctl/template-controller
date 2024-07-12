@@ -59,8 +59,10 @@ func (r *TextTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var tt templatesv1alpha1.TextTemplate
 	err = r.Get(ctx, req.NamespacedName, &tt)
 	if err != nil {
-		logger.Error(err, "Get failed")
 		err = client.IgnoreNotFound(err)
+		if err != nil {
+			logger.Error(err, "Get failed")
+		}
 		return
 	}
 
