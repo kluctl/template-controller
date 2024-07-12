@@ -1,11 +1,14 @@
 package controllers
 
 import (
+	"github.com/kluctl/kluctl/lib/yaml"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
@@ -185,4 +188,24 @@ func checkConfigMapData(cmKey client.ObjectKey, data map[string]string) bool {
 
 func assertConfigMapData(cmKey client.ObjectKey, data map[string]string) {
 	Expect(checkConfigMapData(cmKey, data)).To(BeTrue())
+}
+
+func applyFromDir(dir string, files []string, namespace string) {
+	for _, f := range files {
+		roleYaml, err := os.ReadFile(filepath.Join(dir, f))
+		Expect(err).NotTo(HaveOccurred())
+
+		l, err := yaml.ReadYamlAllBytes(roleYaml)
+		Expect(err).NotTo(HaveOccurred())
+
+		for _, x := range l {
+			u := unstructured.Unstructured{
+				Object: x.(map[string]any),
+			}
+			u.SetNamespace(namespace)
+
+			err = k8sClient.Create(ctx, &u)
+			Expect(err).ToNot(HaveOccurred())
+		}
+	}
 }
