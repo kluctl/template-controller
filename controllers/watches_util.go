@@ -134,7 +134,7 @@ func (wt *watchesForTemplate) addWatchForObject(ctx context.Context, objectRef t
 	return nil
 }
 
-func (wt *watchesForTemplate) removeDeletedWatches(newRefs map[templatesv1alpha1.ObjectRef]bool) {
+func (wt *watchesForTemplate) removeDeletedWatches(newRefs map[templatesv1alpha1.ObjectRef]struct{}) {
 	wt.mutex.Lock()
 	defer wt.mutex.Unlock()
 

@@ -190,10 +190,10 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 
 	wt := r.watchesUtil.getWatchesForTemplate(client.ObjectKeyFromObject(rt))
 	wt.setClient(objClient, rt.Spec.ServiceAccountName)
-	newObjects := map[templatesv1alpha1.ObjectRef]bool{}
+	newObjects := map[templatesv1alpha1.ObjectRef]struct{}{}
 	for _, me := range rt.Spec.Matrix {
 		if me.Object != nil {
-			newObjects[me.Object.Ref] = true
+			newObjects[me.Object.Ref] = struct{}{}
 			err = wt.addWatchForObject(ctx, me.Object.Ref)
 			if err != nil {
 				return err

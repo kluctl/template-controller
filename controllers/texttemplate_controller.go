@@ -118,7 +118,7 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 
 	wt := r.watchesUtil.getWatchesForTemplate(client.ObjectKeyFromObject(tt))
 	wt.setClient(objClient, tt.Spec.ServiceAccountName)
-	newObjects := map[templatesv1alpha1.ObjectRef]bool{}
+	newObjects := map[templatesv1alpha1.ObjectRef]struct{}{}
 	if tt.Spec.TemplateRef != nil && tt.Spec.TemplateRef.ConfigMap != nil {
 		ns := tt.Spec.TemplateRef.ConfigMap.Namespace
 		if ns == "" {
@@ -134,6 +134,7 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 		if err != nil {
 			return err
 		}
+		newObjects[objRef] = struct{}{}
 	}
 	for _, me := range tt.Spec.Inputs {
 		if me.Object != nil {
@@ -141,6 +142,7 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 			if err != nil {
 				return err
 			}
+			newObjects[me.Object.Ref] = struct{}{}
 		}
 	}
 	wt.removeDeletedWatches(newObjects)
