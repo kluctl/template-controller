@@ -449,8 +449,9 @@ func (r *ObjectTemplateReconciler) finalize(ctx context.Context, obj *templatesv
 	r.doFinalize(ctx, obj)
 
 	// Remove our finalizer from the list and update it
+	patch := client.MergeFrom(obj.DeepCopy())
 	controllerutil.RemoveFinalizer(obj, templatesv1alpha1.ObjectTemplateFinalizer)
-	if err := r.Update(ctx, obj, client.FieldOwner(r.FieldManager)); err != nil {
+	if err := r.Patch(ctx, obj, patch, client.FieldOwner(r.FieldManager)); err != nil {
 		return ctrl.Result{}, err
 	}
 

@@ -212,8 +212,9 @@ func (r *TextTemplateReconciler) finalize(ctx context.Context, obj *templatesv1a
 	r.watchesUtil.removeWatchesForTemplate(client.ObjectKeyFromObject(obj))
 
 	// Remove our finalizer from the list and update it
+	patch := client.MergeFrom(obj.DeepCopy())
 	controllerutil.RemoveFinalizer(obj, templatesv1alpha1.TextTemplateFinalizer)
-	if err := r.Update(ctx, obj, client.FieldOwner(r.FieldManager)); err != nil {
+	if err := r.Patch(ctx, obj, patch, client.FieldOwner(r.FieldManager)); err != nil {
 		return ctrl.Result{}, err
 	}
 
