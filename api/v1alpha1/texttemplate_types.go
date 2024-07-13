@@ -31,9 +31,10 @@ type TextTemplateSpec struct {
 	// +kubebuilder:default:=false
 	Suspend bool `json:"suspend"`
 
-	// The name of the Kubernetes service account to impersonate
-	// when reconciling this TextTemplate. If omitted, the "default" service account is used.
+	// ServiceAccountName specifies the name of the Kubernetes service account to impersonate
+	// when reconciling this TextTemplate. If omitted, the "default" service account is used
 	// +optional
+	// +kubebuilder:default:="default"
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 
 	// +optional

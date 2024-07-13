@@ -184,13 +184,13 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
-	objClient, saName, err := r.getClientForObjects(rt.Spec.ServiceAccountName, rt.GetNamespace())
+	objClient, err := r.getClientForObjects(rt.Spec.ServiceAccountName, rt.GetNamespace())
 	if err != nil {
 		return err
 	}
 
 	wt := r.watchesUtil.getWatchesForTemplate(client.ObjectKeyFromObject(rt))
-	wt.setClient(objClient, saName)
+	wt.setClient(objClient, rt.Spec.ServiceAccountName)
 	newObjects := map[templatesv1alpha1.ObjectRef]bool{}
 	for _, me := range rt.Spec.Matrix {
 		if me.Object != nil {
@@ -466,7 +466,7 @@ func (r *ObjectTemplateReconciler) doFinalize(ctx context.Context, obj *template
 		return
 	}
 
-	objClient, _, err := r.getClientForObjects(obj.Spec.ServiceAccountName, obj.GetNamespace())
+	objClient, err := r.getClientForObjects(obj.Spec.ServiceAccountName, obj.GetNamespace())
 	if err != nil {
 		log.Error(err, "Failed to create objClient for deletion")
 		return

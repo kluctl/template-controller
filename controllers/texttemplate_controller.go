@@ -111,13 +111,13 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 	}
 	defer j2.Close()
 
-	objClient, saName, err := r.getClientForObjects(tt.Spec.ServiceAccountName, tt.GetNamespace())
+	objClient, err := r.getClientForObjects(tt.Spec.ServiceAccountName, tt.GetNamespace())
 	if err != nil {
 		return err
 	}
 
 	wt := r.watchesUtil.getWatchesForTemplate(client.ObjectKeyFromObject(tt))
-	wt.setClient(objClient, saName)
+	wt.setClient(objClient, tt.Spec.ServiceAccountName)
 	newObjects := map[templatesv1alpha1.ObjectRef]bool{}
 	if tt.Spec.TemplateRef != nil && tt.Spec.TemplateRef.ConfigMap != nil {
 		ns := tt.Spec.TemplateRef.ConfigMap.Namespace

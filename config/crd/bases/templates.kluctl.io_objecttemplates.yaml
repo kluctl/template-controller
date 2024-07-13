@@ -108,6 +108,7 @@ spec:
                   these disappear from the list of rendered objects
                 type: boolean
               serviceAccountName:
+                default: default
                 description: |-
                   ServiceAccountName specifies the name of the Kubernetes service account to impersonate
                   when reconciling this ObjectTemplate. If omitted, the "default" service account is used

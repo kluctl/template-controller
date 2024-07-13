@@ -41,6 +41,7 @@ type ObjectTemplateSpec struct {
 	// ServiceAccountName specifies the name of the Kubernetes service account to impersonate
 	// when reconciling this ObjectTemplate. If omitted, the "default" service account is used
 	// +optional
+	// +kubebuilder:default:="default"
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 
 	// Prune enables pruning of previously created objects when these disappear from the list of rendered objects

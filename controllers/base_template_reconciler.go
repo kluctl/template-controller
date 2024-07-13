@@ -31,21 +31,17 @@ type BaseTemplateReconciler struct {
 	mutex sync.Mutex
 }
 
-func (r *BaseTemplateReconciler) getClientForObjects(serviceAccountName string, objNamespace string) (client.WithWatch, string, error) {
+func (r *BaseTemplateReconciler) getClientForObjects(serviceAccountName string, objNamespace string) (client.WithWatch, error) {
 	restConfig := rest.CopyConfig(r.Manager.GetConfig())
 
-	name := "default"
-	if serviceAccountName != "" {
-		name = serviceAccountName
-	}
-	username := fmt.Sprintf("system:serviceaccount:%s:%s", objNamespace, name)
+	username := fmt.Sprintf("system:serviceaccount:%s:%s", objNamespace, serviceAccountName)
 	restConfig.Impersonate = rest.ImpersonationConfig{UserName: username}
 
 	c, err := client.NewWithWatch(restConfig, client.Options{Mapper: r.RESTMapper()})
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
-	return c, name, nil
+	return c, nil
 }
 
 func (r *BaseTemplateReconciler) buildBaseVars(templateObj runtime.Object, objVarName string) (map[string]any, error) {
