@@ -4,6 +4,7 @@ import (
 	"github.com/kluctl/kluctl/lib/yaml"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -127,6 +128,12 @@ func waitUntiReconciled(key client.ObjectKey, timeout time.Duration) {
 		}
 		return c.ObservedGeneration == t.Generation
 	}, timeout, time.Millisecond*250).Should(BeTrue())
+}
+
+func waitUntilDeleted(key client.ObjectKey, obj client.Object, timeout time.Duration) {
+	Eventually(func() error {
+		return k8sClient.Get(ctx, key, obj)
+	}, timeout, time.Millisecond*250).Should(WithTransform(errors.IsNotFound, BeTrue()))
 }
 
 func getObjectTemplate(key client.ObjectKey) *templatesv1alpha1.ObjectTemplate {

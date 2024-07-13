@@ -94,6 +94,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 		})
 		It("Should cleanup", func() {
 			Expect(k8sClient.Delete(ctx, t)).To(Succeed())
+			waitUntilDeleted(key, &templatesv1alpha1.ObjectTemplate{}, timeout)
 		})
 	})
 	Context("Template without permissions to read matrix object", func() {
@@ -160,6 +161,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 		})
 		It("Should cleanup", func() {
 			Expect(k8sClient.Delete(ctx, t)).To(Succeed())
+			waitUntilDeleted(key, &templatesv1alpha1.ObjectTemplate{}, timeout)
 		})
 	})
 	Context("Things get modified", func() {
@@ -238,6 +240,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 		})
 		It("Should cleanup", func() {
 			Expect(k8sClient.Delete(ctx, t)).To(Succeed())
+			waitUntilDeleted(key, &templatesv1alpha1.ObjectTemplate{}, timeout)
 		})
 	})
 })
