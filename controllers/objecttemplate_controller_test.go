@@ -32,7 +32,6 @@ import (
 var _ = Describe("ObjectTemplate controller", func() {
 	const (
 		timeout  = time.Second * 10
-		duration = time.Second * 10
 		interval = time.Millisecond * 250
 	)
 
@@ -59,7 +58,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 
 			Consistently(func() error {
 				return k8sClient.Get(ctx, cmKey, &v1.ConfigMap{})
-			}, "2s").Should(MatchError("configmaps \"cm1\" not found"))
+			}, "2s", interval).Should(MatchError("configmaps \"cm1\" not found"))
 
 			assertFailedConfigMaps(key, cmKey)
 		})
@@ -219,7 +218,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 				var cm v1.ConfigMap
 				Expect(k8sClient.Get(ctx, cmKey, &cm)).To(Succeed())
 				return cm.Data
-			}, timeout, time.Millisecond*250).Should(Equal(map[string]string{
+			}, timeout, interval).Should(Equal(map[string]string{
 				"k1": "Mw==Mg==", // two base64 encoded strings got added
 			}))
 		})
@@ -234,7 +233,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 				var cm v1.ConfigMap
 				Expect(k8sClient.Get(ctx, cmKey, &cm)).To(Succeed())
 				return cm.Data
-			}, timeout, time.Millisecond*250).Should(Equal(map[string]string{
+			}, timeout, interval).Should(Equal(map[string]string{
 				"k1": "5",
 			}))
 		})
