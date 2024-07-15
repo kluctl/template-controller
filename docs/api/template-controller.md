@@ -2665,8 +2665,8 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>The name of the Kubernetes service account to impersonate
-when reconciling this TextTemplate. If omitted, the &ldquo;default&rdquo; service account is used.</p>
+<p>ServiceAccountName specifies the name of the Kubernetes service account to impersonate
+when reconciling this TextTemplate. If omitted, the &ldquo;default&rdquo; service account is used</p>
 </td>
 </tr>
 <tr>
@@ -2849,8 +2849,8 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>The name of the Kubernetes service account to impersonate
-when reconciling this TextTemplate. If omitted, the &ldquo;default&rdquo; service account is used.</p>
+<p>ServiceAccountName specifies the name of the Kubernetes service account to impersonate
+when reconciling this TextTemplate. If omitted, the &ldquo;default&rdquo; service account is used</p>
 </td>
 </tr>
 <tr>

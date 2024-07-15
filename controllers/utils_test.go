@@ -1,11 +1,16 @@
 package controllers
 
 import (
+	"github.com/kluctl/kluctl/lib/yaml"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"os"
+	"path/filepath"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 
@@ -125,6 +130,12 @@ func waitUntiReconciled(key client.ObjectKey, timeout time.Duration) {
 	}, timeout, time.Millisecond*250).Should(BeTrue())
 }
 
+func waitUntilDeleted(key client.ObjectKey, obj client.Object, timeout time.Duration) {
+	Eventually(func() error {
+		return k8sClient.Get(ctx, key, obj)
+	}, timeout, time.Millisecond*250).Should(WithTransform(errors.IsNotFound, BeTrue()))
+}
+
 func getObjectTemplate(key client.ObjectKey) *templatesv1alpha1.ObjectTemplate {
 	var t templatesv1alpha1.ObjectTemplate
 	err := k8sClient.Get(ctx, key, &t)
@@ -172,4 +183,36 @@ func assertFailedConfigMap(key client.ObjectKey, cmKey client.ObjectKey, errStr 
 		}
 	}
 	Expect(false).To(BeTrue())
+}
+
+func checkConfigMapData(cmKey client.ObjectKey, data map[string]string) bool {
+	var cm v1.ConfigMap
+	err := k8sClient.Get(ctx, cmKey, &cm)
+	Expect(err).To(Succeed())
+
+	return reflect.DeepEqual(cm.Data, data)
+}
+
+func assertConfigMapData(cmKey client.ObjectKey, data map[string]string) {
+	Expect(checkConfigMapData(cmKey, data)).To(BeTrue())
+}
+
+func applyFromDir(dir string, files []string, namespace string) {
+	for _, f := range files {
+		roleYaml, err := os.ReadFile(filepath.Join(dir, f))
+		Expect(err).NotTo(HaveOccurred())
+
+		l, err := yaml.ReadYamlAllBytes(roleYaml)
+		Expect(err).NotTo(HaveOccurred())
+
+		for _, x := range l {
+			u := unstructured.Unstructured{
+				Object: x.(map[string]any),
+			}
+			u.SetNamespace(namespace)
+
+			err = k8sClient.Create(ctx, &u)
+			Expect(err).ToNot(HaveOccurred())
+		}
+	}
 }

@@ -20,6 +20,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	TextTemplateFinalizer = "finalizers.templates.kluctl.io"
+)
+
 // TextTemplateSpec defines the desired state of TextTemplate
 type TextTemplateSpec struct {
 	// Suspend can be used to suspend the reconciliation of this object.
@@ -27,9 +31,10 @@ type TextTemplateSpec struct {
 	// +kubebuilder:default:=false
 	Suspend bool `json:"suspend"`
 
-	// The name of the Kubernetes service account to impersonate
-	// when reconciling this TextTemplate. If omitted, the "default" service account is used.
+	// ServiceAccountName specifies the name of the Kubernetes service account to impersonate
+	// when reconciling this TextTemplate. If omitted, the "default" service account is used
 	// +optional
+	// +kubebuilder:default:="default"
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 
 	// +optional

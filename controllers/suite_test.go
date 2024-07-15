@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
-	v12 "k8s.io/api/rbac/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand/v2"
 	"path/filepath"
@@ -84,16 +84,19 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+	controllerCfg := setupTemplateControllerRBAC()
+
+	k8sManager, err := ctrl.NewManager(controllerCfg, ctrl.Options{
 		Scheme: scheme.Scheme,
 	})
 	Expect(err).ToNot(HaveOccurred())
 
 	err = (&ObjectTemplateReconciler{
 		BaseTemplateReconciler: BaseTemplateReconciler{
-			Client:       k8sManager.GetClient(),
-			Scheme:       k8sManager.GetScheme(),
-			FieldManager: "template-controller",
+			Client:          k8sManager.GetClient(),
+			RawWatchContext: ctx,
+			Scheme:          k8sManager.GetScheme(),
+			FieldManager:    "template-controller",
 		},
 	}).SetupWithManager(k8sManager, 1)
 	Expect(err).ToNot(HaveOccurred())
@@ -112,6 +115,37 @@ var _ = AfterSuite(func() {
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+func setupTemplateControllerRBAC() *rest.Config {
+	createNamespace("system")
+
+	user, err := testEnv.AddUser(envtest.User{Name: "template-controller"}, nil)
+	Expect(err).NotTo(HaveOccurred())
+
+	rbacPath := filepath.Join("..", "config", "rbac")
+
+	files := []string{"role.yaml"}
+	applyFromDir(rbacPath, files, "system")
+
+	rb := rbacv1.ClusterRoleBinding{
+		ObjectMeta: v1.ObjectMeta{
+			Name: "template-controller",
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind: "ClusterRole",
+			Name: "manager-role",
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: "User",
+				Name: "template-controller",
+			},
+		},
+	}
+	Expect(k8sClient.Create(ctx, &rb)).To(Succeed())
+
+	return user.Config()
+}
 
 func createNamespace(name string) {
 	ns := corev1.Namespace{
@@ -137,12 +171,12 @@ func createServiceAccount(saName string, saNamespace string) {
 func createRoleWithBinding(saName string, saNamespace string, resources []string) {
 	roleName := fmt.Sprintf("role-%s-%d", saName, rand.Int64())
 
-	role := v12.Role{
+	role := rbacv1.Role{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      roleName,
 			Namespace: saNamespace,
 		},
-		Rules: []v12.PolicyRule{
+		Rules: []rbacv1.PolicyRule{
 			{
 				Verbs:     []string{"*"},
 				APIGroups: []string{"", "*"},
@@ -150,19 +184,19 @@ func createRoleWithBinding(saName string, saNamespace string, resources []string
 			},
 		},
 	}
-	roleBinding := v12.RoleBinding{
+	roleBinding := rbacv1.RoleBinding{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      roleName,
 			Namespace: saNamespace,
 		},
-		Subjects: []v12.Subject{
+		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
 				Name:      saName,
 				Namespace: saNamespace,
 			},
 		},
-		RoleRef: v12.RoleRef{
+		RoleRef: rbacv1.RoleRef{
 			Kind: "Role",
 			Name: roleName,
 		},

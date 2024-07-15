@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/kluctl/template-controller/controllers"
@@ -94,6 +95,8 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
+	ctx := ctrl.SetupSignalHandler()
+
 	watchNamespace := ""
 	if !watchAllNamespaces {
 		watchNamespace = os.Getenv("RUNTIME_NAMESPACE")
@@ -106,7 +109,8 @@ func main() {
 		}
 	}
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	cfg := ctrl.GetConfigOrDie()
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
@@ -134,13 +138,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	rawWatchContext, rawWatchContextCancel := context.WithCancel(ctx)
+	defer rawWatchContextCancel()
+
 	fieldManager := "template-controller"
 
 	if err = (&controllers.ObjectTemplateReconciler{
 		BaseTemplateReconciler: controllers.BaseTemplateReconciler{
-			Client:       mgr.GetClient(),
-			Scheme:       mgr.GetScheme(),
-			FieldManager: fieldManager,
+			Client:          mgr.GetClient(),
+			RawWatchContext: rawWatchContext,
+			Scheme:          mgr.GetScheme(),
+			FieldManager:    fieldManager,
 		},
 	}).SetupWithManager(mgr, concurrent); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ObjectTemplate")
@@ -148,9 +156,10 @@ func main() {
 	}
 	if err = (&controllers.TextTemplateReconciler{
 		BaseTemplateReconciler: controllers.BaseTemplateReconciler{
-			Client:       mgr.GetClient(),
-			Scheme:       mgr.GetScheme(),
-			FieldManager: fieldManager,
+			Client:          mgr.GetClient(),
+			RawWatchContext: rawWatchContext,
+			Scheme:          mgr.GetScheme(),
+			FieldManager:    fieldManager,
 		},
 	}).SetupWithManager(mgr, concurrent); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "TextTemplate")
@@ -213,7 +222,7 @@ func main() {
 	}
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

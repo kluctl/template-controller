@@ -72,8 +72,10 @@ func (r *GitProjectorReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var obj templatesv1alpha1.GitProjector
 	err = r.Get(ctx, req.NamespacedName, &obj)
 	if err != nil {
-		logger.Error(err, "Get failed")
 		err = client.IgnoreNotFound(err)
+		if err != nil {
+			logger.Error(err, "Get failed")
+		}
 		return
 	}
 

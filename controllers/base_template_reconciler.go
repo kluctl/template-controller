@@ -7,78 +7,41 @@ import (
 	"github.com/ohler55/ojg/jp"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 	"sync"
 )
 
 type BaseTemplateReconciler struct {
 	client.Client
 
+	RawWatchContext context.Context
+
 	Manager      manager.Manager
 	Scheme       *runtime.Scheme
 	FieldManager string
 
-	controller   controller.Controller
-	watchedKinds map[schema.GroupVersionKind]bool
-	mutex        sync.Mutex
+	controller controller.Controller
+
+	watchesUtil watchesUtil
+
+	mutex sync.Mutex
 }
 
-func (r *BaseTemplateReconciler) getClientForObjects(serviceAccountName string, objNamespace string) (client.Client, error) {
+func (r *BaseTemplateReconciler) getClientForObjects(serviceAccountName string, objNamespace string) (client.WithWatch, error) {
 	restConfig := rest.CopyConfig(r.Manager.GetConfig())
 
-	name := "default"
-	if serviceAccountName != "" {
-		name = serviceAccountName
-	}
-	if name == "" {
-		return nil, fmt.Errorf("empty serviceAccountName not allowed")
-	}
-	username := fmt.Sprintf("system:serviceaccount:%s:%s", objNamespace, name)
+	username := fmt.Sprintf("system:serviceaccount:%s:%s", objNamespace, serviceAccountName)
 	restConfig.Impersonate = rest.ImpersonationConfig{UserName: username}
 
-	c, err := client.New(restConfig, client.Options{Mapper: r.RESTMapper()})
+	c, err := client.NewWithWatch(restConfig, client.Options{Mapper: r.RESTMapper()})
 	if err != nil {
 		return nil, err
 	}
 	return c, nil
-}
-
-func (r *BaseTemplateReconciler) addWatchForKind(ctx context.Context, gvk schema.GroupVersionKind, key string, eventHandler handler.TypedEventHandler[client.Object]) error {
-	logger := log.FromContext(ctx)
-
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-
-	if r.watchedKinds == nil {
-		r.watchedKinds = map[schema.GroupVersionKind]bool{}
-	}
-
-	keyGvk := gvk
-	keyGvk.Kind += "+" + key
-	if x, ok := r.watchedKinds[keyGvk]; ok && x {
-		return nil
-	}
-
-	logger.V(1).Info("Starting watch for new kind and key", "gvk", gvk, "key", key)
-
-	var dummy unstructured.Unstructured
-	dummy.SetGroupVersionKind(gvk)
-
-	err := r.controller.Watch(source.Kind[client.Object](r.Manager.GetCache(), &dummy, eventHandler))
-	if err != nil {
-		return err
-	}
-
-	r.watchedKinds[keyGvk] = true
-	return nil
 }
 
 func (r *BaseTemplateReconciler) buildBaseVars(templateObj runtime.Object, objVarName string) (map[string]any, error) {

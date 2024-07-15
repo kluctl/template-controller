@@ -28,23 +28,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sort"
 	"strings"
 	"sync"
 )
-
-const forMatrixObjectKey = "spec.matrix.object.ref"
 
 // ObjectTemplateReconciler reconciles a ObjectTemplate object
 type ObjectTemplateReconciler struct {
@@ -54,10 +49,7 @@ type ObjectTemplateReconciler struct {
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecttemplates,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecttemplates/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=objecttemplates/finalizers,verbs=update
-//+kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;list;watch
-//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;watch;impersonate
-//+kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
 
 // Reconcile a resource
 func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
@@ -69,8 +61,10 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	var rt templatesv1alpha1.ObjectTemplate
 	err = r.Get(ctx, req.NamespacedName, &rt)
 	if err != nil {
-		logger.Error(err, "Get failed")
 		err = client.IgnoreNotFound(err)
+		if err != nil {
+			logger.Error(err, "Get failed")
+		}
 		return
 	}
 
@@ -93,20 +87,6 @@ func (r *ObjectTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if rt.Spec.Suspend {
 		logger.Info("Reconciliation is suspended for this object")
 		return ctrl.Result{}, nil
-	}
-
-	for _, me := range rt.Spec.Matrix {
-		if me.Object != nil {
-			gvk, err2 := me.Object.Ref.GroupVersionKind()
-			if err2 != nil {
-				err = err2
-				return
-			}
-			err = r.addWatchForKind(ctx, gvk, forMatrixObjectKey, r.buildWatchEventHandler(forMatrixObjectKey))
-			if err != nil {
-				return
-			}
-		}
 	}
 
 	patch := client.MergeFrom(rt.DeepCopy())
@@ -207,6 +187,20 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	if err != nil {
 		return err
 	}
+
+	wt := r.watchesUtil.getWatchesForTemplate(client.ObjectKeyFromObject(rt))
+	wt.setClient(objClient, rt.Spec.ServiceAccountName)
+	newObjects := map[templatesv1alpha1.ObjectRef]struct{}{}
+	for _, me := range rt.Spec.Matrix {
+		if me.Object != nil {
+			newObjects[me.Object.Ref] = struct{}{}
+			err = wt.addWatchForObject(ctx, me.Object.Ref)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	wt.removeDeletedWatches(newObjects)
 
 	matrixEntries, err := r.buildMatrixEntries(ctx, rt, objClient)
 	if err != nil {
@@ -429,21 +423,6 @@ func (r *ObjectTemplateReconciler) renderTemplates(j2 *jinja2.Jinja2, rt *templa
 func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
 	r.Manager = mgr
 
-	// Index the ObjectTemplate by the objects they are for.
-	if err := mgr.GetCache().IndexField(context.TODO(), &templatesv1alpha1.ObjectTemplate{}, forMatrixObjectKey,
-		func(object client.Object) []string {
-			o := object.(*templatesv1alpha1.ObjectTemplate)
-			var ret []string
-			for _, me := range o.Spec.Matrix {
-				if me.Object != nil {
-					ret = append(ret, BuildRefIndexValue(me.Object.Ref, o.GetNamespace()))
-				}
-			}
-			return ret
-		}); err != nil {
-		return fmt.Errorf("failed setting index fields: %w", err)
-	}
-
 	c, err := ctrl.NewControllerManagedBy(mgr).
 		For(&templatesv1alpha1.ObjectTemplate{}, builder.WithPredicates(
 			predicate.Or(predicate.GenerationChangedPredicate{}),
@@ -457,38 +436,22 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 	}
 	r.controller = c
 
+	err = r.watchesUtil.init(r.RawWatchContext, r.controller)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (r *ObjectTemplateReconciler) buildWatchEventHandler(indexField string) handler.EventHandler {
-	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, object client.Object) []reconcile.Request {
-		var list templatesv1alpha1.ObjectTemplateList
-
-		err := r.List(context.Background(), &list, client.MatchingFields{
-			indexField: BuildObjectIndexValue(object),
-		})
-		if err != nil {
-			return nil
-		}
-		var reqs []reconcile.Request
-		for _, x := range list.Items {
-			reqs = append(reqs, reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Namespace: x.GetNamespace(),
-					Name:      x.GetName(),
-				},
-			})
-		}
-		return reqs
-	})
-}
-
 func (r *ObjectTemplateReconciler) finalize(ctx context.Context, obj *templatesv1alpha1.ObjectTemplate) (ctrl.Result, error) {
+	r.watchesUtil.removeWatchesForTemplate(client.ObjectKeyFromObject(obj))
 	r.doFinalize(ctx, obj)
 
 	// Remove our finalizer from the list and update it
+	patch := client.MergeFrom(obj.DeepCopy())
 	controllerutil.RemoveFinalizer(obj, templatesv1alpha1.ObjectTemplateFinalizer)
-	if err := r.Update(ctx, obj, client.FieldOwner(r.FieldManager)); err != nil {
+	if err := r.Patch(ctx, obj, patch, client.FieldOwner(r.FieldManager)); err != nil {
 		return ctrl.Result{}, err
 	}
 

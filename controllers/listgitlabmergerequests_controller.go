@@ -46,11 +46,15 @@ type ListGitlabMergeRequestsReconciler struct {
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 func (r *ListGitlabMergeRequestsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
 	var obj templatesv1alpha1.ListGitlabMergeRequests
 	err := r.Get(ctx, req.NamespacedName, &obj)
 	if err != nil {
+		err = client.IgnoreNotFound(err)
+		if err != nil {
+			logger.Error(err, "Get failed")
+		}
 		return ctrl.Result{}, err
 	}
 
