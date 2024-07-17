@@ -189,7 +189,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	}
 
 	wt := r.watchesUtil.getWatchesForTemplate(client.ObjectKeyFromObject(rt))
-	wt.setClient(objClient, rt.Spec.ServiceAccountName)
+	wt.setClient(ctx, objClient, rt.Spec.ServiceAccountName)
 	newObjects := map[templatesv1alpha1.ObjectRef]struct{}{}
 	for _, me := range rt.Spec.Matrix {
 		if me.Object != nil {
@@ -200,7 +200,7 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 			}
 		}
 	}
-	wt.removeDeletedWatches(newObjects)
+	wt.removeDeletedWatches(ctx, newObjects)
 
 	matrixEntries, err := r.buildMatrixEntries(ctx, rt, objClient)
 	if err != nil {
@@ -445,7 +445,7 @@ func (r *ObjectTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent
 }
 
 func (r *ObjectTemplateReconciler) finalize(ctx context.Context, obj *templatesv1alpha1.ObjectTemplate) (ctrl.Result, error) {
-	r.watchesUtil.removeWatchesForTemplate(client.ObjectKeyFromObject(obj))
+	r.watchesUtil.removeWatchesForTemplate(ctx, client.ObjectKeyFromObject(obj))
 	r.doFinalize(ctx, obj)
 
 	// Remove our finalizer from the list and update it

@@ -117,7 +117,7 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 	}
 
 	wt := r.watchesUtil.getWatchesForTemplate(client.ObjectKeyFromObject(tt))
-	wt.setClient(objClient, tt.Spec.ServiceAccountName)
+	wt.setClient(ctx, objClient, tt.Spec.ServiceAccountName)
 	newObjects := map[templatesv1alpha1.ObjectRef]struct{}{}
 	if tt.Spec.TemplateRef != nil && tt.Spec.TemplateRef.ConfigMap != nil {
 		ns := tt.Spec.TemplateRef.ConfigMap.Namespace
@@ -145,7 +145,7 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 			newObjects[me.Object.Ref] = struct{}{}
 		}
 	}
-	wt.removeDeletedWatches(newObjects)
+	wt.removeDeletedWatches(ctx, newObjects)
 
 	var templateStr string
 	if tt.Spec.Template != nil {
@@ -209,7 +209,7 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 }
 
 func (r *TextTemplateReconciler) finalize(ctx context.Context, obj *templatesv1alpha1.TextTemplate) (ctrl.Result, error) {
-	r.watchesUtil.removeWatchesForTemplate(client.ObjectKeyFromObject(obj))
+	r.watchesUtil.removeWatchesForTemplate(ctx, client.ObjectKeyFromObject(obj))
 
 	// Remove our finalizer from the list and update it
 	patch := client.MergeFrom(obj.DeepCopy())
