@@ -20,6 +20,7 @@ BUNDLE_DIR  ?= deploy/crds
 CRD_DIR     ?= config/crd
 RBAC_DIR    ?= config/rbac
 HELM_DIR    ?= deploy/charts/template-controller
+STATIC_MANIFESTS_DIR ?= deploy/manifests
 OUTPUT_DIR  ?= bin
 
 .PHONY: all
@@ -45,12 +46,20 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: manifests-crds helm-manifests
+manifests: manifests-crds manifests-static helm-manifests
 
 .PHONY: manifests-crds
 manifests-crds: controller-gen
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	./hack/crd.generate.sh $(BUNDLE_DIR) $(CRD_DIR)
+
+.PHONY: manifests-static
+manifests-static: helm-manifests
+	echo "apiVersion: v1" > $(STATIC_MANIFESTS_DIR)/template-controller.yaml
+	echo "kind: Namespace" >> $(STATIC_MANIFESTS_DIR)/template-controller.yaml
+	echo "metadata:" >> $(STATIC_MANIFESTS_DIR)/template-controller.yaml
+	echo "  name: template-controller" >> $(STATIC_MANIFESTS_DIR)/template-controller.yaml
+	helm template template-controller --skip-tests -n template-controller $(HELM_DIR) >> $(STATIC_MANIFESTS_DIR)/template-controller.yaml
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

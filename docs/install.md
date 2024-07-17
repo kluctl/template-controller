@@ -9,15 +9,15 @@ weight: 10
 
 # Installation
 
-The Template Controller can currently only be installed via kustomize:
+The Template Controller can currently be installed via static manifests or via Helm.
 
+## Static Manifests
 ```sh
-kubectl create ns kluctl-system
-kustomize build "https://github.com/kluctl/template-controller/config/install?ref=v0.8.3" | kubectl apply -f-
+kubectl apply -f "https://raw.githubusercontent.com/kluctl/template-controller/v0.8.3/deploy/manifests/template-controller.yaml"
 ```
 
 ## Helm
-A Helm Chart for the controller is also available [here](https://github.com/kluctl/charts/tree/main/charts/template-controller).
+A Helm Chart for the controller is available as well.
 To install the controller via Helm, run:
 ```shell
 $ helm repo add kluctl https://kluctl.github.io/charts
