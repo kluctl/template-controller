@@ -7,6 +7,11 @@ VERSION=$1
 VERSION_REGEX='v([0-9]*)\.([0-9]*)\.([0-9]*)'
 VERSION_REGEX_SED='v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)'
 
+if [ ! -z "$(git status --porcelain)" ]; then
+  echo "working directory is dirty!"
+  exit 1
+fi
+
 if [ -z "$VERSION" ]; then
   echo "No version specified, using 'git sv next-version'"
   VERSION=v$(git sv next-version)
@@ -17,22 +22,34 @@ if [[ ! ($VERSION =~ $VERSION_REGEX) ]]; then
   exit 1
 fi
 
+VERSION_NO_V=$(echo $VERSION | sed 's/$v//g')
+
 echo VERSION=$VERSION
+echo VERSION_NO_V=$VERSION_NO_V
 
 cat docs/install.md | sed "s/ref=$VERSION_REGEX_SED/ref=$VERSION/g" > docs/install.md.tmp
 mv docs/install.md.tmp docs/install.md
 
-cat config/manager/kustomization.yaml | sed "s/$VERSION_REGEX_SED/$VERSION/g" > config/manager/kustomization.yaml.tmp
-mv config/manager/kustomization.yaml.tmp config/manager/kustomization.yaml
+SED_FILES="\
+  docs/install.md \
+"
+ADD_FILES="$SED_FILES"
 
-FILES="docs/install.md config/manager/kustomization.yaml"
+yq -i ".version=\"$VERSION_NO_V\" | .appVersion=\"$VERSION\"" deploy/charts/template-controller/Chart.yaml
+ADD_FILES="$ADD_FILES deploy/charts/template-controller/Chart.yaml"
 
-for f in $FILES; do
+for f in $SED_FILES; do
+  echo "Replacing version in $f"
+  cat $f | sed "s/$VERSION_REGEX_SED/$VERSION/g" > $f.tmp
+  mv $f.tmp $f
+done
+
+for f in $ADD_FILES; do
   git add $f
 done
 
 echo "committing"
-git commit -o -m "build: Preparing release $VERSION" -- $FILES
+git commit -o -m "build: Preparing release $VERSION" -- $ADD_FILES
 
 echo "tagging"
 git tag -f $VERSION
