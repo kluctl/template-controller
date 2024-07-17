@@ -16,10 +16,11 @@ endif
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
-BUNDLE_DIR     ?= deploy/crds
+BUNDLE_DIR  ?= deploy/crds
 CRD_DIR     ?= config/crd
 RBAC_DIR    ?= config/rbac
 HELM_DIR    ?= deploy/charts/template-controller
+OUTPUT_DIR  ?= bin
 
 .PHONY: all
 all: build
@@ -51,15 +52,6 @@ manifests-crds: controller-gen
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	./hack/crd.generate.sh $(BUNDLE_DIR) $(CRD_DIR)
 
-.PHONY: manifests-helm
-helm-manifests: manifests-crds
-	./hack/helm.generate.sh $(BUNDLE_DIR) $(RBAC_DIR) $(HELM_DIR)
-
-.PHONY: helm-docs
-helm-docs:
-	cd $(HELM_DIR); \
-	docker run --rm -v $(shell pwd)/$(HELM_DIR):/helm-docs -u $(shell id -u) jnorwood/helm-docs:v1.14.2
-
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
@@ -75,6 +67,24 @@ vet: ## Run go vet against code.
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out --ginkgo.v
+
+##@ Helm
+
+.PHONY: helm-manifests
+helm-manifests: manifests-crds
+	./hack/helm.generate.sh $(BUNDLE_DIR) $(RBAC_DIR) $(HELM_DIR)
+
+.PHONY: helm-docs
+helm-docs:
+	cd $(HELM_DIR); \
+	docker run --rm -v $(shell pwd)/$(HELM_DIR):/helm-docs -u $(shell id -u) jnorwood/helm-docs:v1.14.2
+
+HELM_VERSION ?= $(shell helm show chart $(HELM_DIR) | grep 'version:' | sed 's/version: //g')
+
+.PHONE: helm-package
+helm-package:
+	helm package $(HELM_DIR) --destination $(OUTPUT_DIR)/chart
+	mv $(OUTPUT_DIR)/chart/template-controller-$(HELM_VERSION).tgz $(OUTPUT_DIR)/chart/template-controller.tgz
 
 ##@ Build
 
