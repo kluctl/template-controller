@@ -18,6 +18,8 @@ SHELL = /usr/bin/env bash -o pipefail
 
 BUNDLE_DIR     ?= deploy/crds
 CRD_DIR     ?= config/crd
+RBAC_DIR    ?= config/rbac
+HELM_DIR    ?= deploy/charts/template-controller
 
 .PHONY: all
 all: build
@@ -42,12 +44,16 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: manifests-crds
+manifests: manifests-crds manifests-helm
 
 .PHONY: manifests-crds
 manifests-crds: controller-gen
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	./hack/crd.generate.sh $(BUNDLE_DIR) $(CRD_DIR)
+
+.PHONY: manifests-helm
+manifests-helm: manifests-crds
+	./hack/helm.generate.sh $(BUNDLE_DIR) $(RBAC_DIR) $(HELM_DIR)
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

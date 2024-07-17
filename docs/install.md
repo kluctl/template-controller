@@ -21,5 +21,5 @@ A Helm Chart for the controller is also available [here](https://github.com/kluc
 To install the controller via Helm, run:
 ```shell
 $ helm repo add kluctl https://kluctl.github.io/charts
-$ helm install template-controller kluctl/template-controller
+$ helm install template-controller -n template-controller --create-namespace kluctl/template-controller
 ```

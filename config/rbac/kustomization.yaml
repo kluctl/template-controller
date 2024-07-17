@@ -1,12 +1,21 @@
 resources:
-# All RBAC will be applied under this service account in
-# the deployment namespace. You may comment out this resource
-# if your manager will use a service account that exists at
-# runtime. Be sure to update RoleBinding and ClusterRoleBinding
-# subjects if changing service account names.
-- service_account.yaml
-- role.yaml
-- role_binding.yaml
+- githubcomment_editor_role.yaml
+- githubcomment_viewer_role.yaml
+- gitlabcomment_editor_role.yaml
+- gitlabcomment_viewer_role.yaml
+- gitprojector_editor_role.yaml
+- gitprojector_viewer_role.yaml
 - leader_election_role.yaml
 - leader_election_role_binding.yaml
-namePrefix: template-
+- listgithubpullrequests_editor_role.yaml
+- listgithubpullrequests_viewer_role.yaml
+- listgitlabmergerequests_editor_role.yaml
+- listgitlabmergerequests_viewer_role.yaml
+- objecttemplate_editor_role.yaml
+- objecttemplate_viewer_role.yaml
+- role.yaml
+- role_binding.yaml
+- service_account.yaml
+- texttemplate_editor_role.yaml
+- texttemplate_viewer_role.yaml
+namePrefix: template-controller-
