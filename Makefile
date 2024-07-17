@@ -16,6 +16,9 @@ endif
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
+BUNDLE_DIR     ?= deploy/crds
+CRD_DIR     ?= config/crd
+
 .PHONY: all
 all: build
 
@@ -39,8 +42,12 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+manifests: manifests-crds
+
+.PHONY: manifests-crds
+manifests-crds: controller-gen
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	./hack/crd.generate.sh $(BUNDLE_DIR) $(CRD_DIR)
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
