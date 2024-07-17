@@ -10,13 +10,21 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"testing"
 )
 
 func NewJinja2(opts ...jinja2.Jinja2Opt) (*jinja2.Jinja2, error) {
+	strict := false
+	if testing.Testing() {
+		// we make it strict in testing already and will later make it strict in non-testing as well, but this requires
+		// an API version bump
+		strict = true
+	}
+
 	var opts2 []jinja2.Jinja2Opt
 	opts2 = append(opts2, opts...)
 	opts2 = append(opts2,
-		jinja2.WithStrict(false),
+		jinja2.WithStrict(strict),
 		jinja2.WithExtension("jinja2.ext.loopcontrols"),
 		jinja2.WithExtension("go_jinja2.ext.kluctl"),
 		jinja2.WithExtension("go_jinja2.ext.time"),
