@@ -12,7 +12,7 @@ require (
 	github.com/ohler55/ojg v1.23.0
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
-	github.com/xanzy/go-gitlab v0.106.0
+	github.com/xanzy/go-gitlab v0.107.0
 	golang.org/x/oauth2 v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.30.2
