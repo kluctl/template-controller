@@ -22,10 +22,18 @@ if [[ ! ($VERSION =~ $VERSION_REGEX) ]]; then
   exit 1
 fi
 
-VERSION_NO_V=$(echo $VERSION | sed 's/$v//g')
+VERSION_NO_V=$(echo $VERSION | sed 's/^v//g')
 
 echo VERSION=$VERSION
 echo VERSION_NO_V=$VERSION_NO_V
+
+make manifests
+if [ ! -z "$(git status --porcelain)" ]; then
+  echo "make manifests changes manifests even though we did not touch the version yet!"
+  exit 1
+fi
+
+### A few seds/yqs to update versions
 
 cat docs/install.md | sed "s/ref=$VERSION_REGEX_SED/ref=$VERSION/g" > docs/install.md.tmp
 mv docs/install.md.tmp docs/install.md
@@ -44,12 +52,27 @@ for f in $SED_FILES; do
   mv $f.tmp $f
 done
 
+echo "Updating manifests and docs"
+make manifests
+make helm-docs
+
+ADD_FILES="$ADD_FILES deploy/manifests/template-controller.yaml"
+ADD_FILES="$ADD_FILES deploy/charts/template-controller/README.md"
+
+echo "Adding files to index: $ADD_FILES"
 for f in $ADD_FILES; do
   git add $f
 done
 
-echo "committing"
+echo "Committing"
 git commit -o -m "build: Preparing release $VERSION" -- $ADD_FILES
 
-echo "tagging"
+# Check if working tree got clean after commiting all know changed files. If you see this failing, you might need to
+# update the ADD_FILES
+if [ ! -z "$(git status --porcelain)" ]; then
+  echo "make manifests changes manifests even though we did not touch the version yet!"
+  exit 1
+fi
+
+echo "Tagging"
 git tag -f $VERSION
