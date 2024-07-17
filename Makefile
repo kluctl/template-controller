@@ -44,7 +44,7 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: manifests-crds manifests-helm
+manifests: manifests-crds helm-manifests
 
 .PHONY: manifests-crds
 manifests-crds: controller-gen
@@ -52,8 +52,13 @@ manifests-crds: controller-gen
 	./hack/crd.generate.sh $(BUNDLE_DIR) $(CRD_DIR)
 
 .PHONY: manifests-helm
-manifests-helm: manifests-crds
+helm-manifests: manifests-crds
 	./hack/helm.generate.sh $(BUNDLE_DIR) $(RBAC_DIR) $(HELM_DIR)
+
+.PHONY: helm-docs
+helm-docs:
+	cd $(HELM_DIR); \
+	docker run --rm -v $(shell pwd)/$(HELM_DIR):/helm-docs -u $(shell id -u) jnorwood/helm-docs:v1.14.2
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
