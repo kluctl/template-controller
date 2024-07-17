@@ -28,8 +28,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"testing"
 )
 
 // TextTemplateReconciler reconciles a TextTemplate object
@@ -99,6 +101,13 @@ func (r *TextTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			Message:            "Success",
 		}
 		apimeta.SetStatusCondition(&tt.Status.Conditions, c)
+	}
+	if testing.Testing() {
+		// need this to allow tests to see if the reconciliation finished
+		a := tt.GetAnnotations()["test"]
+		apimeta.SetStatusCondition(&tt.Status.Conditions, metav1.Condition{
+			Type: "Test", Status: metav1.ConditionTrue, ObservedGeneration: tt.Generation, Reason: "Test", Message: a,
+		})
 	}
 	err = r.Status().Patch(ctx, &tt, patch, SubResourceFieldOwner(r.FieldManager))
 	return
@@ -226,9 +235,16 @@ func (r *TextTemplateReconciler) finalize(ctx context.Context, obj *templatesv1a
 func (r *TextTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent int) error {
 	r.Manager = mgr
 
+	predicates := []predicate.Predicate{
+		predicate.GenerationChangedPredicate{},
+	}
+	if testing.Testing() {
+		predicates = append(predicates, TestAnnotationPredicate())
+	}
+
 	c, err := ctrl.NewControllerManagedBy(mgr).
 		For(&templatesv1alpha1.TextTemplate{}, builder.WithPredicates(
-			predicate.Or(predicate.GenerationChangedPredicate{}),
+			predicate.Or(predicates...),
 		)).
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: concurrent,
@@ -245,6 +261,16 @@ func (r *TextTemplateReconciler) SetupWithManager(mgr ctrl.Manager, concurrent i
 	}
 
 	return nil
+}
+
+func TestAnnotationPredicate() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.TypedUpdateEvent[client.Object]) bool {
+			a1 := e.ObjectOld.GetAnnotations()["test"]
+			a2 := e.ObjectNew.GetAnnotations()["test"]
+			return a1 != a2
+		},
+	}
 }
 
 func (r *TextTemplateReconciler) buildTemplateRef(tt *templatesv1alpha1.TextTemplate) *templatesv1alpha1.ObjectRef {
