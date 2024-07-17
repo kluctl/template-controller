@@ -88,12 +88,9 @@ helm-docs:
 	cd $(HELM_DIR); \
 	docker run --rm -v $(shell pwd)/$(HELM_DIR):/helm-docs -u $(shell id -u) jnorwood/helm-docs:v1.14.2
 
-HELM_VERSION ?= $(shell helm show chart $(HELM_DIR) | grep 'version:' | sed 's/version: //g')
-
 .PHONE: helm-package
 helm-package:
 	helm package $(HELM_DIR) --destination $(OUTPUT_DIR)/chart
-	mv $(OUTPUT_DIR)/chart/template-controller-$(HELM_VERSION).tgz $(OUTPUT_DIR)/chart/template-controller.tgz
 
 ##@ Build
 
