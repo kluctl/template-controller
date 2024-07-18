@@ -101,6 +101,16 @@ var _ = BeforeSuite(func() {
 	}).SetupWithManager(k8sManager, 1)
 	Expect(err).ToNot(HaveOccurred())
 
+	err = (&TextTemplateReconciler{
+		BaseTemplateReconciler: BaseTemplateReconciler{
+			Client:          k8sManager.GetClient(),
+			RawWatchContext: ctx,
+			Scheme:          k8sManager.GetScheme(),
+			FieldManager:    "template-controller",
+		},
+	}).SetupWithManager(k8sManager, 1)
+	Expect(err).ToNot(HaveOccurred())
+
 	go func() {
 		defer GinkgoRecover()
 		err = k8sManager.Start(ctx)

@@ -32,7 +32,6 @@ import (
 var _ = Describe("ObjectTemplate controller", func() {
 	const (
 		timeout  = time.Second * 10
-		duration = time.Second * 10
 		interval = time.Millisecond * 250
 	)
 
@@ -59,7 +58,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 
 			Consistently(func() error {
 				return k8sClient.Get(ctx, cmKey, &v1.ConfigMap{})
-			}, "2s").Should(MatchError("configmaps \"cm1\" not found"))
+			}, "2s", interval).Should(MatchError("configmaps \"cm1\" not found"))
 
 			assertFailedConfigMaps(key, cmKey)
 		})
@@ -219,7 +218,7 @@ var _ = Describe("ObjectTemplate controller", func() {
 				var cm v1.ConfigMap
 				Expect(k8sClient.Get(ctx, cmKey, &cm)).To(Succeed())
 				return cm.Data
-			}, timeout, time.Millisecond*250).Should(Equal(map[string]string{
+			}, timeout, interval).Should(Equal(map[string]string{
 				"k1": "Mw==Mg==", // two base64 encoded strings got added
 			}))
 		})
@@ -234,13 +233,86 @@ var _ = Describe("ObjectTemplate controller", func() {
 				var cm v1.ConfigMap
 				Expect(k8sClient.Get(ctx, cmKey, &cm)).To(Succeed())
 				return cm.Data
-			}, timeout, time.Millisecond*250).Should(Equal(map[string]string{
+			}, timeout, interval).Should(Equal(map[string]string{
 				"k1": "5",
 			}))
 		})
 		It("Should cleanup", func() {
 			Expect(k8sClient.Delete(ctx, t)).To(Succeed())
 			waitUntilDeleted(key, &templatesv1alpha1.ObjectTemplate{}, timeout)
+		})
+	})
+	Context("Pruning", func() {
+		ns := fmt.Sprintf("test-%d", rand.Int64())
+
+		key1 := client.ObjectKey{Name: "t1", Namespace: ns}
+		key2 := client.ObjectKey{Name: "t2", Namespace: ns}
+		cmKey1 := client.ObjectKey{Name: "cm1", Namespace: ns}
+		cmKey2 := client.ObjectKey{Name: "cm2", Namespace: ns}
+		cmKey3 := client.ObjectKey{Name: "cm3", Namespace: ns}
+		cmKey4 := client.ObjectKey{Name: "cm4", Namespace: ns}
+
+		assertAllExist := func() {
+			assertConfigMapData(cmKey1, map[string]string{
+				"k1": "3",
+			})
+			assertConfigMapData(cmKey2, map[string]string{
+				"k1": "4",
+			})
+			assertConfigMapData(cmKey3, map[string]string{
+				"k1": "5",
+			})
+			assertConfigMapData(cmKey4, map[string]string{
+				"k1": "6",
+			})
+		}
+
+		t1 := buildObjectTemplate(key1.Name, key1.Namespace,
+			[]templatesv1alpha1.MatrixEntry{buildMatrixListEntry("m1")},
+			[]templatesv1alpha1.Template{
+				{Object: buildTestConfigMap(cmKey1.Name, cmKey1.Namespace, map[string]string{
+					"k1": `{{ matrix.m1.k1 + matrix.m1.k2 }}`,
+				})},
+				{Object: buildTestConfigMap(cmKey2.Name, cmKey2.Namespace, map[string]string{
+					"k1": `{{ matrix.m1.k1 + matrix.m1.k2 + 1 }}`,
+				})},
+			})
+		t2 := buildObjectTemplate(key2.Name, key2.Namespace,
+			[]templatesv1alpha1.MatrixEntry{buildMatrixListEntry("m1")},
+			[]templatesv1alpha1.Template{
+				{Object: buildTestConfigMap(cmKey3.Name, cmKey3.Namespace, map[string]string{
+					"k1": `{{ matrix.m1.k1 + matrix.m1.k2 + 2}}`,
+				})},
+				{Object: buildTestConfigMap(cmKey4.Name, cmKey4.Namespace, map[string]string{
+					"k1": `{{ matrix.m1.k1 + matrix.m1.k2 + 3 }}`,
+				})},
+			})
+		t2.Spec.Prune = true
+
+		It("Should create the objects initially", func() {
+			createNamespace(ns)
+			createServiceAccount("default", ns)
+			createRoleWithBinding("default", ns, []string{"configmaps"})
+
+			Expect(k8sClient.Create(ctx, t1)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, t2)).Should(Succeed())
+			waitUntiReconciled(key1, timeout)
+			waitUntiReconciled(key2, timeout)
+
+			assertAppliedConfigMaps(key1, cmKey1, cmKey2)
+			assertAppliedConfigMaps(key2, cmKey3, cmKey4)
+			assertAllExist()
+		})
+		It("Should not delete the objects when prune is false", func() {
+			Expect(k8sClient.Delete(ctx, t1)).To(Succeed())
+			waitUntilDeleted(key1, &templatesv1alpha1.ObjectTemplate{}, timeout)
+			assertAllExist()
+		})
+		It("Should delete the objects when prune is true", func() {
+			Expect(k8sClient.Delete(ctx, t2)).To(Succeed())
+			waitUntilDeleted(key2, &templatesv1alpha1.ObjectTemplate{}, timeout)
+			waitUntilDeleted(cmKey3, &v1.ConfigMap{}, timeout)
+			waitUntilDeleted(cmKey4, &v1.ConfigMap{}, timeout)
 		})
 	})
 })

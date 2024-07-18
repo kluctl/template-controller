@@ -68,20 +68,20 @@ func (wu *watchesUtil) getWatchesForTemplate(templateKey client.ObjectKey) *watc
 	return wt
 }
 
-func (wu *watchesUtil) removeWatchesForTemplate(templateKey client.ObjectKey) {
+func (wu *watchesUtil) removeWatchesForTemplate(ctx context.Context, templateKey client.ObjectKey) {
 	wu.mutex.Lock()
 	defer wu.mutex.Unlock()
 
 	wt := wu.watches[templateKey]
 	if wt != nil {
-		wt.removeDeletedWatches(nil)
+		wt.removeDeletedWatches(ctx, nil)
 		delete(wu.watches, templateKey)
 	}
 }
 
-func (wt *watchesForTemplate) setClient(objClient client.WithWatch, serviceAccount string) {
+func (wt *watchesForTemplate) setClient(ctx context.Context, objClient client.WithWatch, serviceAccount string) {
 	if wt.serviceAccount != serviceAccount {
-		wt.removeDeletedWatches(nil)
+		wt.removeDeletedWatches(ctx, nil)
 		wt.serviceAccount = serviceAccount
 	}
 	wt.client = objClient
@@ -113,6 +113,7 @@ func (wt *watchesForTemplate) addWatchForObject(ctx context.Context, objectRef t
 		Namespace:     objectRef.Namespace,
 	})
 	if err != nil {
+		logger.Info("Failed to start watch for object", "templateKey", wt.templateKey, "objectRef", objectRef, "error", err.Error())
 		var err2 *errors2.StatusError
 		if errors.As(err, &err2) {
 			if err2.ErrStatus.Code == http.StatusForbidden {
@@ -134,12 +135,15 @@ func (wt *watchesForTemplate) addWatchForObject(ctx context.Context, objectRef t
 	return nil
 }
 
-func (wt *watchesForTemplate) removeDeletedWatches(newRefs map[templatesv1alpha1.ObjectRef]struct{}) {
+func (wt *watchesForTemplate) removeDeletedWatches(ctx context.Context, newRefs map[templatesv1alpha1.ObjectRef]struct{}) {
+	logger := log.FromContext(ctx)
+
 	wt.mutex.Lock()
 	defer wt.mutex.Unlock()
 
 	for k, w := range wt.watches {
 		if _, ok := newRefs[k]; !ok {
+			logger.V(1).Info("Stopping watch for object", "templateKey", wt.templateKey, "objectRef", k)
 			w.Stop()
 			delete(wt.watches, k)
 		}
