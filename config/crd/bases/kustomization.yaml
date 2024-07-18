@@ -1,0 +1,8 @@
+resources:
+  - templates.kluctl.io_githubcomments.yaml
+  - templates.kluctl.io_gitlabcomments.yaml
+  - templates.kluctl.io_gitprojectors.yaml
+  - templates.kluctl.io_listgithubpullrequests.yaml
+  - templates.kluctl.io_listgitlabmergerequests.yaml
+  - templates.kluctl.io_objecttemplates.yaml
+  - templates.kluctl.io_texttemplates.yaml

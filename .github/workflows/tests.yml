@@ -46,9 +46,10 @@ jobs:
             git diff
             exit 1
           fi
-      - name: Verify generated api-docs are up-to-date
+      - name: Verify generated docs are up-to-date
         run: |
           make api-docs
+          make helm-docs
           if [ ! -z "$(git status --porcelain)" ]; then
             echo "make api-docs must be invoked and the result committed"
             git status

@@ -59,11 +59,11 @@ release:
   draft: true
   prerelease: "true"
   extra_files:
-    - glob: config/release/*.yaml
+    - glob: bin/chart/template-controller-*.tgz
 
 checksum:
   extra_files:
-    - glob: config/release/*.yaml
+    - glob: bin/chart/template-controller-*.tgz
   name_template: '{{ .ProjectName }}_v{{ .Version }}_checksums.txt'
 
 source:

@@ -1,0 +1,13 @@
+apiVersion: v2
+name: template-controller
+maintainers:
+  - name: kluctl
+    url: https://github.com/kluctl
+  - email: aljoscha.poertner@posteo.de
+    name: AljoschaP
+  - email: ablock84@gmail.com
+    name: codablock
+description: A Helm chart for the template-controller
+type: application
+version: "0.8.3"
+appVersion: "v0.8.3"

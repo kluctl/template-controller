@@ -16,6 +16,13 @@ endif
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
+BUNDLE_DIR  ?= deploy/crds
+CRD_DIR     ?= config/crd
+RBAC_DIR    ?= config/rbac
+HELM_DIR    ?= deploy/charts/template-controller
+STATIC_MANIFESTS_DIR ?= deploy/manifests
+OUTPUT_DIR  ?= bin
+
 .PHONY: all
 all: build
 
@@ -39,8 +46,20 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+manifests: manifests-crds manifests-static helm-manifests
+
+.PHONY: manifests-crds
+manifests-crds: controller-gen
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	./hack/crd.generate.sh $(BUNDLE_DIR) $(CRD_DIR)
+
+.PHONY: manifests-static
+manifests-static: helm-manifests
+	echo "apiVersion: v1" > $(STATIC_MANIFESTS_DIR)/template-controller.yaml
+	echo "kind: Namespace" >> $(STATIC_MANIFESTS_DIR)/template-controller.yaml
+	echo "metadata:" >> $(STATIC_MANIFESTS_DIR)/template-controller.yaml
+	echo "  name: template-controller" >> $(STATIC_MANIFESTS_DIR)/template-controller.yaml
+	helm template template-controller --skip-tests -n template-controller $(HELM_DIR) >> $(STATIC_MANIFESTS_DIR)/template-controller.yaml
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -57,6 +76,21 @@ vet: ## Run go vet against code.
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out --ginkgo.v
+
+##@ Helm
+
+.PHONY: helm-manifests
+helm-manifests: manifests-crds
+	./hack/helm.generate.sh $(BUNDLE_DIR) $(RBAC_DIR) $(HELM_DIR)
+
+.PHONY: helm-docs
+helm-docs:
+	cd $(HELM_DIR); \
+	docker run --rm -v $(shell pwd)/$(HELM_DIR):/helm-docs -u $(shell id -u) jnorwood/helm-docs:v1.14.2
+
+.PHONE: helm-package
+helm-package:
+	helm package $(HELM_DIR) --destination $(OUTPUT_DIR)/chart
 
 ##@ Build
 
