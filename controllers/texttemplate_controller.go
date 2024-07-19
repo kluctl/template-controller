@@ -129,29 +129,25 @@ func (r *TextTemplateReconciler) doReconcile(ctx context.Context, tt *templatesv
 	wt.setClient(ctx, objClient, tt.Spec.ServiceAccountName)
 	newObjects := map[templatesv1alpha1.ObjectRef]struct{}{}
 	if tt.Spec.TemplateRef != nil && tt.Spec.TemplateRef.ConfigMap != nil {
-		ns := tt.Spec.TemplateRef.ConfigMap.Namespace
-		if ns == "" {
-			ns = tt.Namespace
-		}
 		objRef := templatesv1alpha1.ObjectRef{
 			APIVersion: "v1",
 			Kind:       "ConfigMap",
-			Namespace:  ns,
+			Namespace:  tt.Spec.TemplateRef.ConfigMap.Namespace,
 			Name:       tt.Spec.TemplateRef.ConfigMap.Name,
 		}
-		err = wt.addWatchForObject(ctx, objRef)
+		refWithNs, err := wt.addWatchForObject(ctx, objRef)
 		if err != nil {
 			return err
 		}
-		newObjects[objRef] = struct{}{}
+		newObjects[refWithNs] = struct{}{}
 	}
 	for _, me := range tt.Spec.Inputs {
 		if me.Object != nil {
-			err = wt.addWatchForObject(ctx, me.Object.Ref)
+			refWithNs, err := wt.addWatchForObject(ctx, me.Object.Ref)
 			if err != nil {
 				return err
 			}
-			newObjects[me.Object.Ref] = struct{}{}
+			newObjects[refWithNs] = struct{}{}
 		}
 	}
 	wt.removeDeletedWatches(ctx, newObjects)

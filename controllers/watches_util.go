@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -87,23 +88,32 @@ func (wt *watchesForTemplate) setClient(ctx context.Context, objClient client.Wi
 	wt.client = objClient
 }
 
-func (wt *watchesForTemplate) addWatchForObject(ctx context.Context, objectRef templatesv1alpha1.ObjectRef) error {
+func (wt *watchesForTemplate) addWatchForObject(ctx context.Context, objectRef templatesv1alpha1.ObjectRef) (templatesv1alpha1.ObjectRef, error) {
 	logger := log.FromContext(ctx)
+
+	gvk, err := objectRef.GroupVersionKind()
+	if err != nil {
+		return objectRef, err
+	}
+
+	// if namespace is not set, default to the template's namespace
+	if objectRef.Namespace == "" {
+		if isNs, err := apiutil.IsGVKNamespaced(gvk, wt.client.RESTMapper()); err != nil {
+			return objectRef, fmt.Errorf("failed to determine if object is namespaced: %w", err)
+		} else if isNs {
+			objectRef.Namespace = wt.templateKey.Namespace
+		}
+	}
 
 	wt.mutex.Lock()
 	defer wt.mutex.Unlock()
 
 	w := wt.watches[objectRef]
 	if w != nil {
-		return nil
+		return objectRef, nil
 	}
 
 	logger.V(1).Info("Starting watch for object", "templateKey", wt.templateKey, "objectRef", objectRef)
-
-	gvk, err := objectRef.GroupVersionKind()
-	if err != nil {
-		return err
-	}
 
 	// this is a single-object watch that does NOT require global watch permissions!
 	var dummy unstructured.UnstructuredList
@@ -120,7 +130,7 @@ func (wt *watchesForTemplate) addWatchForObject(ctx context.Context, objectRef t
 				err = fmt.Errorf("watch for %s \"%s\" is forbidden: %w", gvk.Kind, objectRef.Name, err)
 			}
 		}
-		return err
+		return objectRef, err
 	}
 	wt.watches[objectRef] = w
 
@@ -132,7 +142,7 @@ func (wt *watchesForTemplate) addWatchForObject(ctx context.Context, objectRef t
 		}
 	}()
 
-	return nil
+	return objectRef, nil
 }
 
 func (wt *watchesForTemplate) removeDeletedWatches(ctx context.Context, newRefs map[templatesv1alpha1.ObjectRef]struct{}) {

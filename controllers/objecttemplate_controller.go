@@ -194,11 +194,11 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	newObjects := map[templatesv1alpha1.ObjectRef]struct{}{}
 	for _, me := range rt.Spec.Matrix {
 		if me.Object != nil {
-			newObjects[me.Object.Ref] = struct{}{}
-			err = wt.addWatchForObject(ctx, me.Object.Ref)
+			refWithNs, err := wt.addWatchForObject(ctx, me.Object.Ref)
 			if err != nil {
 				return err
 			}
+			newObjects[refWithNs] = struct{}{}
 		}
 	}
 	wt.removeDeletedWatches(ctx, newObjects)
