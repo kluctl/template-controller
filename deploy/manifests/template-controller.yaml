@@ -10,10 +10,10 @@ metadata:
   name: template-controller
   namespace: template-controller
   labels:
-    helm.sh/chart: template-controller-0.9.1
+    helm.sh/chart: template-controller-0.9.2
     app.kubernetes.io/name: template-controller
     app.kubernetes.io/instance: template-controller
-    app.kubernetes.io/version: "v0.9.1"
+    app.kubernetes.io/version: "v0.9.2"
     app.kubernetes.io/managed-by: Helm
 ---
 # Source: template-controller/templates/crds/githubcomment.yaml
@@ -2109,10 +2109,10 @@ metadata:
   name: template-controller
   namespace: template-controller
   labels:
-    helm.sh/chart: template-controller-0.9.1
+    helm.sh/chart: template-controller-0.9.2
     app.kubernetes.io/name: template-controller
     app.kubernetes.io/instance: template-controller
-    app.kubernetes.io/version: "v0.9.1"
+    app.kubernetes.io/version: "v0.9.2"
     app.kubernetes.io/managed-by: Helm
 spec:
   type: ClusterIP
@@ -2136,10 +2136,10 @@ metadata:
   name: template-controller
   namespace: template-controller
   labels:
-    helm.sh/chart: template-controller-0.9.1
+    helm.sh/chart: template-controller-0.9.2
     app.kubernetes.io/name: template-controller
     app.kubernetes.io/instance: template-controller
-    app.kubernetes.io/version: "v0.9.1"
+    app.kubernetes.io/version: "v0.9.2"
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
@@ -2170,7 +2170,7 @@ spec:
             runAsUser: 1337
             seccompProfile:
               type: RuntimeDefault
-          image: "ghcr.io/kluctl/template-controller:v0.9.1"
+          image: "ghcr.io/kluctl/template-controller:v0.9.2"
           env:
             - name: RUNTIME_NAMESPACE
               valueFrom:

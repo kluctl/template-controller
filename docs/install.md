@@ -13,7 +13,7 @@ The Template Controller can currently be installed via static manifests or via H
 
 ## Static Manifests
 ```sh
-kubectl apply -f "https://raw.githubusercontent.com/kluctl/template-controller/v0.9.1/deploy/manifests/template-controller.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/kluctl/template-controller/v0.9.2/deploy/manifests/template-controller.yaml"
 ```
 
 ## Helm
