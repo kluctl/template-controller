@@ -32,6 +32,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -234,11 +235,11 @@ func (r *ObjectTemplateReconciler) doReconcile(ctx context.Context, rt *template
 	}
 
 	for _, x := range allResources {
-		rm, err := r.Client.RESTMapper().RESTMapping(x.GroupVersionKind().GroupKind(), x.GroupVersionKind().Version)
+		isNs, err := apiutil.IsGVKNamespaced(x.GroupVersionKind(), objClient.RESTMapper())
 		if err != nil {
 			return err
 		}
-		if rm.Scope.Name() == apimeta.RESTScopeNameNamespace && x.GetNamespace() == "" {
+		if isNs && x.GetNamespace() == "" {
 			x.SetNamespace(rt.Namespace)
 		}
 	}
