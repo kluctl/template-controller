@@ -103,6 +103,15 @@ var _ = Describe("TextTemplate controller", func() {
 			Expect(c.Status).To(Equal(metav1.ConditionTrue))
 			assertTextTemplateResult(key, "v1")
 		})
+		It("Should still succeed when the input object has no namespace", func() {
+			updateTextTemplate(key, func(t *templatesv1alpha1.TextTemplate) {
+				t.Spec.Inputs[0].Object.Ref.Namespace = ""
+			})
+			waitUntiTextTemplateReconciled(key, timeout)
+			t2 := getTextTemplate(key)
+			c := getReadyCondition(t2.GetConditions())
+			Expect(c.Status).To(Equal(metav1.ConditionTrue))
+		})
 		It("Should respect the jsonPath", func() {
 			updateTextTemplate(key, func(t *templatesv1alpha1.TextTemplate) {
 				p := ".data"

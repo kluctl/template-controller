@@ -153,10 +153,33 @@ var _ = Describe("ObjectTemplate controller", func() {
 		})
 		It("Should succeed after the SA is being created", func() {
 			createServiceAccount("non-existent", ns)
-			createRoleWithBinding("non-existent", ns, []string{"configmaps"})
+			createRoleWithBinding("non-existent", ns, []string{"configmaps", "secrets"})
 			triggerReconcile(key)
 			waitUntiReconciled(key, timeout)
-			assertAppliedConfigMaps(key, cmKey)
+			t2 := getObjectTemplate(key)
+			c := getReadyCondition(t2.GetConditions())
+			Expect(c.Status).To(Equal(metav1.ConditionTrue))
+		})
+		It("Should still succeed if the matrix input has no namespace", func() {
+			Expect(k8sClient.Create(ctx, buildTestSecret("m2", ns, map[string]string{
+				"k3": "3",
+			}))).To(Succeed())
+			updateObjectTemplate(key, func(t *templatesv1alpha1.ObjectTemplate) {
+				// we test the existing matrix entry to be changed
+				t.Spec.Matrix[0].Object.Ref.Namespace = ""
+				// and a new one being added
+				t.Spec.Matrix = append(t.Spec.Matrix, buildMatrixObjectEntry("m2", "m2", "", "Secret", "", false))
+				t.Spec.Templates[0].Object = buildTestConfigMap(cmKey.Name, cmKey.Namespace, map[string]string{
+					"k1": `{{ matrix.m1.data.k1 + matrix.m1.data.k2 + matrix.m2.data.k3 }}`,
+				})
+			})
+			waitUntiReconciled(key, timeout)
+			t2 := getObjectTemplate(key)
+			c := getReadyCondition(t2.GetConditions())
+			Expect(c.Status).To(Equal(metav1.ConditionTrue))
+			assertConfigMapData(cmKey, map[string]string{
+				"k1": "MQ==Mg==Mw==", // three base64 encoded strings got added
+			})
 		})
 		It("Should cleanup", func() {
 			Expect(k8sClient.Delete(ctx, t)).To(Succeed())
