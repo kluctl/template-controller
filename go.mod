@@ -10,8 +10,8 @@ require (
 	github.com/kluctl/go-jinja2 v0.0.0-20240708212116-03ee7eefba4f
 	github.com/kluctl/kluctl/lib v0.0.0-20240708210331-4b60c060bd56
 	github.com/ohler55/ojg v1.23.0
-	github.com/onsi/ginkgo/v2 v2.19.0
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/ginkgo/v2 v2.19.1
+	github.com/onsi/gomega v1.34.0
 	github.com/xanzy/go-gitlab v0.106.0
 	golang.org/x/oauth2 v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
