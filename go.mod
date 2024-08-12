@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/kluctl/go-jinja2 v0.0.0-20240708212116-03ee7eefba4f
 	github.com/kluctl/kluctl/lib v0.0.0-20240708210331-4b60c060bd56
-	github.com/ohler55/ojg v1.23.0
+	github.com/ohler55/ojg v1.24.0
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
 	github.com/xanzy/go-gitlab v0.106.0
