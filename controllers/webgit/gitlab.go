@@ -91,7 +91,7 @@ func (g *GitlabMergeRequest) CreateMergeRequestNote(body string) (Note, error) {
 }
 
 func (g *GitlabMergeRequest) GetMergeRequestNote(noteId string) (Note, error) {
-	noteId2, err := strconv.ParseInt(noteId, 10, 32)
+	noteId2, err := strconv.ParseInt(noteId, 10, 64)
 	if err != nil {
 		return nil, err
 	}
