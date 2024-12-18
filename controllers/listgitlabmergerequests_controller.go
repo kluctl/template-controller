@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
