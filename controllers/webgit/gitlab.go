@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/kluctl/template-controller/api/v1alpha1"
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"

@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-multierror"
-	"github.com/kluctl/go-jinja2"
+	"github.com/kluctl/kluctl/lib/go-jinja2"
 	templatesv1alpha1 "github.com/kluctl/template-controller/api/v1alpha1"
 	"io"
 	"k8s.io/apimachinery/pkg/api/errors"
