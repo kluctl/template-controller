@@ -11,7 +11,7 @@ require (
 	github.com/ohler55/ojg v1.25.0
 	github.com/onsi/ginkgo/v2 v2.22.0
 	github.com/onsi/gomega v1.36.1
-	gitlab.com/gitlab-org/api/client-go v0.117.0
+	gitlab.com/gitlab-org/api/client-go v0.118.0
 	golang.org/x/oauth2 v0.24.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.32.0
