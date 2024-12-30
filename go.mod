@@ -3,7 +3,7 @@ module github.com/kluctl/template-controller
 go 1.23.4
 
 require (
-	github.com/go-git/go-git/v5 v5.12.1-0.20240409060936-cd6633c3c665
+	github.com/go-git/go-git/v5 v5.13.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v47 v47.1.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -96,7 +96,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67 // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
