@@ -9,5 +9,5 @@ maintainers:
     name: codablock
 description: A Helm chart for the template-controller
 type: application
-version: "0.9.3"
-appVersion: "v0.9.3"
+version: "0.9.4"
+appVersion: "v0.9.4"
