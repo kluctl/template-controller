@@ -38,7 +38,7 @@ type GithubCommentReconciler struct {
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=githubcomments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=githubcomments/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=templates.kluctl.io,resources=githubcomments/finalizers,verbs=update
-//+kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+//+kubebuilder:rbac:groups="",resources=configmaps;namespaces,verbs=get;list;watch
 
 func (r *GithubCommentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
 	logger := log.FromContext(ctx)
