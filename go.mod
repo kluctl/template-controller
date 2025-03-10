@@ -1,6 +1,7 @@
 module github.com/kluctl/template-controller
 
 go 1.23.4
+toolchain go1.24.1
 
 require (
 	github.com/go-git/go-git/v5 v5.12.1-0.20240409060936-cd6633c3c665
@@ -8,7 +9,7 @@ require (
 	github.com/google/go-github/v47 v47.1.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/kluctl/kluctl/lib v0.0.0-20241218092701-f789f3f53952
-	github.com/ohler55/ojg v1.25.0
+	github.com/ohler55/ojg v1.26.2
 	github.com/onsi/ginkgo/v2 v2.22.0
 	github.com/onsi/gomega v1.36.1
 	gitlab.com/gitlab-org/api/client-go v0.117.0
